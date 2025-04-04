@@ -1,24 +1,29 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Elements
     const btnNewMember = document.getElementById("btnNewItem");
     const modalSearchUsers = document.getElementById("modalSearchUsers");
     const searchUserInput = document.getElementById("searchUserInput");
     const userSearchResults = document.getElementById("userSearchResults");
     const btnAddSelectedUsers = document.getElementById("btnAddSelectedUsers");
-    let selectedUsers = new Set();
+    let selectedUsers = new Set(); // Set of user IDs selected via checkbox
     let currentUserId = null;
     let clickInsideModal = false;
 
+    // Assign all event listeners to buttons and modals
     function assignUserButtonEvents() {
+        // Options button for each user
         document.querySelectorAll(".btnMoreOptions").forEach(button => {
             button.removeEventListener("click", handleMoreOptionsClick);
             button.addEventListener("click", handleMoreOptionsClick);
         });
 
+        // Delete member buttons
         document.querySelectorAll(".btnDeleteMember").forEach(button => {
             button.removeEventListener("click", handleDeleteMember);
             button.addEventListener("click", handleDeleteMember);
         });
 
+        // Modal behavior: detect clicks inside or outside the modal
         document.querySelectorAll(".modal").forEach(modal => {
             modal.removeEventListener("mousedown", handleModalMouseDown);
             modal.removeEventListener("mouseup", handleModalMouseUp);
@@ -26,21 +31,26 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.addEventListener("mouseup", handleModalMouseUp);
         });
 
+        // Open user search modal
         btnNewMember.removeEventListener("click", openSearchModal);
         btnNewMember.addEventListener("click", openSearchModal);
 
+        // Search input change
         searchUserInput.removeEventListener("input", handleSearchUsers);
         searchUserInput.addEventListener("input", handleSearchUsers);
 
+        // Add selected users button
         btnAddSelectedUsers.removeEventListener("click", handleAddSelectedUsers);
         btnAddSelectedUsers.addEventListener("click", handleAddSelectedUsers);
     }
 
+    // Show modal to search users
     function openSearchModal() {
         modalSearchUsers.classList.remove("hidden");
         modalSearchUsers.style.display = "flex"
     }
 
+    // Open options modal for specific user
     function handleMoreOptionsClick(event) {
         currentUserId = event.currentTarget.dataset.userid;
         const userItem = event.currentTarget.closest(".user-item");
@@ -52,15 +62,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Delete a member from the group
     function handleDeleteMember(event) {
         const userId = event.target.dataset.userid;
         const groupId = document.body.dataset.groupid;
         if (!userId || !groupId) {
-            console.error("No se ha seleccionado un usuario o grupo para eliminar.");
+            console.error("No user or group selected for deletion.");
             return;
         }
 
-        if (confirm("\u00BFEst\u00E1s seguro de que deseas eliminar este miembro del grupo?")) {
+        if (confirm("Are you sure you want to remove this member from the group?")) {
             fetch(`/delete_member/${userId}?groupId=${groupId}`, {
                 method: "DELETE",
                 headers: {
@@ -70,23 +81,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        console.log("Miembro eliminado correctamente");
+                        console.log("Member successfully removed");
                         document.querySelector(`[data-userid='${userId}']`).remove();
-                        if (data.message === "own") { // si es admin que se está eliminando a si mismo de un grupo
+                        if (data.message === "own") {
+                            // If an admin removes themselves from a group
                             window.location.href = `/manage_members/${groupId}`;
                         }
                     } else {
                         alert(data.message);
                     }
                 })
-                .catch(error => console.error("Error en la petición:", error));
+                .catch(error => console.error("Request error:", error));
         }
     }
 
+    // Detect click inside modal
     function handleModalMouseDown(event) {
         clickInsideModal = !!event.target.closest(".modal-content");
     }
 
+    // Close modal if clicked outside
     function handleModalMouseUp(event) {
         if (!clickInsideModal && event.target.classList.contains("modal")) {
             event.target.classList.add("hidden");
@@ -94,6 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Search users via AJAX when typing
     function handleSearchUsers() {
         const query = searchUserInput.value.trim();
         const groupId = parseInt(document.body.dataset.groupid, 10);
@@ -110,17 +125,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     const li = document.createElement("li");
                     li.classList.add("selectable-user");
 
-                    // Crear checkbox
+                    // Create checkbox
                     const checkbox = document.createElement("input");
                     checkbox.type = "checkbox";
                     checkbox.dataset.userid = user.id;
                     checkbox.classList.add("user-checkbox");
 
-                    // Etiqueta con nombre del usuario
+                    // Create label with user name
                     const label = document.createElement("label");
                     label.textContent = user.name;
                     label.setAttribute("for", `user-${user.id}`);
 
+                    // Add/remove from selectedUsers set
                     checkbox.addEventListener("change", function () {
                         if (checkbox.checked) {
                             selectedUsers.add(user.id);
@@ -134,24 +150,25 @@ document.addEventListener("DOMContentLoaded", function () {
                     userSearchResults.appendChild(li);
                 });
             })
-            .catch(error => console.error("Error en la búsqueda de usuarios:", error));
+            .catch(error => console.error("User search error:", error));
     }
 
+    // Add selected users to the group
     function handleAddSelectedUsers() {
         const checkboxes = document.querySelectorAll(".user-checkbox:checked");
         selectedUsers.clear();
         checkboxes.forEach(checkbox => selectedUsers.add(parseInt(checkbox.dataset.userid, 10)));
 
         if (selectedUsers.size === 0) {
-            alert("No hay usuarios seleccionados.");
+            alert("No users selected.");
             return;
         }
 
         const groupId = parseInt(document.body.dataset.groupid, 10);
-        const currentUserId = parseInt(document.body.dataset.userid, 10); // Obtener el ID del usuario autenticado
+        const currentUserId = parseInt(document.body.dataset.userid, 10); // Logged-in user ID
 
         if (!groupId || !currentUserId) {
-            console.error("El ID del grupo o del usuario no es válido.");
+            console.error("Group ID or User ID is invalid.");
             return;
         }
 
@@ -165,13 +182,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert("Error al agregar miembros");
+                    alert("Error adding members");
                 }
             })
-            .catch(error => console.error("Error en la petición:", error));
+            .catch(error => console.error("Request error:", error));
     }
 
-
+    // Initial event assignment on page load
     function assignEvents() {
         btnNewMember.addEventListener("click", function () {
             modalSearchUsers.classList.remove("hidden");

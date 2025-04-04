@@ -1,16 +1,18 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Get elements from DOM
     const modalGroup = document.getElementById("modalGroup");
-    const modalNewOwner = document.getElementById("modalChangeOwner")
+    const modalNewOwner = document.getElementById("modalChangeOwner");
     const modalTitle = modalGroup.querySelector("h2");
     const btnNewGroup = document.getElementById("btnNewItem");
     const formNewGroup = document.getElementById("formNewGroup");
     const inputGroupName = formNewGroup.querySelector("input[name='name']");
-    const groupUsersResult =document.getElementById("groupUsersResult");
+    const groupUsersResult = document.getElementById("groupUsersResult");
     const btnAddSelectedUser = document.getElementById("btnAddSelectedUser");
     let currentGroupId = null;
     let clickInsideModal = false;
     let newOwner = null;
 
+    // Assign event listeners to group buttons
     function assignGroupButtonEvents() {
         document.querySelectorAll(".btnChangeOwner").forEach(button => {
             button.removeEventListener("click", openNewOwnerModal);
@@ -42,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", handleEditGroup);
         });
 
+        // Modal click detection
         document.querySelectorAll(".modal").forEach(modal => {
             modal.removeEventListener("mousedown", handleModalMouseDown);
             modal.removeEventListener("mouseup", handleModalMouseUp);
@@ -50,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Show options modal for the group
     function handleMoreOptionsClick(event) {
         currentGroupId = event.currentTarget.dataset.groupid;
         const groupItem = event.currentTarget.closest(".group-item");
@@ -61,14 +65,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Leave a group
     function handleLeaveGroup(event) {
         const groupId = event.target.dataset.groupid;
         if (!groupId) {
-            console.error("No se ha seleccionado un grupo para salir.");
+            console.error("No group selected to leave.");
             return;
         }
 
-        if (confirm("\u00BFEst\u00E1s seguro de que deseas salir de este grupo?")) {
+        if (confirm("Are you sure you want to leave this group?")) {
             fetch(`/leave_group/${groupId}`, {
                 method: "POST",
             })
@@ -77,21 +82,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.success) {
                         location.reload();
                     } else {
-                        console.error("Error al salir del grupo");
+                        console.error("Error leaving the group");
                     }
                 })
-                .catch(error => console.error("Error en la petición:", error));
+                .catch(error => console.error("Request error:", error));
         }
     }
 
+    // Delete a group
     function handleDeleteGroup(event) {
         const groupId = event.target.dataset.groupid;
         if (!groupId) {
-            console.error("No se ha seleccionado un grupo para eliminar.");
+            console.error("No group selected for deletion.");
             return;
         }
 
-        if (confirm("\u00BFEst\u00E1s seguro de que deseas eliminar este grupo? Esta acci\u00F3n es irreversible.")) {
+        if (confirm("Are you sure you want to delete this group? This action is irreversible.")) {
             fetch(`/delete_group/${groupId}`, {
                 method: "POST",
             })
@@ -100,27 +106,29 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert("Error al eliminar el grupo");
+                        alert("Error deleting the group");
                     }
                 })
-                .catch(error => console.error("Error en la petición:", error));
+                .catch(error => console.error("Request error:", error));
         }
     }
 
+    // Navigate to group member management page
     function handleManageMembers(event) {
         const groupId = event.target.dataset.groupid;
         if (!groupId) {
-            console.error("No se ha seleccionado un grupo.");
+            console.error("No group selected.");
             return;
         }
         window.location.href = `/manage_members/${groupId}`;
     }
 
+    // Open modal for editing group
     function handleEditGroup(event) {
         currentGroupId = event.currentTarget.dataset.groupid;
         const groupItem = event.currentTarget.closest(".group-item");
-        inputGroupName.value = groupItem.querySelector("b").innerText; // Mostrar nombre actual en el input
-        modalTitle.innerText = "Cambiar Nombre"; // Cambiar título del modal
+        inputGroupName.value = groupItem.querySelector("b").innerText; // Set current name
+        modalTitle.innerText = "Cambiar Nombre"; // Change modal title
         modalGroup.style.display = "flex";
 
         const modal = groupItem.querySelector(".modalOptions");
@@ -130,18 +138,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Open modal for creating a new group
     function openNewGroupModal() {
         currentGroupId = null;
-        inputGroupName.value = ""; // Vaciar el input
-        modalTitle.innerText = "Nuevo Grupo"; // Restablecer título del modal
+        inputGroupName.value = ""; // Clear input
+        modalTitle.innerText = "Nuevo Grupo"; // Reset modal title
         modalGroup.style.display = "flex";
     }
 
-    // Cerrar modales al hacer clic fuera
+    // Detect clicks inside modal
     function handleModalMouseDown(event) {
         clickInsideModal = !!event.target.closest(".modal-content");
     }
 
+    // Close modal when clicking outside
     function handleModalMouseUp(event) {
         if (!clickInsideModal && event.target.classList.contains("modal")) {
             event.target.classList.add("hidden");
@@ -149,10 +159,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-
+    // Open modal to change group owner
     function openNewOwnerModal(event) {
         currentGroupId = event.target.dataset.groupid;
-        document.querySelectorAll(".modalOptions").forEach( modal => {
+        document.querySelectorAll(".modalOptions").forEach(modal => {
             modal.classList.add("hidden");
             modal.style.display = "none";
         });
@@ -161,9 +171,8 @@ document.addEventListener("DOMContentLoaded", function () {
         showGroupMembers();
     }
 
-    //mostrar miembros del grupo
+    // Fetch and show current group members to select a new owner
     function showGroupMembers() {
-        // Obtener los miembros del grupo desde el servidor
         fetch(`/group_members?groupId=${currentGroupId}`)
             .then(res => res.json())
             .then(users => {
@@ -176,13 +185,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     radio.value = user.id;
                     radio.id = `user-${user.id}`;
                     radio.classList.add("user-radio");
-                    radio.name="groupMember";
+                    radio.name = "groupMember";
 
                     const label = document.createElement("label");
                     label.textContent = user.name;
                     label.setAttribute("for", `user-${user.id}`);
 
-                    radio.addEventListener("change", function ()    {
+                    radio.addEventListener("change", function () {
                         if (radio.checked) {
                             newOwner = user.id;
                         } else {
@@ -196,14 +205,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             })
             .catch(err => {
-                console.error("Error al cargar los miembros:", err);
+                console.error("Error loading members:", err);
             });
     }
 
-    // Cambiar propietario
+    // Change group owner
     function handleChangeOwner() {
         if (newOwner == null) {
-            alert("No hay ningún usuario seleccionado");
+            alert("No user selected");
             return;
         }
 
@@ -217,16 +226,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     modalNewOwner.classList.add("hidden");
                     modalNewOwner.style.display = "none";
                     location.reload();
-                    alert("Propietario cambiado correctamente")
+                    alert("Owner changed successfully");
                 } else {
-                    alert("Error al cambiar de propietario");
+                    alert("Error changing owner");
                 }
             })
-            .catch(error => console.error("Error en la petición:", error));
-
+            .catch(error => console.error("Request error:", error));
     }
 
-    // Guardar grupo (crear o editar)
+    // Save or update a group
     function saveGroup(event) {
         event.preventDefault();
 
@@ -249,9 +257,10 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => response.text())
             .then(() => location.reload())
-            .catch(error => console.error("Error al guardar/actualizar grupo:", error));
+            .catch(error => console.error("Error saving/updating group:", error));
     }
 
+    // Initial event bindings on page load
     function assignEvents() {
         btnNewGroup.addEventListener("click", openNewGroupModal);
         formNewGroup.addEventListener("submit", saveGroup);
