@@ -4,42 +4,46 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "`GROUP`")
+@Entity // Marks this class as a JPA entity (i.e., mapped to a database table)
+@Table(name = "`GROUP`") // Specifies the table name in the database (backticks used to avoid SQL keyword conflict)
 public class Group {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID")
+    @Id // Specifies the primary key of the entity
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generates the ID using the database identity column
+    @Column(name = "ID") // Maps this field to the "ID" column in the table
     private Integer id;
 
-    @Column(name = "NAME", nullable = false, unique = true, length = 50)
+    @Column(name = "NAME", nullable = false, unique = true, length = 50) // Maps to "NAME" column with constraints
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "OWNER", nullable = false)
+    @ManyToOne // Many groups can be owned by one user
+    @JoinColumn(name = "OWNER", nullable = false) // Defines foreign key column "OWNER" in the table
     private User owner;
 
-    @ManyToMany
+    @ManyToMany // Defines a many-to-many relationship with the User entity
     @JoinTable(
-            name = "group_user",
-            joinColumns = @JoinColumn(name = "group_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
+            name = "group_user", // Name of the join table
+            joinColumns = @JoinColumn(name = "group_id"), // Foreign key to this Group in join table
+            inverseJoinColumns = @JoinColumn(name = "user_id") // Foreign key to User in join table
     )
-    private List<User> users = new ArrayList<>();
+    private List<User> users = new ArrayList<>(); // List of users in the group
 
-    @Transient
-    private boolean isOwner;
+    @Transient // Not persisted in the database
+    private boolean isOwner; // Helper field to indicate if the current user is the owner
 
-    @Transient
-    private boolean isPersonal;
+    @Transient // Not persisted in the database
+    private boolean isPersonal; // Helper field to indicate if the group is personal
 
+    // Default constructor (required by JPA)
     public Group() {}
 
+    // Constructor with name and owner
     public Group(String name, User owner) {
         this.name = name;
         this.owner = owner;
     }
+
+    // Getter and setter methods
 
     public Integer getId() {
         return id;

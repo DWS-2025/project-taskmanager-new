@@ -1,25 +1,30 @@
+/* Importing 'Poppins' font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
+/* General body styling */
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Poppins', sans-serif;
-    background-image: url('../img/DisenoWeb.jpg');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-attachment: fixed;
-    background-size: cover;
+    font-family: 'Poppins', sans-serif; /* Sets the main font */
+    background-image: url('../img/DisenoWeb.jpg'); /* Background image */
+    background-repeat: no-repeat; /* Prevents image repetition */
+    background-position: center; /* Centers the background */
+    background-attachment: fixed; /* Fixes background when scrolling */
+    background-size: cover; /* Covers the entire screen */
 }
 
+/* Styling for main titles (h1) */
 h1 {
     text-align: center;
     color: white;
     font-size: 3.2em;
     margin-top: 50px;
     font-weight: bold;
-    text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.7);
+    text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.7); /* Adds shadow for readability */
     text-transform: uppercase;
 }
+
+/* Remove default list style and center content */
 ul {
     list-style: none;
     padding: 0;
@@ -27,8 +32,7 @@ ul {
     margin: 20px auto;
 }
 
-
-
+/* General button styling */
 button {
     text-align: center;
     padding: 15px 20px;
@@ -39,14 +43,16 @@ button {
     border-radius: 5px;
     font-size: 16px;
 }
+/* Button hover effect */
 button:hover {
     background-color: rgb(23, 59, 186);
 }
+/* Button active/click effect */
 button:active {
     background-color: rgb(77, 116, 255);
 }
 
-
+/* Modal window base style (hidden by default) */
 .modal {
     display: none;
     position: fixed;
@@ -55,10 +61,12 @@ button:active {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5); /* Black transparent overlay */
     justify-content: center;
     align-items: center;
 }
+
+/* Modal content box */
 .modal-content {
     background-color: rgba(255, 255, 255, 0.83);
     padding: 20px;
@@ -70,16 +78,22 @@ button:active {
     display: flex;
     flex-direction: column;
 }
+
+/* Modal title */
 .modal-content h2 {
     font-size: 1.5em;
     margin-bottom: 20px;
     color: #333;
 }
+
+/* Modal button styling */
 .modalOptions .modal-content button {
     display: block;
     width: 100%;
     margin: 5px 0;
 }
+
+/* Links inside modal buttons */
 .modalOptions .modal-content button a {
     color: inherit;
     text-decoration: none;
@@ -89,6 +103,7 @@ button:active {
     padding: 10px 0;
 }
 
+/* "More Options" round icon button */
 .btnMoreOptions {
     background-color: rgba(255, 255, 255, 0.3);
     border: none;
@@ -102,15 +117,20 @@ button:active {
     transition: background-color 0.3s ease, transform 0.2s;
     right: 10px;
 }
+
+/* Hover effect for More Options button */
 .btnMoreOptions:hover {
     background-color: rgba(255, 255, 255, 0.5);
     transform: scale(1.1);
 }
+
+/* Icon inside More Options button */
 .btnMoreOptions img {
     width: 24px;
     height: 24px;
 }
 
+/* New item button styling */
 #btnNewItem {
     position: absolute;
     top: 25px;
@@ -126,12 +146,14 @@ button:active {
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
+
+/* Hover effect for New Item button */
 #btnNewItem:hover {
     background-color: rgba(27, 128, 51, 0.85);
     transform: scale(1.05);
 }
 
-
+/* Back button with arrow image */
 #btnBack {
     position: absolute;
     top: 20px;
@@ -148,34 +170,30 @@ button:active {
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
+
+/* Back button hover effect */
 #btnBack:hover {
     background-color: rgba(99, 96, 96, 0);
     background-image: url("../img/arrow_back_white.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 38px 32px;
-    padding: 24px 38px;
     border: 2px solid black;
-    border-radius: 120px;
     transform: scale(1.05);
 }
+
+/* Back button active/click effect */
 #btnBack:active {
-    background-color: rgba(99, 96, 96, 0);
     background-image: url("../img/arrow_back.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 38px 32px;
-    padding: 24px 38px;
     border: 2px solid black;
-    border-radius: 120px;
 }
 
+/* Label styling */
 label {
     display: inline-block;
     padding: 6px;
     border-radius: 5px;
     cursor: pointer;
 }
+
+/* Input and textarea fields */
 input, textarea {
     text-align: center;
     width: 100%;
@@ -186,24 +204,33 @@ input, textarea {
     font-size: 14px;
     box-sizing: border-box;
 }
+
+/* Custom height for textarea */
 textarea {
-    height: 120px; /* Ajustado para mayor altura */
+    height: 120px;
 }
+
+/* Form layout */
 form {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     width: 100%;
 }
+
+/* Labels inside forms */
 form label {
     display: flex;
     flex-direction: column;
     text-align: left;
 }
+
+/* Button inside label */
 form label button {
     margin-top: 5px;
 }
 
+/* Custom list for selectable users */
 .selectable-user {
     display: flex;
     align-items: center;
@@ -212,20 +239,27 @@ form label button {
     border-bottom: 1px solid #ccc;
     position: relative;
 }
+
+/* Hover effect for user list */
 .selectable-user:hover {
     background-color: #f0f0f0;
 }
+
+/* Custom checkbox/radio positioning */
 .user-checkbox, .user-radio {
     transform: scale(1.6);
     position: absolute;
     left: 100px;
 }
+
+/* Label inside user selection list */
 .selectable-user label {
     text-align: left;
     margin-top: 10px;
     flex: 1;
 }
 
+/* Dropdown (select) styling */
 select {
     width: 100%;
     padding: 8px;
@@ -235,16 +269,19 @@ select {
     font-size: 16px;
 }
 
+/* Individual option styling */
 select option {
     padding: 8px;
     font-size: 16px;
 }
 
+/* Focused select field */
 select:focus {
     border-color: #5c9ded;
     outline: none;
 }
 
+/* Disabled select field */
 select:disabled {
     background-color: #f0f0f0;
     color: #ccc;
