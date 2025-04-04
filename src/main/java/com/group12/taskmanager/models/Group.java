@@ -35,7 +35,8 @@ public class Group {
     private boolean isPersonal; // Helper field to indicate if the group is personal
 
     // Default constructor (required by JPA)
-    public Group() {}
+    public Group() {
+    }
 
     // Constructor with name and owner
     public Group(String name, User owner) {

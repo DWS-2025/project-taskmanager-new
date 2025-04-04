@@ -29,12 +29,14 @@ public class Task {
     private String imageBase64; // Helper field to store image as a Base64 string (for frontend or APIs)
 
     // Default constructor (required by JPA)
-    public Task() {}
+    public Task() {
+    }
 
     // Getter and setter for id
     public Integer getId() {
         return id;
     }
+
     public void setId(Integer id) {
         this.id = id;
     }
@@ -43,6 +45,7 @@ public class Task {
     public String getTitle() {
         return title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -51,6 +54,7 @@ public class Task {
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -59,6 +63,7 @@ public class Task {
     public Project getProject() {
         return project;
     }
+
     public void setProject(Project project) {
         this.project = project;
     }
@@ -67,6 +72,7 @@ public class Task {
     public byte[] getImage() {
         return image;
     }
+
     public void setImage(byte[] image) {
         this.image = image;
     }
@@ -75,6 +81,7 @@ public class Task {
     public String getImageBase64() {
         return imageBase64;
     }
+
     public void setImageBase64(String imageBase64) {
         this.imageBase64 = imageBase64;
     }

@@ -1,38 +1,43 @@
+/* Sets the background image of the page */
 body {
     background-image: url('../img/background_resized.jpg');
 }
 
+/* Styles for items within a group */
 .group-item {
-    background: rgba(77, 116, 255, 0.9);
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: rgba(77, 116, 255, 0.9); /* Semi-transparent blue background */
+    padding: 15px; /* Padding around the content */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Shadow effect around the item */
+    margin-bottom: 15px; /* Space between items */
+    display: flex; /* Use flexbox layout */
+    justify-content: space-between; /* Distribute items evenly horizontally */
+    align-items: center; /* Center items vertically */
 }
 
+/* Styles for content within a group item */
 .group-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 10px;
+    display: flex; /* Use flexbox layout */
+    align-items: center; /* Center items vertically */
+    justify-content: space-between; /* Distribute items evenly horizontally */
+    width: 100%; /* Take up full width of the container */
+    gap: 10px; /* Space between child elements */
 }
 
+/* Styles for bold text inside group content */
 .group-content b {
-    font-size: 1.5em;
-    font-weight: bold;
-    font-family: 'Poppins', sans-serif;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 10px 15px;
-    border-radius: 8px;
-    display: inline-block;
-    flex-grow: 1;
+    font-size: 1.5em; /* Larger font size */
+    font-weight: bold; /* Make the text bold */
+    font-family: 'Poppins', sans-serif; /* Set the font to Poppins */
+    color: white; /* Text color is white */
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+    padding: 10px 15px; /* Padding around the text */
+    border-radius: 8px; /* Rounded corners for the text box */
+    display: inline-block; /* Display text as an inline block */
+    flex-grow: 1; /* Allow the text to grow and take up available space */
 }
 
+/* Styles for the 'New Item' button */
 #btnNewItem {
-    right: 20px;
+    right: 20px; /* Position the button 20px from the right edge */
 }
