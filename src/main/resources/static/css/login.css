@@ -1,4 +1,4 @@
-/* General style */
+/* General style for the body */
 body {
     margin: 0;
     padding: 0;
@@ -6,80 +6,83 @@ body {
     display: flex;
     font-family: 'Arial', sans-serif;
     background: url('../img/minimalist_background_unique.jpg') no-repeat center center fixed;
-    background-size: cover;
+    background-size: cover; /* Make sure the background covers the full area */
 }
 
-/* Split the screen into two halves */
+/* Split screen layout - each half takes 50% of the width */
 .split {
     width: 50%;
     height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Center content horizontally */
+    align-items: center;     /* Center content vertically */
     text-align: center;
 }
 
-/* Left half - Logo */
+/* Left side of the screen (logo or intro) */
 .left {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black overlay */
     color: white;
 }
 
-/* Right half - Form */
+/* Right side of the screen (form area) */
 .right {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Title style with 3D effect */
+/* Title with a 3D text shadow effect */
 .title-3d {
     font-size: 4rem;
     font-weight: bold;
     text-transform: uppercase;
-    text-shadow: 3px 3px 0px #007bff,
-    6px 6px 0px #0056b3,
-    9px 9px 0px #002f7f;
+    text-shadow:
+            3px 3px 0px #007bff,
+            6px 6px 0px #0056b3,
+            9px 9px 0px #002f7f;
 }
 
-/* Form container */
+/* Container for the form */
 .container {
-    background: rgba(77, 116, 255, 0.9);
+    background: rgba(77, 116, 255, 0.9); /* Semi-transparent blue background */
     padding: 30px;
     border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Deep shadow for emphasis */
     width: 100%;
     max-width: 400px;
     text-align: center;
 }
 
-/* Header */
+/* Header styling */
 h1 {
     margin-bottom: 20px;
     font-size: 2.5em;
     color: white;
 }
 
-/* Error style */
+/* Error message styling */
 .error {
     color: red;
     font-size: 1.1em;
     margin-bottom: 20px;
 }
 
-/* Forms */
+/* Style for both login and register forms */
 .login-form, .register-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
+/* Label styling */
 label {
     font-size: 1.2em;
     color: white;
     text-align: left;
 }
 
+/* Input fields styling */
 input {
     padding: 10px;
     font-size: 1em;
@@ -87,33 +90,37 @@ input {
     border: none;
 }
 
+/* Button styling */
 button {
     padding: 12px;
     font-size: 1.2em;
     color: white;
-    background-color: #007bff;
+    background-color: #007bff; /* Bright blue */
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background 0.3s; /* Smooth transition */
 }
 
+/* Button hover effect */
 button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Darker blue */
 }
 
-/* Register link */
+/* Styling for the register link area */
 .register-link {
     margin-top: 15px;
     color: white;
 }
 
+/* Styling for the actual anchor link */
 .register-link a {
-    color: #ffcc00;
+    color: #ffcc00; /* Yellow */
     text-decoration: none;
     font-weight: bold;
 }
 
+/* Hover effect for register link */
 .register-link a:hover {
     text-decoration: underline;
 }

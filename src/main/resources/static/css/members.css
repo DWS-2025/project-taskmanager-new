@@ -1,48 +1,54 @@
+/* Set a background image for the entire page */
 body {
     background-image: url('../img/background_resized.jpg');
 }
 
+/* Style for each user item container */
 .user-item {
-    background: rgba(77, 116, 255, 0.9);
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: rgba(77, 116, 255, 0.9); /* Semi-transparent blue background */
+    padding: 15px;                       /* Inner spacing */
+    border-radius: 10px;                 /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Subtle outer shadow */
+    margin-bottom: 15px;                /* Space between items */
+    display: flex;                      /* Use flexbox layout */
+    justify-content: space-between;    /* Space elements across */
+    align-items: center;               /* Vertically center elements */
 }
 
+/* Container for content inside the user item */
 .user-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 10px;
+    display: flex;                      /* Flex layout */
+    align-items: center;               /* Vertically align items */
+    justify-content: space-between;    /* Push items to sides */
+    width: 100%;                       /* Take full width */
+    gap: 10px;                         /* Gap between text and buttons */
 }
 
+/* Style for bold user info inside user-content */
 .user-content b {
-    font-size: 1.5em;
+    font-size: 1.5em;                   /* Bigger text */
     font-weight: bold;
     font-family: 'Poppins', sans-serif;
     color: white;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
     padding: 10px 15px;
     border-radius: 8px;
     display: inline-block;
-    flex-grow: 1;
+    flex-grow: 1;                       /* Allow it to grow inside flexbox */
 }
 
+/* Style for input fields */
 input {
-    width: 90%;
+    width: 90%;                         /* Almost full width */
     padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
+    margin: 10px 0;                     /* Space above and below */
+    border: 1px solid #ccc;             /* Light gray border */
     border-radius: 5px;
     text-align: center;
     font-size: 16px;
 }
 
+/* Positioning for the new item button */
 #btnNewItem {
-    right: 20px;
+    right: 20px;                        /* Move 20px from the right (needs positioning context) */
 }

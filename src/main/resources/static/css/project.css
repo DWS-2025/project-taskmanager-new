@@ -1,48 +1,54 @@
+/* Style for each project card */
 .project-item {
-    background: rgba(77, 116, 255, 0.9);
+    background: rgba(77, 116, 255, 0.9); /* Semi-transparent blue */
     padding: 15px;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Subtle shadow */
     margin-bottom: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+/* Links inside project content */
 .project-content a {
-    text-decoration: none;
+    text-decoration: none; /* Remove underline */
     color: white;
     font-weight: bold;
     font-size: 1.2em;
 }
 
+/* Task list container - uses grid layout */
 #task-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* 3 columns equally sized */
     gap: 20px;
     padding: 20px;
     max-width: 1000px;
     margin: auto;
-    list-style: none;
+    list-style: none; /* Remove bullet points */
 }
 
+/* Each individual task card */
 .task-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgb(255 255 255 / 56%);
+    background: rgb(255 255 255 / 56%); /* Semi-transparent white */
     border-radius: 8px;
     padding: 15px;
     min-height: 120px;
-    transition: background 0.3s, box-shadow 0.3s;
-    position: relative;
+    transition: background 0.3s, box-shadow 0.3s; /* Smooth hover effect */
+    position: relative; /* For absolute positioning inside */
 }
 
+/* Hover effect for tasks */
 .task-item:hover {
-    background: rgb(255 255 255 / 91%);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: rgb(255 255 255 / 91%); /* Brighter on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Elevation effect */
 }
 
+/* Container for task title and description */
 .task-content {
     flex-grow: 1;
     padding: 10px;
@@ -53,6 +59,7 @@
     color: black;
 }
 
+/* Task title styling */
 .task-title {
     font-size: 1.2em;
     font-weight: bold;
@@ -60,12 +67,14 @@
     display: block;
 }
 
+/* Task description text */
 .task-description {
     font-size: 0.9em;
     color: #444;
     text-align: left;
 }
 
+/* Options panel inside task (edit/delete/etc.) */
 .task-options {
     width: 60px;
     display: flex;
@@ -77,11 +86,12 @@
     padding: 10px;
 }
 
-
-
+/* Hide the file input field */
 input[type="file"] {
     display: none;
 }
+
+/* File name display field */
 #fileName {
     color: #333;
     padding: 10px;
@@ -89,24 +99,30 @@ input[type="file"] {
     border: 1px solid #ababab;
     border-radius: 5px;
 }
+
+/* Hover effect for file name display */
 #fileName:hover {
     background: #c9c8c8;
 }
 
-
+/* Position for the New Item button */
 #btnNewItem {
     right: 20px;
 }
 
+/* Button for more options inside tasks */
 .btnMoreOptions {
     position: absolute;
     background-color: rgb(255 255 255);
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
 }
+
+/* Hover effect for the More Options button */
 .btnMoreOptions:hover {
     background-color: rgb(232 232 232);
 }
 
+/* Input and textarea alignment */
 input, textarea {
     text-align: left;
 }

@@ -1,71 +1,81 @@
+/* Style for the entire page */
 body {
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    background-image: url('../img/fondo_pagina_web_resized.jpg');
+    color: #333; /* Default text color */
+    display: flex; /* Use Flexbox for layout */
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    height: 100vh; /* Full height of the viewport */
+    background-image: url('../img/fondo_pagina_web_resized.jpg'); /* Background image */
 }
 
+/* Style for the form container */
 form {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
+    background: white; /* White background for the form */
+    padding: 20px; /* Space inside the form */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+    width: 100%; /* Take full available width */
+    max-width: 400px; /* But no more than 400px wide */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Stack form elements vertically */
 }
 
-
+/* Title heading inside the form */
 h1 {
     font-size: 3em;
     margin-bottom: 10px;
 }
 
+/* Style for form labels */
 label {
     font-weight: bold;
     margin-top: 10px;
 }
 
+/* Style for all input fields */
 input {
-    width: 100%;
+    width: 100%; /* Full width */
     padding: 10px;
     margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
-    transition: 0.3s ease-in-out;
+    transition: 0.3s ease-in-out; /* Smooth transition when focused */
 }
 
+/* Highlight input on focus */
 input:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+    border-color: #007bff; /* Blue border */
+    outline: none; /* Remove default outline */
+    box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5); /* Blue glow */
 }
 
+/* Style for buttons */
 button {
     margin-top: 20px;
     font-size: 16px;
-    transition: background 0.3s;
+    transition: background 0.3s; /* Smooth background color change */
 }
 
+/* Style for links */
 a {
     text-align: center;
     display: block;
     margin-top: 10px;
     font-weight: bold;
     color: black;
-    text-decoration: none;
-    transition: all 0.3s ease;
+    text-decoration: none; /* Remove underline */
+    transition: all 0.3s ease; /* Smooth transition on hover */
 }
 
+/* Hover effect for links */
 a:hover {
     transition: color 0.3s ease;
-    transform: scale(1.05);
+    transform: scale(1.05); /* Slight zoom on hover */
 }
+
+/* Active (clicked) effect for links */
 a:active {
-    color: #173bba;
+    color: #173bba; /* Darker blue on click */
 }
