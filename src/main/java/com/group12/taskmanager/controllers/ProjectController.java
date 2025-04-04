@@ -30,20 +30,22 @@ public class ProjectController {
     @GetMapping("/projects")
     public String getProjects(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
-        if (currentUser == null) return "redirect:/";
+        if (currentUser == null) return "redirect:/"; // Redirect to home if user not logged in
 
         model.addAttribute("user", currentUser);
         List<Project> projects = new ArrayList<>();
         List<Group> ownedGroups = new ArrayList<>();
 
         if (currentUser.getId().equals(1)) {
+            // Admin user can see all projects and all groups
             projects = projectService.getAllProjects();
             ownedGroups = groupService.getAllGroups();
         } else {
+            // Regular user: get projects from groups they belong to
             for (Group group : currentUser.getGroups()) {
                 projects.addAll(projectService.getProjectsByGroup(group));
             }
-            // Grupos donde el usuario es propietario
+            // Groups where the user is the owner
             ownedGroups = currentUser.getGroups().stream()
                     .filter(g -> g.getOwner().getId().equals(currentUser.getId()))
                     .toList();
@@ -54,33 +56,35 @@ public class ProjectController {
         model.addAttribute("singleGroup", ownedGroups.size() == 1 ? ownedGroups.get(0) : null);
         model.addAttribute("projects", projects);
 
-        return "index";
+        return "index"; // Return view for project listing
     }
 
     @PostMapping("/save_project")
     public String saveProject(@RequestParam String name, @RequestParam int groupId) {
         Group group = groupService.findGroupById(groupId);
-        if (group == null) return "redirect:/";
+        if (group == null) return "redirect:/"; // Redirect if group not found
 
-        projectService.createProject(name, group);
+        projectService.createProject(name, group); // Create project with given name and group
         return "redirect:/projects";
     }
 
     @GetMapping("/new_project")
     public ResponseEntity<?> newProject() {
+        // Return message for opening modal (used in frontend)
         return ResponseEntity.ok(Collections.singletonMap("mensaje", "Abriendo modal"));
     }
 
     @GetMapping("/project/{id}")
     public String getProjectById(@PathVariable int id, Model model, HttpSession session) {
-        if (session.getAttribute("user") == null) return "redirect:/";
+        if (session.getAttribute("user") == null) return "redirect:/"; // Redirect if not logged in
         Project project = projectService.findProjectById(id);
         List<Task> tasks = taskService.getProjectTasks(project);
 
         for (Task task : tasks) {
             if (task.getImage() != null) {
+                // Convert image byte[] to base64 string for rendering in frontend
                 String base64 = Base64.getEncoder().encodeToString(task.getImage());
-                task.setImageBase64(base64); // crea un nuevo campo transient
+                task.setImageBase64(base64); // Set as transient field
             }
         }
 
@@ -91,7 +95,7 @@ public class ProjectController {
             model.addAttribute("idproject", null);
             model.addAttribute("tasks", new ArrayList<>());
         }
-        return "project";
+        return "project"; // Return project detail view
     }
 
     @PostMapping("/project/{id}/save_task")
@@ -101,14 +105,15 @@ public class ProjectController {
                            @RequestParam String description,
                            @RequestParam(required = false) MultipartFile image) {
 
-        if (image != null && image.getSize() > 5 * 1024 * 1024) { // 5 MB
-            throw new IllegalArgumentException("Imagen demasiado grande (max 5MB)");
+        // Reject image if it exceeds 5MB
+        if (image != null && image.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("Image too large (max 5MB)");
         }
 
         byte[] imageBytes = null;
         if (image != null && !image.isEmpty()) {
             try {
-                imageBytes = image.getBytes(); // 🔹 se lee como array de bytes
+                imageBytes = image.getBytes(); // Read image as byte array
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -119,9 +124,9 @@ public class ProjectController {
         task.setTitle(title);
         task.setDescription(description);
         task.setProject(project);
-        task.setImage(imageBytes);
+        task.setImage(imageBytes); // Set image data
 
-        taskService.addTask(task);
+        taskService.addTask(task); // Save task
         return "redirect:/project/" + id;
     }
 
@@ -129,10 +134,10 @@ public class ProjectController {
     public ResponseEntity<?> deleteTask(@PathVariable int id, @RequestParam int taskId) {
         Task task = taskService.findTaskById(taskId);
         if (task == null || task.getProject().getId() != id)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Tarea no encontrada"));
+            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Task not found"));
 
-        taskService.removeTask(taskId);
-        return ResponseEntity.ok(Collections.singletonMap("message", "Tarea eliminada correctamente"));
+        taskService.removeTask(taskId); // Delete task
+        return ResponseEntity.ok(Collections.singletonMap("message", "Task deleted successfully"));
     }
 
     @PutMapping("/project/{id}/edit_task")
@@ -144,46 +149,46 @@ public class ProjectController {
 
         Task task = taskService.findTaskById(taskId);
         if (task == null || task.getProject().getId() != id)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Tarea no encontrada"));
+            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Task not found"));
 
-        if (image != null && image.getSize() > 5 * 1024 * 1024) { // 5 MB
-            throw new IllegalArgumentException("Imagen demasiado grande (max 5MB)");
+        if (image != null && image.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("Image too large (max 5MB)");
         }
 
         byte[] imageBytes = null;
         if (image != null && !image.isEmpty()) {
             try {
-                imageBytes = image.getBytes();
+                imageBytes = image.getBytes(); // Read new image
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        taskService.updateTask(taskId, title, description, imageBytes);
-        return ResponseEntity.ok(Collections.singletonMap("message", "Tarea actualizada correctamente"));
+        taskService.updateTask(taskId, title, description, imageBytes); // Update task
+        return ResponseEntity.ok(Collections.singletonMap("message", "Task updated successfully"));
     }
 
     @PostMapping("/project/{id}/delete_project")
     public ResponseEntity<?> deleteProject(@PathVariable int id) {
         Project project = projectService.findProjectById(id);
         if (project == null)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Proyecto no encontrado"));
+            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
 
-        projectService.deleteProject(id);
+        projectService.deleteProject(id); // Delete project
         boolean removed = projectService.findProjectById(id) == null;
         return removed
-                ? ResponseEntity.ok(Collections.singletonMap("message", "Proyecto eliminado correctamente"))
-                : ResponseEntity.status(500).body(Collections.singletonMap("error", "Error al eliminar el proyecto"));
+                ? ResponseEntity.ok(Collections.singletonMap("message", "Project deleted successfully"))
+                : ResponseEntity.status(500).body(Collections.singletonMap("error", "Error deleting project"));
     }
 
     @PutMapping("/project/{id}/edit_project")
     public ResponseEntity<?> editProject(@PathVariable int id, @RequestParam String name) {
         Project project = projectService.findProjectById(id);
         if (project == null)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Proyecto no encontrado"));
+            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
 
-        project.setName(name);
-        projectService.updateProject(project);
+        project.setName(name); // Update project name
+        projectService.updateProject(project); // Save changes
         return ResponseEntity.ok(Collections.singletonMap("success", true));
     }
 }

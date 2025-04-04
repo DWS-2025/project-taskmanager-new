@@ -11,27 +11,29 @@ public class CustomErrorController implements ErrorController {
 
     @GetMapping("/error")
     public String handleError(HttpServletRequest request, Model model) {
+        // Get the error status code from the request
         Object status = request.getAttribute("javax.servlet.error.status_code");
 
-        String errorMessage = "Ocurrió algo totalmente inesperado.";
+        String errorMessage = "Something totally unexpected happened.";
         if (status != null) {
             int statusCode = Integer.parseInt(status.toString());
+            // Customize the error message based on status code
             switch (statusCode) {
                 case 404:
-                    errorMessage = "Error 404 - Página no encontrada.";
+                    errorMessage = "Error 404 - Page not found.";
                     break;
                 case 500:
-                    errorMessage = "Error 500 - Error interno del servidor.";
+                    errorMessage = "Error 500 - Internal server error.";
                     break;
                 case 403:
-                    errorMessage = "Error 403 - Acceso prohibido.";
+                    errorMessage = "Error 403 - Access forbidden.";
                     break;
                 default:
-                    errorMessage = "Código de error: " + statusCode;
+                    errorMessage = "Error code: " + statusCode;
             }
         }
 
         model.addAttribute("errorMessage", errorMessage);
-        return "error"; // Uses the error.mustache
+        return "error"; // Return the error.mustache template
     }
 }
