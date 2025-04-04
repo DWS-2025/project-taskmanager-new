@@ -85,5 +85,4 @@ public class Group {
     public List<User> getUsers() {
         return users;
     }
-
 }

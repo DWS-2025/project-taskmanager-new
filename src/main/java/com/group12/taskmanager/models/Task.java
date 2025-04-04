@@ -73,6 +73,7 @@ public class Task {
         return image;
     }
 
+
     public void setImage(byte[] image) {
         this.image = image;
     }

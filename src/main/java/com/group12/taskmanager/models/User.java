@@ -82,5 +82,6 @@ public class User {
     // Getter for groups the user is a member of
     public List<Group> getGroups() {
         return groups;
+
     }
 }

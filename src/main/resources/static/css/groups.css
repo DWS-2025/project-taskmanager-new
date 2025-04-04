@@ -36,7 +36,6 @@ body {
     display: inline-block; /* Display text as an inline block */
     flex-grow: 1; /* Allow the text to grow and take up available space */
 }
-
 /* Styles for the 'New Item' button */
 #btnNewItem {
     right: 20px; /* Position the button 20px from the right edge */
