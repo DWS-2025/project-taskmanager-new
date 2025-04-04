@@ -18,22 +18,26 @@ public class ProjectService {
     @Autowired
     private TaskService taskService;
 
+    // Retrieve all projects from the database
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
     }
 
+    // Create and save a new project assigned to a group
     public void createProject(String name, Group group) {
         Project project = new Project(name, group);
         projectRepository.save(project);
     }
 
+    // Find a project by its ID
     public Project findProjectById(int id) {
         return projectRepository.findById(id).orElse(null);
     }
 
+    // Delete a project and all its associated tasks
     public void deleteProject(int projectId) {
         Project project = projectRepository.findById(projectId).orElse(null);
-        // eliminar todas las tareas del proyecto
+        // Remove all tasks from the project
         if (project != null) {
             List<Task> tasks = taskService.getProjectTasks(project);
             for (Task task : tasks) {
@@ -43,10 +47,12 @@ public class ProjectService {
         }
     }
 
+    // Update an existing project's data
     public void updateProject(Project project) {
         projectRepository.save(project);
     }
 
+    // Get all projects associated with a specific group
     public List<Project> getProjectsByGroup(Group group) {
         return projectRepository.findByGroup(group);
     }
