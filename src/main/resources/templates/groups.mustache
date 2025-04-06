@@ -77,6 +77,55 @@
         </div>
 
         <script src="/js/groups.js" defer></script>
+        <!-- Tabla de grupos -->
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Grupo</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#groups}}
+                <tr>
+                    <td>{{id}}</td>
+                    <td>{{name}}</td>
+                </tr>
+            {{/groups}}
+            {{^groups}}
+                <tr>
+                    <td colspan="2">No hay grupos disponibles.</td>
+                </tr>
+            {{/groups}}
+            </tbody>
+        </table>
+
+        <!-- Controles de paginación -->
+        <div>
+            <ul class="pagination">
+                <!-- Botón página anterior -->
+                {{#hasPrevious}}
+                    <li>
+                        <a href="/paginated_groups?page={{currentPage}}{{#size}}&size={{size}}{{/size}}">Anterior</a>
+                    </li>
+                {{/hasPrevious}}
+
+                <!-- Números de página -->
+                {{#pages}}
+                    <li>
+                        <a href="/paginated_groups?page={{index}}{{#size}}&size={{size}}{{/size}}"
+                        class="{{#isCurrent}}active{{/isCurrent}}">{{pageNumber}}</a>
+                    </li>
+                {{/pages}}
+
+                <!-- Botón página siguiente -->
+                {{#hasNext}}
+                    <li>
+                        <a href="/paginated_groups?page={{nextPage}}{{#size}}&size={{size}}{{/size}}">Siguiente</a>
+                    </li>
+                {{/hasNext}}
+            </ul>
+        </div>
 
     </body>
 </html>

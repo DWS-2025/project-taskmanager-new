@@ -2,6 +2,7 @@ package com.group12.taskmanager.controllers;
 
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
+import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -13,11 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @Controller
 public class GroupController {
@@ -32,25 +35,23 @@ public class GroupController {
     public String getUserGroups(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) return "redirect:/login";
-
         List<Group> groups;
 
         if (currentUser.getId().equals(1)) {
-            // Admin: get all groups
             groups = groupService.getAllGroups();
             for (Group group : groups) {
-                group.setIsOwner(true); // Mark as owner
-                group.setIsPersonal(group.getName().equals("USER_admin")); // Check if it's a personal group
+                group.setIsOwner(true);
+                group.setIsPersonal(group.getName().equals("USER_admin"));
             }
         } else {
             groups = currentUser.getGroups();
             for (Group group : groups) {
-                // Check if current user is the owner
+                // si el usuario es el dueño
                 group.setIsOwner(group.getOwner().getId().equals(currentUser.getId()));
-                // Check if it's their personal group
                 group.setIsPersonal(group.getName().equals("USER_" + currentUser.getName()));
             }
         }
+
 
         model.addAttribute("groups", groups);
         model.addAttribute("user", currentUser);
@@ -70,16 +71,15 @@ public class GroupController {
     public ResponseEntity<?> leaveGroup(@PathVariable int groupId, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"Not authenticated\"}");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autenticado\"}");
 
         Group group = groupService.findGroupById(groupId);
-        // Owner can't leave their own group
         if (group == null || group.getOwner().getId().equals(currentUser.getId()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Cannot leave the group\"}");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"No se puede salir del grupo\"}");
 
         groupService.removeUserFromGroup(group, currentUser);
 
-        // Update session group list
+        // Actualizar lista de grupos del usuario en sesión
         currentUser.getGroups().removeIf(g -> g.getId().equals(groupId));
         session.setAttribute("user", currentUser);
 
@@ -90,10 +90,10 @@ public class GroupController {
     public ResponseEntity<?> editGroup(@PathVariable int groupId, @RequestParam String name, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"Not authenticated\"}");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autenticado\"}");
 
         boolean success = groupService.updateGroupName(groupId, name);
-        // Update name in session
+        // Actualizar nombre del grupo en la sesión del usuario
         currentUser.getGroups().stream()
                 .filter(g -> g.getId().equals(groupId))
                 .findFirst()
@@ -102,22 +102,22 @@ public class GroupController {
         session.setAttribute("user", currentUser);
 
         return success ? ResponseEntity.ok("{\"success\": true}")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Error updating group\"}");
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Error al actualizar el grupo\"}");
     }
 
     @PostMapping("/delete_group/{groupId}")
     public ResponseEntity<?> deleteGroup(@PathVariable int groupId, HttpSession session) {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"Not authenticated\"}");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autenticado\"}");
 
         boolean success = groupService.deleteGroup(groupId, currentUser);
-        // Update session group list
+        // Actualizar lista de grupos del usuario en sesión
         currentUser.getGroups().removeIf(g -> g.getId().equals(groupId));
         session.setAttribute("user", currentUser);
 
         return success ? ResponseEntity.ok("{\"success\": true}")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Error deleting group\"}");
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Error al eliminar el grupo\"}");
     }
 
     @GetMapping("/manage_members/{groupId}")
@@ -136,28 +136,27 @@ public class GroupController {
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Collections.singletonMap("message", "Not authenticated"));
+                    .body(Collections.singletonMap("message", "No autenticado"));
         }
 
         Group group = groupService.findGroupById(groupId);
         User user = userService.findUserById(userId);
 
-        // Validate permission and existence
         if (group == null || user == null || !group.getOwner().getId().equals(currentUser.getId())) {
             if (!currentUser.getId().equals(1))
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Collections.singletonMap("message", "Not authorized or group/user not found"));
+                        .body(Collections.singletonMap("message", "No autorizado o grupo/usuario no encontrado"));
         }
 
         if (currentUser.getId() == userId) {
-            // Admin self-removal validation
-            if (!currentUser.getId().equals(1) || group.getOwner().getId().equals(1))
+            // validación admin
+            if (!currentUser.getId().equals(1) || group.getOwner().getId().equals(1)) // si el user es admin y NO es el propietario
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Collections.singletonMap("message", "You cannot remove yourself if you're the owner"));
+                        .body(Collections.singletonMap("message", "No puedes eliminarte si eres el propietario"));
         }
 
         group.getUsers().remove(user);
-        groupService.saveGroup(group); // Save group with changes
+        groupService.saveGroup(group); // solo guarda el propietario (group)
 
         if (currentUser.getId().equals(userId)) {
             Map<String, Object> response = new HashMap<>();
@@ -172,7 +171,6 @@ public class GroupController {
     @ResponseBody
     public List<User> searchUsers(@RequestParam String q, @RequestParam int groupId) {
         Group group = groupService.findGroupById(groupId);
-        // Search users by name excluding those already in group
         return userService.searchUsersByNameExcludingGroup(q, group);
     }
 
@@ -184,14 +182,13 @@ public class GroupController {
             int groupId = Integer.parseInt(payload.get("groupId").toString());
             Group group = groupService.findGroupById(groupId);
 
-            // Validate permissions
             if (currentUser == null || group == null || !group.getOwner().getId().equals(currentUser.getId())) {
                 if (!currentUser.getId().equals(1)) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "Not authorized"));
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("message", "No autorizado"));
+
                 }
             }
 
-            // Add new users to group
             List<Integer> userIds = ((List<?>) payload.get("userIds")).stream()
                     .map(id -> Integer.parseInt(id.toString()))
                     .toList();
@@ -208,7 +205,7 @@ public class GroupController {
             return ResponseEntity.ok(Collections.singletonMap("success", true));
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "Error processing request"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "Error procesando la solicitud"));
         }
     }
 
@@ -228,7 +225,7 @@ public class GroupController {
             if (currentUser == null) return "redirect:/error";
 
             boolean deleted = userService.deleteUser(userId, currentUser);
-            if (deleted && currentUser.getId().equals(userId)) session.invalidate(); // Log out if deleting self
+            if (deleted && currentUser.getId().equals(userId)) session.invalidate();
             return deleted ? "redirect:/" : "redirect:/error";
         }
         return "redirect:/";
@@ -242,13 +239,13 @@ public class GroupController {
             currentUser.setName(name);
             currentUser.setEmail(email);
             if (!password.isBlank()) {
-                currentUser.setPassword(password); // In production, encrypt this
+                currentUser.setPassword(password); // En producción, encriptar aquí
             }
 
             userService.updateUser(currentUser);
             groupService.updateGroupName(userGroup.getId(), "USER_" + name);
 
-            // Reload user to reflect updates in session
+            // Recargar desde la base de datos para reflejar los cambios
             User updatedUser = userService.findUserById(currentUser.getId());
             session.setAttribute("user", updatedUser);
         }
@@ -264,27 +261,27 @@ public class GroupController {
 
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
         }
 
         Group group = groupService.findGroupById(groupId);
         if (group == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Group not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Grupo no encontrado");
         }
 
-        // Only current owner or admin can change owner
+        // Verificamos que el usuario actual sea el propietario
         if (!group.getOwner().getId().equals(currentUser.getId())) {
             if (!currentUser.getId().equals(1)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No permission to change owner");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para cambiar el propietario");
             }
         }
 
         User newOwner = userService.findUserById(newOwnerId);
         if (newOwner == null || !group.getUsers().contains(newOwner)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("New owner must be a group member");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El nuevo propietario debe ser un miembro del grupo");
         }
 
-        // Change group owner
+        // Cambiar propietario
         group.setOwner(newOwner);
         groupService.saveGroup(group);
 
@@ -299,15 +296,16 @@ public class GroupController {
         return ResponseEntity.ok(Collections.singletonMap("success", true));
     }
 
+
     @GetMapping("/group_members")
     @ResponseBody
     public List<User> getGroupMembers(@RequestParam int groupId) {
         Group group = groupService.findGroupById(groupId);
         if (group == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Grupo no encontrado");
         }
+        // Retornamos solo los usuarios que son miembros del grupo
 
-        // Return all members except the owner
         List<User> users = group.getUsers();
         for (User user : users) {
             if (group.getOwner().getId() == user.getId()) {
@@ -317,5 +315,38 @@ public class GroupController {
         }
 
         return users;
+    }
+
+    @GetMapping("/paginated_groups")
+    public String getPaginatedGroups(
+            @RequestParam(defaultValue = "0") int page,       // Página actual
+            @RequestParam(defaultValue = "5") int size,       // Tamaño de la página
+            Model model,
+            HttpSession session) {
+
+        User currentUser = (User) session.getAttribute("currentUser");
+        Page<Group> groupsPage = groupService.getGroupsPaginated(currentUser, page, size);
+
+        // Preparar páginas para Mustache
+        List<Map<String, Object>> pages = new ArrayList<>();
+        for (int i = 0; i < groupsPage.getTotalPages(); i++) {
+            Map<String, Object> pageMap = new HashMap<>();
+            pageMap.put("index", i); // Índice de la página
+            pageMap.put("pageNumber", i + 1); // Numero de página legible (1, 2, 3...)
+            pageMap.put("isCurrent", i == page); // Si es la página actual
+            pages.add(pageMap);
+        }
+
+        // Agregar atributos al modelo
+        model.addAttribute("groups", groupsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", groupsPage.getTotalPages());
+        model.addAttribute("hasNext", groupsPage.hasNext());
+        model.addAttribute("hasPrevious", groupsPage.hasPrevious());
+        model.addAttribute("pages", pages); // Números de página
+        model.addAttribute("nextPage", page + 1); // Próxima página
+        model.addAttribute("size", size); // Tamaño actual de la página
+
+        return "groups_paginated";
     }
 }
