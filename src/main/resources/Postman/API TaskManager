@@ -1,0 +1,523 @@
+{
+	"info": {
+		"_postman_id": "576c07c2-b6fb-422b-a2e0-fa2b176b0eb0",
+		"name": "API TaskManager - Grupos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43757283",
+		"_collection_link": "https://eduardo-9785120.postman.co/workspace/eduardo's-Workspace~2a341b7e-c41d-4953-8461-d275570adaef/collection/43757283-576c07c2-b6fb-422b-a2e0-fa2b176b0eb0?action=share&source=collection_link&creator=43757283"
+	},
+	"item": [
+		{
+			"name": "Salir de grupo",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/leave_group/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"leave_group",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Editar grupo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "NuevoNombre"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/edit_group/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"edit_group",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Borrar grupo",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/delete_group/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"delete_group",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar miembro del grupo",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/delete_member/2?groupId=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"delete_member",
+						"2"
+					],
+					"query": [
+						{
+							"key": "groupId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar usuarios",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/search_users?q=Juan&groupId=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"search_users"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "Juan"
+						},
+						{
+							"key": "groupId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Añadir miembros al grupo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"currentUserId\": 1,\n  \"groupId\": 2,\n  \"userIds\": [\n    3,\n    4\n  ]\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/add_members",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"add_members"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar propietario del grupo",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/group/2/change_owner?newOwnerId=4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"group",
+						"2",
+						"change_owner"
+					],
+					"query": [
+						{
+							"key": "newOwnerId",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ver miembros del grupo",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/group_members?groupId=2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"group_members"
+					],
+					"query": [
+						{
+							"key": "groupId",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Iniciar sesión",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "admin@admin.com"
+						},
+						{
+							"key": "password",
+							"value": "eoHYeHEXe76Jn"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registrar nuevo usuario",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "new_username",
+							"value": "nuevoUsuario"
+						},
+						{
+							"key": "email",
+							"value": "nuevo@mail.com"
+						},
+						{
+							"key": "new_password",
+							"value": "123456"
+						},
+						{
+							"key": "confirm_password",
+							"value": "123456"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cerrar sesión",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear proyecto",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "Proyecto de prueba"
+						},
+						{
+							"key": "groupId",
+							"value": "1"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/save_project",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"save_project"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Guardar tarea en proyecto",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "title",
+							"value": "Tarea 1"
+						},
+						{
+							"key": "description",
+							"value": "Descripción de la tarea"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/project/1/save_task",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"project",
+						"1",
+						"save_task"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar tarea",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/project/1/delete_task?taskId=5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"project",
+						"1",
+						"delete_task"
+					],
+					"query": [
+						{
+							"key": "taskId",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Editar tarea",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "taskId",
+							"value": "5"
+						},
+						{
+							"key": "title",
+							"value": "Tarea editada"
+						},
+						{
+							"key": "description",
+							"value": "Descripción actualizada"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/project/1/edit_task",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"project",
+						"1",
+						"edit_task"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Eliminar proyecto",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/project/1/delete_project",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"project",
+						"1",
+						"delete_project"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Editar proyecto",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "Proyecto Editado"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/project/1/edit_project",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"project",
+						"1",
+						"edit_project"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
