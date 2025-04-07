@@ -5,8 +5,8 @@
     const nextPageBtn = document.querySelector("#nextPage");
     const currentPageDisplay = document.querySelector("#currentPage");
 
-    let pageIndex = 0; // Página inicial
-    const itemsPerPage = 5; // Número de grupos por página
+    let pageIndex = 0; //initial page
+    const itemsPerPage = 5;
     let maxPages = Infinity;
 
     const createGroupElement = ({ id, name }) => {
@@ -41,14 +41,14 @@
     };
 
     const addGroupsToDOM = (groups) => {
-        listContainer.innerHTML = ""; // Limpia la lista actual
+        listContainer.innerHTML = "";
         const fragments = document.createDocumentFragment();
         groups.forEach(group => fragments.appendChild(createGroupElement(group)));
         listContainer.appendChild(fragments);
     };
 
     const updatePaginationControls = () => {
-        currentPageDisplay.textContent = `Página ${pageIndex + 1}`;
+        currentPageDisplay.textContent = ` Page ${pageIndex + 1} `;
         prevPageBtn.disabled = pageIndex === 0;
         nextPageBtn.disabled = pageIndex + 1 >= maxPages;
     };
@@ -93,6 +93,5 @@
         }
     });
 
-    // Cargar los grupos al inicio
     loadGroups();
 })();

@@ -81,18 +81,18 @@ public class GroupService {
 
     @Transactional
     public void removeUserFromGroup(Group group, User user) {
-        group.getUsers().remove(user); // sincroniza memoria
-        groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // elimina en BBDD
+        group.getUsers().remove(user);
+        groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
     }
 
 
     public Page<Group> getGroupsPaginated(User currentUser, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        if (currentUser.getId().equals(1)) { // Si es admin (puede ver todos los grupos)
+        if (currentUser.getId().equals(1)) { //if its admin it can see every group
             return groupRepository.findAll(pageable); // Método predeterminado de JpaRepository
         } else {
-            return groupRepository.findByUsersContains(currentUser, pageable); // Usuario normal
+            return groupRepository.findByUsersContains(currentUser, pageable); // normal user
         }
     }
 }
