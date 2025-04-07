@@ -269,4 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     assignEvents();
+
+    // Expose the function globally
+    window.assignGroupButtonEvents = assignGroupButtonEvents;
 });

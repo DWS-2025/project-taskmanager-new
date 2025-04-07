@@ -1,82 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/css/global.css">
-        <link rel="stylesheet" href="/css/groups.css">
-        <title>Grupos</title>
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/groups.css">
+    <title>Grupos</title>
+</head>
+<body>
 
-        <div>
-            <a href="/projects"><button id="btnBack"></button></a>
-        </div>
+<!-- Botón de regreso -->
+<div>
+    <a href="/projects"><button id="btnBack">Volver</button></a>
+</div>
 
+<!-- Título -->
+<h1>Mis Grupos</h1>
 
-        <h1>Mis Grupos</h1>
+<!-- Indicador de carga -->
+<div id="spinner" style="display: none;">Cargando...</div>
 
-        <ul>
-            {{#groups}}
-                <li class="group-item" data-groupid="{{id}}">
-                    <div class="group-content">
-                        <b>{{name}}</b>
-                        <button class="btnMoreOptions" data-groupid="{{id}}">
-                            <img src="/img/menu.png" alt="Más opciones">
-                        </button>
-                    </div>
-
-                    <!-- Modal de opciones -->
-                    <div class="modalOptions modal hidden" id="modalOptions-{{id}}">
-                        <div class="modal-content">
-                            <h2>{{name}}</h2>
-                            {{^isPersonal}}
-                                {{#isOwner}}
-                                    <button class="btnEditGroup" data-groupid="{{id}}">Editar Grupo</button>
-                                    <button class="btnManageMembers" data-groupid="{{id}}">Gestionar Miembros</button>
-                                    <button class="btnChangeOwner" data-groupid="{{id}}">Cambiar Propietario</button>
-                                    <button class="btnDeleteGroup" data-groupid="{{id}}">Eliminar Grupo</button>
-                                {{/isOwner}}
-                                {{^isOwner}}
-                                    <button class="btnLeaveGroup" data-groupid="{{id}}">Salir del Grupo</button>
-                                {{/isOwner}}
-                            {{/isPersonal}}
-                        </div>
-                    </div>
-                </li>
-            {{/groups}}
-        </ul>
-
-        <!-- Botón para crear nuevo grupo -->
-        <button id="btnNewItem">Nuevo Grupo</button>
-
-        <!-- Modal para crear nuevo grupo -->
-        <div id="modalGroup" class="modal hidden">
-            <div class="modal-content">
-                <h2>Nuevo Grupo</h2>
-                <form id="formNewGroup" action="/save_group" method="POST">
-                    <label>
-                        <input type="text" id="name" name="name" placeholder="Nombre del grupo" autocomplete="off" required>
-                    </label>
-                    <input type="hidden" name="userId" value="{{user.id}}">
-                    <label>
-                        <button type="submit">Guardar</button>
-                    </label>
-                </form>
+<!-- Lista de grupos (renderizada por JS o servidor) -->
+<ul id="group-list">
+    {{#groups}}
+        <li class="group-item" data-groupid="{{id}}">
+            <div class="group-content">
+                <b>{{name}}</b>
+                <button class="btnMoreOptions" data-groupid="{{id}}">
+                    <img src="/img/menu.png" alt="Más opciones">
+                </button>
             </div>
-        </div>
 
-        <!-- Modal para buscar y agregar usuarios -->
-        <div id="modalChangeOwner" class="modal hidden">
-            <div class="modal-content">
-                <h2>Cambiar Propietario</h2>
-                <!-- Lista de usuarios en radiobuttons -->
-                <ul id="groupUsersResult"></ul>
-                <button id="btnAddSelectedUser">Añadir seleccionado</button>
+            <!-- Modal de opciones -->
+            <div class="modalOptions modal hidden" id="modalOptions-{{id}}">
+                <div class="modal-content">
+                    <h2>{{name}}</h2>
+
+                    <!-- Solo mostrar opciones si no es un grupo personal -->
+                    {{^isPersonal}}
+                        {{#isOwner}}
+                            <button class="btnEditGroup" data-groupid="{{id}}">Editar Grupo</button>
+                            <button class="btnManageMembers" data-groupid="{{id}}">Gestionar Miembros</button>
+                            <button class="btnChangeOwner" data-groupid="{{id}}">Cambiar Propietario</button>
+                            <button class="btnDeleteGroup" data-groupid="{{id}}">Eliminar Grupo</button>
+                        {{/isOwner}}
+
+                        {{^isOwner}}
+                            <button class="btnLeaveGroup" data-groupid="{{id}}">Salir del Grupo</button>
+                        {{/isOwner}}
+                    {{/isPersonal}}
+                </div>
             </div>
-        </div>
+        </li>
+    {{/groups}}
 
-        <script src="/js/groups.js" defer></script>
+    <!-- Mostrar mensaje "No hay grupos disponibles" si no hay grupos -->
+    {{^groups}}
+        <li>No hay grupos disponibles.</li>
+    {{/groups}}
+</ul>
 
-    </body>
+<!-- Controles de paginación dinámica -->
+<div class="pagination-controls">
+    <button id="prevPage" disabled>← Anterior</button>
+    <span id="currentPage">Página 1</span>
+    <button id="nextPage">Siguiente →</button>
+</div>
+
+<!-- Botón para crear nuevo grupo -->
+<button id="btnNewItem">Nuevo Grupo</button>
+
+<!-- Modal para crear nuevo grupo -->
+<div id="modalGroup" class="modal hidden">
+    <div class="modal-content">
+        <h2>Nuevo Grupo</h2>
+        <form id="formNewGroup" action="/save_group" method="POST">
+            <label>
+                <input type="text" id="name" name="name" placeholder="Nombre del grupo" autocomplete="off" required>
+            </label>
+            <input type="hidden" name="userId" value="{{user.id}}">
+            <label>
+                <button type="submit">Guardar</button>
+            </label>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para cambiar propietario -->
+<div id="modalChangeOwner" class="modal hidden">
+    <div class="modal-content">
+        <h2>Cambiar Propietario</h2>
+        <ul id="groupUsersResult"></ul>
+        <button id="btnAddSelectedUser">Añadir seleccionado</button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="/js/paginatio.js" defer></script>
+<script src="/js/groups.js" defer></script>
+
+</body>
 </html>

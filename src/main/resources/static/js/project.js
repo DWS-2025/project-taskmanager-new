@@ -1,47 +1,52 @@
-document.addEventListener("DOMContentLoaded", function() {
+// Run this once the DOM has fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+    // Elements used throughout the script
     const modalTask = document.getElementById("modalTask");
     const btnNewTask = document.getElementById("btnNewItem");
     const formNewTask = document.getElementById("formNewTask");
     const projectID = document.getElementById("project-info").dataset.projectid;
     const fileInput = document.getElementById('fileInput');
     const fileName = document.getElementById('fileName');
+
     let currentTaskId = null;
     let clickInsideModal = false;
 
-    fileInput.addEventListener('change', function() {
+    // Display selected file name
+    fileInput.addEventListener('change', function () {
         if (fileInput.files.length > 0) {
             fileName.textContent = fileInput.files[0].name;
         } else {
-            fileName.textContent = "Ningún archivo seleccionado";
+            fileName.textContent = "No file selected";
         }
     });
 
+    // Assign event listeners to task buttons
     function asignarEventosBotones() {
-        // Botones "Más opciones"
         document.querySelectorAll(".btnMoreOptions").forEach(button => {
             button.removeEventListener("click", handleMoreOptionsClick);
             button.addEventListener("click", handleMoreOptionsClick);
         });
-        // Botones "Eliminar"
+
         document.querySelectorAll(".btnDeleteTask").forEach(button => {
             button.removeEventListener("click", handleDeleteTask);
             button.addEventListener("click", handleDeleteTask);
         });
-        // Botones "Editar"
+
         document.querySelectorAll(".btnEditTask").forEach(button => {
             button.removeEventListener("click", handleEditTask);
             button.addEventListener("click", handleEditTask);
         });
-        // Cerrar modal haciendo clic en el fondo
+
+        // For modal closing when clicking outside
         document.querySelectorAll(".modal").forEach(modal => {
             modal.removeEventListener("mousedown", handleModalMouseDown);
             modal.removeEventListener("mouseup", handleModalMouseUp);
             modal.addEventListener("mousedown", handleModalMouseDown);
             modal.addEventListener("mouseup", handleModalMouseUp);
-
         });
     }
 
+    // Handle "More Options" button click
     function handleMoreOptionsClick(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
         console.log("currentTaskId = " + currentTaskId);
@@ -52,22 +57,24 @@ document.addEventListener("DOMContentLoaded", function() {
         if (modal) {
             modal.style.display = "flex";
 
-            // 🔹 Solo asignamos el evento si no está ya asignado
+            // Avoid re-assigning events multiple times
             if (!modal.dataset.eventAssigned) {
                 modal.addEventListener("mousedown", handleModalMouseDown);
                 modal.addEventListener("mouseup", handleModalMouseUp);
-                modal.dataset.eventAssigned = "true"; // Marcar como asignado
+                modal.dataset.eventAssigned = "true";
             }
         }
     }
 
+    // Handle deleting a task
     function handleDeleteTask(event) {
         const taskId = event.target.dataset.taskid;
         if (!taskId) {
-            console.error("No se ha seleccionado una tarea para eliminar.");
+            console.error("No task selected to delete.");
             return;
         }
-        console.log("Eliminando tarea con ID: " + taskId);
+
+        console.log("Deleting task ID: " + taskId);
 
         const taskItem = event.target.closest(".task-item");
         taskItem.style.transition = "opacity 0.3s ease-out";
@@ -75,35 +82,35 @@ document.addEventListener("DOMContentLoaded", function() {
 
         fetch(`/project/${projectID}/delete_task?taskId=${taskId}`, {
             method: "DELETE",
-            headers: {
-                "Content-Type": "application/json"
-            }
+            headers: { "Content-Type": "application/json" }
         })
             .then(response => response.json())
             .then(data => {
                 if (data.message) {
-                    console.log("Tarea eliminada correctamente");
+                    console.log("Task deleted successfully");
                     document.querySelector(`[data-taskid='${taskId}']`).remove();
-                    actualizarListaTareas(); // 🔹 Llamar función que actualiza la lista de tareas
+                    actualizarListaTareas(); // Refresh task list
                 } else {
-                    console.error("Error al eliminar la tarea");
+                    console.error("Error deleting task");
                 }
             })
-            .catch(error => console.error("Error en la petición:", error));
+            .catch(error => console.error("Request error:", error));
     }
-    
+
+    // Refresh the list of tasks from server
     function actualizarListaTareas() {
-        fetch(`/project/${projectID}`) // 🔹 Obtener las tareas actualizadas del backend
+        fetch(`/project/${projectID}`)
             .then(response => response.text())
             .then(html => {
                 document.getElementById("task-list").innerHTML =
                     new DOMParser().parseFromString(html, "text/html")
                         .querySelector("#task-list").innerHTML;
-                asignarEventosBotones(); // 🔹 Reasignar eventos
+                asignarEventosBotones(); // Reassign event listeners after reload
             })
-            .catch(error => console.error("Error al actualizar la lista de tareas:", error));
+            .catch(error => console.error("Error updating task list:", error));
     }
 
+    // Handle editing a task (fill form with current values)
     function handleEditTask(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
 
@@ -116,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         formNewTask.querySelector("input[name='title']").value = title;
         formNewTask.querySelector("textarea[name='description']").value = description;
-        formNewTask.querySelector("input[name='image']").value = null; // Limpiar input de imagen
+        formNewTask.querySelector("input[name='image']").value = null;
 
         let hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");
         if (!hiddenImageInput && imagePath) {
@@ -125,17 +132,20 @@ document.addEventListener("DOMContentLoaded", function() {
             hiddenImageInput.name = "imagePath";
             formNewTask.appendChild(hiddenImageInput);
         }
+
         if (hiddenImageInput) {
-            hiddenImageInput.value = imagePath || ""; // No asigna "" si no hay imagen
+            hiddenImageInput.value = imagePath || "";
         }
 
         const modal = taskItem.querySelector(".modalOptions");
         if (modal) {
             modal.style.display = "none";
         }
+
         modalTask.style.display = "flex";
     }
 
+    // Handle clicking outside the modal to close it
     function handleModalMouseDown(event) {
         if (event.target.closest(".modal-content") || event.target.closest("#formNewTask")) {
             clickInsideModal = true;
@@ -143,27 +153,31 @@ document.addEventListener("DOMContentLoaded", function() {
             clickInsideModal = false;
         }
     }
+
     function handleModalMouseUp(event) {
         if (!clickInsideModal && event.target.classList.contains("modal")) {
             event.target.style.display = "none";
         }
     }
 
-    btnNewTask.addEventListener("click", function() {
-        currentTaskId = null; // Indicar que es una nueva tarea
+    // Handle "New Task" button click
+    btnNewTask.addEventListener("click", function () {
+        currentTaskId = null;
 
         formNewTask.querySelector("input[name='title']").value = "";
         formNewTask.querySelector("textarea[name='description']").value = "";
-        formNewTask.querySelector("input[name='image']").value = ""; // Limpiar campo de imagen
+        formNewTask.querySelector("input[name='image']").value = "";
 
         const hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");
         if (hiddenImageInput) {
             hiddenImageInput.remove();
         }
+
         modalTask.style.display = "flex";
     });
 
-    formNewTask.addEventListener("submit", function(event) {
+    // Handle task form submission (create or update)
+    formNewTask.addEventListener("submit", function (event) {
         event.preventDefault();
 
         const formData = new FormData(formNewTask);
@@ -179,9 +193,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
-                    location.reload();
+                    location.reload(); // Reload page to reflect changes
                 })
-                .catch(error => console.error("Error al actualizar la tarea:", error));
+                .catch(error => console.error("Error updating task:", error));
         } else {
             fetch(`/project/${projectID}/save_task`, {
                 method: "POST",
@@ -190,11 +204,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(response => response.text())
                 .then(data => {
                     console.log(data);
-                    location.reload();
+                    location.reload(); // Reload page to show new task
                 })
-                .catch(error => console.error("Error al guardar la tarea:", error));
+                .catch(error => console.error("Error saving task:", error));
         }
     });
 
+    // Initial event setup
     asignarEventosBotones();
 });
+
