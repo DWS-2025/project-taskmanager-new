@@ -9,18 +9,14 @@
 </head>
 <body>
 
-<!-- Botón de regreso -->
 <div>
     <a href="/projects"><button id="btnBack">Volver</button></a>
 </div>
 
-<!-- Título -->
 <h1>Mis Grupos</h1>
 
-<!-- Indicador de carga -->
 <div id="spinner" style="display: none;">Cargando...</div>
 
-<!-- Lista de grupos (renderizada por JS o servidor) -->
 <ul id="group-list">
     {{#groups}}
         <li class="group-item" data-groupid="{{id}}">
@@ -31,7 +27,6 @@
                 </button>
             </div>
 
-            <!-- Modal de opciones -->
             <div class="modalOptions modal hidden" id="modalOptions-{{id}}">
                 <div class="modal-content">
                     <h2>{{name}}</h2>
@@ -54,23 +49,20 @@
         </li>
     {{/groups}}
 
-    <!-- Mostrar mensaje "No hay grupos disponibles" si no hay grupos -->
     {{^groups}}
         <li>No hay grupos disponibles.</li>
     {{/groups}}
 </ul>
 
-<!-- Controles de paginación dinámica -->
 <div class="pagination-controls">
     <button id="prevPage" disabled>← Anterior</button>
     <span id="currentPage">Página 1</span>
     <button id="nextPage">Siguiente →</button>
 </div>
 
-<!-- Botón para crear nuevo grupo -->
 <button id="btnNewItem">Nuevo Grupo</button>
 
-<!-- Modal para crear nuevo grupo -->
+<!-- Modal to create a new group -->
 <div id="modalGroup" class="modal hidden">
     <div class="modal-content">
         <h2>Nuevo Grupo</h2>
@@ -86,7 +78,6 @@
     </div>
 </div>
 
-<!-- Modal para cambiar propietario -->
 <div id="modalChangeOwner" class="modal hidden">
     <div class="modal-content">
         <h2>Cambiar Propietario</h2>

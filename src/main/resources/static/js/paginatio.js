@@ -23,7 +23,6 @@
             </button>
         `;
 
-        // Modal de opciones para este grupo
         const modalDiv = document.createElement("div");
         modalDiv.classList.add("modalOptions", "modal", "hidden");
         modalDiv.id = `modalOptions-${id}`;
@@ -66,7 +65,7 @@
             addGroupsToDOM(content);
             maxPages = totalPages;
 
-            // Reasigna los eventos a los botones de los elementos dinámicamente creados
+            // Reasgn the created buttons
             if (typeof assignGroupButtonEvents === "function") {
                 assignGroupButtonEvents();
             }
@@ -79,7 +78,7 @@
         }
     };
 
-    // Manejo de botones de paginación
+    // pagination buttons
     prevPageBtn.addEventListener("click", () => {
         if (pageIndex > 0) {
             pageIndex--;
