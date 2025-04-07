@@ -59,12 +59,12 @@ This diagram illustrates the main entities of the application and their relation
 
 ## 👥 Development Team
 
-| Name                        | University Email                    | GitHub Username |
-|-----------------------------|-------------------------------------|-----|
-| Roi Martínez Roque          | r.martinezr.2023@alumnos.urjc.es      | @RoiMartinezRoque|
-| Juan Pablo Parra Avellaneda | jp.parra.2023@alumnos.urjc.es      | @ |
-| Eduardo José Narros Sanchéz | ej.narros.2023@alumnos.urjc.es      | @eeduunrrs   |
-| Lázaro Martínez Medina      | l.martinezm.2023@alumnos.urjc.es       | @Lazaro-123   |
+| Name                        | University Email                    | GitHub Username   |
+|-----------------------------|-------------------------------------|-------------------|
+| Roi Martínez Roque          | r.martinezr.2023@alumnos.urjc.es      | @RoiMartinezRoque |
+| Juan Pablo Parra Avellaneda | jp.parra.2023@alumnos.urjc.es      | @jparra28         |
+| Eduardo José Narros Sanchéz | ej.narros.2023@alumnos.urjc.es      | @eeduunrrs        |
+| Lázaro Martínez Medina      | l.martinezm.2023@alumnos.urjc.es       | @Lazaro-123       |
 
 ---
 
