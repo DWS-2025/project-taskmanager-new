@@ -318,35 +318,18 @@ public class GroupController {
     }
 
     @GetMapping("/paginated_groups")
-    public String getPaginatedGroups(
-            @RequestParam(defaultValue = "0") int page,       // Página actual
-            @RequestParam(defaultValue = "5") int size,       // Tamaño de la página
-            Model model,
+    @ResponseBody
+    public ResponseEntity<Page<Group>> getPaginatedGroups(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
             HttpSession session) {
 
-        User currentUser = (User) session.getAttribute("currentUser");
-        Page<Group> groupsPage = groupService.getGroupsPaginated(currentUser, page, size);
-
-        // Preparar páginas para Mustache
-        List<Map<String, Object>> pages = new ArrayList<>();
-        for (int i = 0; i < groupsPage.getTotalPages(); i++) {
-            Map<String, Object> pageMap = new HashMap<>();
-            pageMap.put("index", i); // Índice de la página
-            pageMap.put("pageNumber", i + 1); // Numero de página legible (1, 2, 3...)
-            pageMap.put("isCurrent", i == page); // Si es la página actual
-            pages.add(pageMap);
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        // Agregar atributos al modelo
-        model.addAttribute("groups", groupsPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", groupsPage.getTotalPages());
-        model.addAttribute("hasNext", groupsPage.hasNext());
-        model.addAttribute("hasPrevious", groupsPage.hasPrevious());
-        model.addAttribute("pages", pages); // Números de página
-        model.addAttribute("nextPage", page + 1); // Próxima página
-        model.addAttribute("size", size); // Tamaño actual de la página
-
-        return "groups_paginated";
+        Page<Group> groupPage = groupService.getGroupsPaginated(currentUser, page, size);
+        return ResponseEntity.ok(groupPage);
     }
 }
