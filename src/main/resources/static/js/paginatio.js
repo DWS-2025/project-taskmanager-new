@@ -31,6 +31,7 @@
                 <h2>${name}</h2>
                 <button class="btnEditGroup" data-groupid="${id}">Editar Grupo</button>
                 <button class="btnManageMembers" data-groupid="${id}">Gestionar Miembros</button>
+                <button class="btnChangeOwner" data-groupid="${id}">Cambiar Propietario</button>
                 <button class="btnDeleteGroup" data-groupid="${id}">Eliminar Grupo</button>
             </div>
         `;
