@@ -212,5 +212,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initial event setup
     asignarEventosBotones();
+
+    document.getElementById("searchForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const title = document.getElementById("searchTitle").value;
+        const hasImage = document.getElementById("filterImage").checked;
+
+        const url = new URL("/api/tasks/search", window.location.origin);
+        if (title) url.searchParams.append("title", title);
+        url.searchParams.append("hasImage", hasImage);
+
+        fetch(url)
+            .then(res => res.json())
+            .then(tasks => {
+                renderTaskList(tasks);
+                asignarEventosBotones();
+            })
+            .catch(err => console.error("Error al buscar tareas:", err));
+    });
+
+    function renderTaskList(tasks) {
+        const taskList = document.getElementById("task-list");
+        taskList.innerHTML = "";
+
+        tasks.forEach(task => {
+            const li = document.createElement("li");
+            li.className = "task-item";
+            li.dataset.taskid = task.id;
+
+            const content = document.createElement("div");
+            content.className = "task-content";
+            content.innerHTML = `<b>${task.title}</b><p>${task.description}</p>`;
+
+            if (task.image) {
+                const img = document.createElement("img");
+                img.src = `data:image/jpeg;base64,${task.image}`;
+                img.style.maxWidth = "200px";
+                content.appendChild(img);
+            }
+
+            const btn = document.createElement("button");
+            btn.className = "btnMoreOptions";
+            btn.dataset.taskid = task.id;
+            btn.innerHTML = `<img src="/img/menu.png" alt="Más opciones" style="width:16px; height:16px;">`;
+            content.appendChild(btn);
+
+            li.appendChild(content);
+            taskList.appendChild(li);
+        });
+    }
+
 });
 

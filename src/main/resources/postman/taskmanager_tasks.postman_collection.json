@@ -148,6 +148,35 @@
                     ]
                 }
             }
+        },
+        {
+            "name": "Search Tasks (title + hasImage)",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:8080/api/tasks/search?title=importante&hasImage=true",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "tasks",
+                        "search"
+                    ],
+                    "query": [
+                        {
+                            "key": "title",
+                            "value": "importante"
+                        },
+                        {
+                            "key": "hasImage",
+                            "value": "true"
+                        }
+                    ]
+                }
+            }
         }
     ],
     "variable": [

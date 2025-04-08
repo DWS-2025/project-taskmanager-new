@@ -24,13 +24,11 @@ public class TaskRestController {
     @Autowired
     private ProjectService projectService;
 
-    // ✅ NUEVO: Obtener todas las tareas del sistema
     @GetMapping("/tasks")
     public ResponseEntity<List<Task>> getAllTasks() {
         return ResponseEntity.ok(taskService.getAllTasks());
     }
 
-    // ✅ Obtener tareas de un proyecto específico
     @GetMapping("/projects/{projectId}/tasks")
     public ResponseEntity<?> getTasks(@PathVariable int projectId) {
         Project project = projectService.findProjectById(projectId);
@@ -109,4 +107,30 @@ public class TaskRestController {
         taskService.removeTask(taskId);
         return ResponseEntity.ok("Task deleted successfully");
     }
+
+    @GetMapping("/tasks/search")
+    public ResponseEntity<List<Task>> searchTasks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Boolean hasImage) {
+
+        List<Task> tasks = taskService.getAllTasks();
+
+        // Filtro por título (contiene texto)
+        if (title != null && !title.isBlank()) {
+            String lower = title.toLowerCase();
+            tasks = tasks.stream()
+                    .filter(t -> t.getTitle().toLowerCase().contains(lower))
+                    .toList();
+        }
+
+        // Filtro por si tiene imagen o no
+        if (hasImage != null) {
+            tasks = tasks.stream()
+                    .filter(t -> hasImage.equals(t.getImage() != null))
+                    .toList();
+        }
+
+        return ResponseEntity.ok(tasks);
+    }
+
 }
