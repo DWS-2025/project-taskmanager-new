@@ -1,0 +1,241 @@
+{
+    "info": {
+        "name": "TaskManager API - Groups",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get All Groups",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:8080/api/groups",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Group by ID",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Create Group",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/x-www-form-urlencoded"
+                    }
+                ],
+                "body": {
+                    "mode": "urlencoded",
+                    "urlencoded": [
+                        {
+                            "key": "name",
+                            "value": "Nuevo Grupo",
+                            "type": "text"
+                        },
+                        {
+                            "key": "ownerId",
+                            "value": "1",
+                            "type": "text"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/groups",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Update Group Name",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/x-www-form-urlencoded"
+                    }
+                ],
+                "body": {
+                    "mode": "urlencoded",
+                    "urlencoded": [
+                        {
+                            "key": "name",
+                            "value": "Grupo Renombrado",
+                            "type": "text"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Delete Group",
+            "request": {
+                "method": "DELETE",
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1?requesterId=1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1"
+                    ],
+                    "query": [
+                        {
+                            "key": "requesterId",
+                            "value": "1"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Add Members to Group",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[2,3]"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1/members",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1",
+                        "members"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Remove Member from Group",
+            "request": {
+                "method": "DELETE",
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1/members/2",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1",
+                        "members",
+                        "2"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Change Group Owner",
+            "request": {
+                "method": "PUT",
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1/change_owner?newOwnerId=2",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1",
+                        "change_owner"
+                    ],
+                    "query": [
+                        {
+                            "key": "newOwnerId",
+                            "value": "2"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Group Members",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:8080/api/groups/1/members",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "groups",
+                        "1",
+                        "members"
+                    ]
+                }
+            }
+        }
+    ]
+}

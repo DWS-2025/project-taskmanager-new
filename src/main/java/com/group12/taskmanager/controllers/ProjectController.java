@@ -64,7 +64,7 @@ public class ProjectController {
         Group group = groupService.findGroupById(groupId);
         if (group == null) return "redirect:/"; // Redirect if group not found
 
-        projectService.createProject(name, group); // Create project with given name and group
+        projectService.createProject(name, group.getId()); // Create project with given name and group
         return "redirect:/projects";
     }
 

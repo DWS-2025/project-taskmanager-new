@@ -19,6 +19,10 @@ public class UserService {
     @Autowired
     private GroupService groupService;
 
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
     // Save a new user and ensure bidirectional relation with groups
     @Transactional
     public void addUser(User user) {
@@ -75,7 +79,7 @@ public class UserService {
     // Delete a user from the system with checks for ownership and permissions
     public boolean deleteUser(int userId, User currentUser) {
 
-        // Only the user themself or an admin (ID 1) can delete
+        // Only the own user or an admin (ID 1) can delete
         if (currentUser.getId() != userId) {
             if (currentUser.getId() != 1) {
                 System.out.println("Not authorized to delete this account.");

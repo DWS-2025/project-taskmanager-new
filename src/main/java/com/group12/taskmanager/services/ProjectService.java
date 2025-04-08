@@ -14,7 +14,7 @@ public class ProjectService {
 
     @Autowired
     private ProjectRepository projectRepository;
-
+    private GroupService groupService;
     @Autowired
     private TaskService taskService;
 
@@ -24,10 +24,13 @@ public class ProjectService {
     }
 
     // Create and save a new project assigned to a group
-    public void createProject(String name, Group group) {
+    public Project createProject(String name, int groupId) {
+        Group group = groupService.findGroupById(groupId);
+        if (group == null) throw new IllegalArgumentException("Group not found");
         Project project = new Project(name, group);
-        projectRepository.save(project);
+        return projectRepository.save(project);
     }
+
 
     // Find a project by its ID
     public Project findProjectById(int id) {

@@ -1,0 +1,159 @@
+{
+    "info": {
+        "name": "TaskManager API - Tasks",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get All Tasks",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/api/tasks",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "tasks"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Tasks from Project",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/api/projects/{{projectId}}/tasks",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "projects",
+                        "{{projectId}}",
+                        "tasks"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Create Task with Image",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "title",
+                            "value": "Tarea REST",
+                            "type": "text"
+                        },
+                        {
+                            "key": "description",
+                            "value": "Descripci\u00f3n de la tarea",
+                            "type": "text"
+                        },
+                        {
+                            "key": "image",
+                            "type": "file",
+                            "src": ""
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/projects/{{projectId}}/tasks",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "projects",
+                        "{{projectId}}",
+                        "tasks"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Update Task with Image",
+            "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "title",
+                            "value": "Tarea modificada",
+                            "type": "text"
+                        },
+                        {
+                            "key": "description",
+                            "value": "Descripci\u00f3n modificada",
+                            "type": "text"
+                        },
+                        {
+                            "key": "image",
+                            "type": "file",
+                            "src": ""
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/projects/{{projectId}}/tasks/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "projects",
+                        "{{projectId}}",
+                        "tasks",
+                        "{{projectId}}"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Delete Task",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/api/projects/{{projectId}}/tasks/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "projects",
+                        "{{projectId}}",
+                        "tasks",
+                        "{{projectId}}"
+                    ]
+                }
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "projectId",
+            "value": "1"
+        }
+    ]
+}
