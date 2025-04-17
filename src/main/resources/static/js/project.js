@@ -245,11 +245,15 @@ document.addEventListener("DOMContentLoaded", function () {
             content.className = "task-content";
             content.innerHTML = `<b>${task.title}</b><p>${task.description}</p>`;
 
-            if (task.image) {
-                const img = document.createElement("img");
-                img.src = `data:image/jpeg;base64,${task.image}`;
-                img.style.maxWidth = "200px";
-                content.appendChild(img);
+            if (task.hasImage) {
+                fetch(`/api/tasks/${task.id}/image`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const img = document.createElement("img");
+                        img.src = `data:image/jpeg;base64,${data.base64}`;
+                        img.style.maxWidth = "200px";
+                        content.appendChild(img);
+                    });
             }
 
             const btn = document.createElement("button");
