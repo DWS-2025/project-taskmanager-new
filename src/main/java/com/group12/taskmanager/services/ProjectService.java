@@ -42,7 +42,7 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId).orElse(null);
         // Remove all tasks from the project
         if (project != null) {
-            List<Task> tasks = taskService.getProjectTasks(project);
+            List<Task> tasks = taskService.getProjectTasksRaw(project);
             for (Task task : tasks) {
                 taskService.removeTask(task.getId());
             }
