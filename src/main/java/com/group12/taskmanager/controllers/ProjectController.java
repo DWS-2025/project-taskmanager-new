@@ -1,8 +1,6 @@
 package com.group12.taskmanager.controllers;
 
-import com.group12.taskmanager.dto.TaskImageDTO;
-import com.group12.taskmanager.dto.TaskRequestDTO;
-import com.group12.taskmanager.dto.TaskResponseDTO;
+import com.group12.taskmanager.dto.*;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
@@ -41,12 +39,12 @@ public class ProjectController {
 
         if (currentUser.getId().equals(1)) {
             // Admin user can see all projects and all groups
-            projects = projectService.getAllProjects();
+            projects = projectService.getAllProjectsRaw();
             ownedGroups = groupService.getAllGroups();
         } else {
             // Regular user: get projects from groups they belong to
             for (Group group : currentUser.getGroups()) {
-                projects.addAll(projectService.getProjectsByGroup(group));
+                projects.addAll(projectService.getGroupProjectsRaw(group));
             }
             // Groups where the user is the owner
             ownedGroups = currentUser.getGroups().stream()
@@ -67,7 +65,8 @@ public class ProjectController {
         Group group = groupService.findGroupById(groupId);
         if (group == null) return "redirect:/"; // Redirect if group not found
 
-        projectService.createProject(name, group.getId()); // Create project with given name and group
+        ProjectRequestDTO dto = new ProjectRequestDTO(name, groupId); // Create project with given name and group
+        projectService.createProject(dto);
         return "redirect:/projects";
     }
 
@@ -81,7 +80,7 @@ public class ProjectController {
     public String getProjectById(@PathVariable int id, Model model, HttpSession session) {
         if (session.getAttribute("user") == null) return "redirect:/";
         Project project = projectService.findProjectById(id);
-        List<Task> tasks = taskService.getProjectTasksRaw(project); // entidad
+        List<Task> tasks = taskService.getProjectTasksRaw(project);
 
         for (Task task : tasks) {
             if (task.getImage() != null) {
@@ -193,7 +192,8 @@ public class ProjectController {
             return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
 
         project.setName(name); // Update project name
-        projectService.updateProject(project); // Save changes
+        ProjectRequestDTO dto = new ProjectRequestDTO(project.getName(), project.getGroup().getId());
+        projectService.updateProject(project.getId(), dto); // save changes
         return ResponseEntity.ok(Collections.singletonMap("success", true));
     }
 }

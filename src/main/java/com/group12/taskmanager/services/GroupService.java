@@ -1,5 +1,6 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.dto.ProjectResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.User;
@@ -64,7 +65,7 @@ public class GroupService {
 
         if (group != null) {
             if (group.getOwner().getId().equals(currentUser.getId()) || currentUser.getId().equals(1)) {
-                for (Project project : projectService.getProjectsByGroup(group)) {
+                for (ProjectResponseDTO project : projectService.getProjectsByGroupId(groupId)) {
                     projectService.deleteProject(project.getId());
                 }
                 if (currentUser.getId().equals(1) && group.getName().startsWith("USER_")) {
