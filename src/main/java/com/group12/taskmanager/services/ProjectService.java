@@ -1,62 +1,88 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.dto.ProjectRequestDTO;
+import com.group12.taskmanager.dto.ProjectResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
-import com.group12.taskmanager.models.Task;
+import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
 
-    @Autowired
-    private ProjectRepository projectRepository;
-    private GroupService groupService;
-    @Autowired
-    private TaskService taskService;
+    @Autowired private ProjectRepository projectRepository;
+    @Autowired private GroupRepository groupRepository;
 
-    // Retrieve all projects from the database
-    public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+    public List<ProjectResponseDTO> getAllProjects() {
+        return projectRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    // Create and save a new project assigned to a group
-    public Project createProject(String name, int groupId) {
-        Group group = groupService.findGroupById(groupId);
-        if (group == null) throw new IllegalArgumentException("Group not found");
-        Project project = new Project(name, group);
-        return projectRepository.save(project);
+    public ProjectResponseDTO findProjectDTOById(int id) {
+        Project project = projectRepository.findById(id).orElse(null);
+        return (project != null) ? toDTO(project) : null;
+    }
+
+    public List<ProjectResponseDTO> getProjectsByGroupId(int groupId) {
+        return projectRepository.findByGroup_Id(groupId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
 
-    // Find a project by its ID
+    public ProjectResponseDTO createProject(ProjectRequestDTO dto) {
+        Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
+        if (group == null) return null;
+
+        Project project = new Project();
+        project.setName(dto.getName());
+        project.setGroup(group);
+
+        return toDTO(projectRepository.save(project));
+    }
+
+    public ProjectResponseDTO updateProject(int id, ProjectRequestDTO dto) {
+        Project project = projectRepository.findById(id).orElse(null);
+        if (project == null) return null;
+
+        if (dto.getName() != null) project.setName(dto.getName());
+        return toDTO(projectRepository.save(project));
+    }
+
+    public boolean deleteProject(int id) {
+        if (projectRepository.existsById(id)) {
+            projectRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    private ProjectResponseDTO toDTO(Project project) {
+        return new ProjectResponseDTO(
+                project.getId(),
+                project.getName(),
+                project.getGroup().getId()
+        );
+    }
+
+    // Compatibility: allow access to entity for Mustache views
     public Project findProjectById(int id) {
         return projectRepository.findById(id).orElse(null);
     }
 
-    // Delete a project and all its associated tasks
-    public void deleteProject(int projectId) {
-        Project project = projectRepository.findById(projectId).orElse(null);
-        // Remove all tasks from the project
-        if (project != null) {
-            List<Task> tasks = taskService.getProjectTasks(project);
-            for (Task task : tasks) {
-                taskService.removeTask(task.getId());
-            }
-            projectRepository.delete(project);
-        }
-    }
-
-    // Update an existing project's data
-    public void updateProject(Project project) {
-        projectRepository.save(project);
-    }
-
-    // Get all projects associated with a specific group
-    public List<Project> getProjectsByGroup(Group group) {
+    public List<Project> getGroupProjectsRaw(Group group) {
         return projectRepository.findByGroup(group);
     }
+    public List<Project> getAllProjectsRaw() {
+        return projectRepository.findAll();
+    }
+
+
+
 }
