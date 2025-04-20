@@ -1,4 +1,4 @@
-package com.group12.taskmanager.dto;
+package com.group12.taskmanager.dto.task;
 
 public class TaskImageDTO {
     private String base64;

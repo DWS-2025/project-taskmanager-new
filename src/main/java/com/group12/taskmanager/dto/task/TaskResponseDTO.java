@@ -1,4 +1,4 @@
-package com.group12.taskmanager.dto;
+package com.group12.taskmanager.dto.task;
 
 public class TaskResponseDTO {
     private int id;

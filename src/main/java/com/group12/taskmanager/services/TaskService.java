@@ -1,8 +1,9 @@
 package com.group12.taskmanager.services;
 
-import com.group12.taskmanager.dto.TaskRequestDTO;
-import com.group12.taskmanager.dto.TaskResponseDTO;
-import com.group12.taskmanager.dto.TaskImageDTO;
+import com.group12.taskmanager.dto.project.ProjectResponseDTO;
+import com.group12.taskmanager.dto.task.TaskRequestDTO;
+import com.group12.taskmanager.dto.task.TaskResponseDTO;
+import com.group12.taskmanager.dto.task.TaskImageDTO;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
 import com.group12.taskmanager.repositories.ProjectRepository;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,8 +27,8 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public List<TaskResponseDTO> getProjectTasks(int projectID) {
-        Project project = projectRepository.findById(projectID).get();
+    public List<TaskResponseDTO> getProjectTasks(ProjectResponseDTO dto) {
+        Project project = projectRepository.findById(dto.getId()).get();
         return taskRepository.findByProject(project).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -47,11 +47,12 @@ public class TaskService {
         return toDTO(saved);
     }
 
-    public Task findTaskById(int id) {
-        return taskRepository.findById(id).orElse(null);
+    public TaskResponseDTO findTaskById(int id) {
+        return toDTO(taskRepository.findById(id).orElse(null));
     }
 
-    public boolean removeTask(int id) {
+    public boolean removeTask(TaskResponseDTO dto) {
+        int id = dto.getId();
         if (taskRepository.existsById(id)) {
             taskRepository.deleteById(id);
             return true;
@@ -60,7 +61,7 @@ public class TaskService {
     }
 
     public TaskResponseDTO updateTask(int id, TaskRequestDTO dto) {
-        Task task = findTaskById(id);
+        Task task = taskRepository.findById(id).orElse(null);
         if (task == null) return null;
 
         if (dto.getTitle() != null) task.setTitle(dto.getTitle());
@@ -70,7 +71,7 @@ public class TaskService {
     }
 
     public boolean uploadImage(int id, TaskImageDTO dto) {
-        Task task = findTaskById(id);
+        Task task = taskRepository.findById(id).orElse(null);
         if (task == null || dto.getBase64() == null) return false;
 
         byte[] imageBytes = Base64.getDecoder().decode(dto.getBase64());
@@ -80,7 +81,7 @@ public class TaskService {
     }
 
     public TaskImageDTO getImage(int id) {
-        Task task = findTaskById(id);
+        Task task = taskRepository.findById(id).orElse(null);
         if (task == null || task.getImage() == null) return null;
 
         String encoded = Base64.getEncoder().encodeToString(task.getImage());

@@ -1,5 +1,6 @@
 package com.group12.taskmanager.repositories;
 
+import com.group12.taskmanager.models.Group;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.group12.taskmanager.models.User;
@@ -21,4 +22,8 @@ public interface  UserRepository extends JpaRepository<User, Integer> {
             @Param("prefix") String prefix,
             @Param("excluded") List<User> excluded
     );
+
+    @Query("SELECT g FROM User u JOIN u.groups g WHERE u.id = :id")
+    List<Group> findGroupsByUserId(@Param("id") int id);
+
 }
