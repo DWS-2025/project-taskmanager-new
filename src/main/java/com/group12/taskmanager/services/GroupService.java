@@ -44,7 +44,11 @@ public class GroupService {
         return (group != null) ? toDTO(group) : null;
     }
 
-    public void saveGroup(Group group) {
+    public void saveGroup(int id, GroupRequestDTO dto) {
+        Group group = groupRepository.findById(id).get();
+        group.setName(dto.getName());
+        User owner = userRepository.findById(dto.getOwnerID()).get();
+        group.setOwner(owner);
         groupRepository.save(group);
     }
 
@@ -88,7 +92,10 @@ public class GroupService {
         return users;
     }
 
-    @Transactional
+    public void addUserToGroup(GroupResponseDTO group, UserResponseDTO user) {
+        groupRepository.addUserToGroup(group.getId(), user.getId());
+    }
+
     public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
     }
@@ -108,5 +115,4 @@ public class GroupService {
         return new GroupResponseDTO(group.getId(), group.getName(), group.getOwner().getId());
     }
 
-    public Group findGroupByIdRaw(int id) { return groupRepository.findById(id).orElse(null); }
 }

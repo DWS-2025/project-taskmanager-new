@@ -1,5 +1,6 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
@@ -118,7 +119,8 @@ public class UserService {
                     // If not the owner: remove only the relationship
                     group.getUsers().remove(user);
                     user.getGroups().remove(group);
-                    groupService.saveGroup(group); // save the updated group
+                    GroupRequestDTO groupDTO = new GroupRequestDTO(group.getName(), group.getOwner().getId());
+                    groupService.saveGroup(group.getId(), groupDTO); // save the updated group
                 }
             }
 
@@ -140,6 +142,13 @@ public class UserService {
                 user.getName(),
                 user.getEmail()
         );
+    }
+
+    public boolean validatePassword(UserResponseDTO user, String password) {
+        if (userRepository.existsById(user.getId())) {
+            return (userRepository.findById(user.getId()).get().getPassword().equals(password));
+        }
+        return false;
     }
 
 }

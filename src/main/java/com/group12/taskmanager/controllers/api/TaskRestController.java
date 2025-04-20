@@ -1,8 +1,11 @@
 package com.group12.taskmanager.controllers.api;
 
-import com.group12.taskmanager.dto.TaskRequestDTO;
-import com.group12.taskmanager.dto.TaskResponseDTO;
-import com.group12.taskmanager.dto.TaskImageDTO;
+import com.group12.taskmanager.dto.project.ProjectResponseDTO;
+import com.group12.taskmanager.dto.task.TaskRequestDTO;
+import com.group12.taskmanager.dto.task.TaskResponseDTO;
+import com.group12.taskmanager.dto.task.TaskImageDTO;
+import com.group12.taskmanager.models.Project;
+import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -16,6 +19,8 @@ public class TaskRestController {
 
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private ProjectService projectService;
 
     @GetMapping
     public ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
@@ -24,7 +29,9 @@ public class TaskRestController {
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<TaskResponseDTO>> getTasksByProject(@PathVariable int projectId) {
-        return ResponseEntity.ok(taskService.getProjectTasks(projectId));
+        Project project = projectService.findProjectByIdRaw(projectId);
+        ProjectResponseDTO dto = new ProjectResponseDTO(project.getId(), project.getName(), project.getGroup().getId());
+        return ResponseEntity.ok(taskService.getProjectTasks(dto));
     }
 
     @GetMapping("/search")
@@ -49,7 +56,8 @@ public class TaskRestController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable int id) {
-        boolean removed = taskService.removeTask(id);
+        TaskResponseDTO task = taskService.findTaskById(id);
+        boolean removed = taskService.removeTask(task);
         return removed ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 

@@ -1,7 +1,7 @@
 package com.group12.taskmanager.controllers.api;
 
-import com.group12.taskmanager.dto.ProjectRequestDTO;
-import com.group12.taskmanager.dto.ProjectResponseDTO;
+import com.group12.taskmanager.dto.project.ProjectRequestDTO;
+import com.group12.taskmanager.dto.project.ProjectResponseDTO;
 import com.group12.taskmanager.services.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -23,7 +23,7 @@ public class ProjectRestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponseDTO> getProjectById(@PathVariable int id) {
-        ProjectResponseDTO project = projectService.findProjectDTOById(id);
+        ProjectResponseDTO project = projectService.findProjectById(id);
         return (project != null) ? ResponseEntity.ok(project) : ResponseEntity.notFound().build();
     }
 
@@ -43,7 +43,8 @@ public class ProjectRestController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProject(@PathVariable int id) {
-        boolean deleted = projectService.deleteProject(id);
+        ProjectResponseDTO project = projectService.findProjectById(id);
+        boolean deleted = projectService.deleteProject(project);
         return deleted
                 ? ResponseEntity.ok(Collections.singletonMap("message", "Deleted successfully"))
                 : ResponseEntity.notFound().build();

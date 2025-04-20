@@ -1,5 +1,8 @@
 package com.group12.taskmanager.controllers.api;
 
+import com.group12.taskmanager.dto.group.GroupRequestDTO;
+import com.group12.taskmanager.dto.user.UserRequestDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
@@ -18,13 +21,13 @@ public class UserRestController {
     @Autowired private GroupService groupService;
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable int id) {
-        User user = userService.findUserById(id);
+        UserResponseDTO user = userService.findUserById(id);
         return (user != null) ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
@@ -37,10 +40,11 @@ public class UserRestController {
         if (userService.findUserByEmail(email) != null)
             return ResponseEntity.badRequest().body("El email ya está registrado");
 
-        User newUser = new User(name, email, password);
-        userService.addUser(newUser);
-        Group group = groupService.createGroup("USER_" + newUser.getName(), newUser);
-        groupService.saveGroup(group);
+        UserRequestDTO newUser = new UserRequestDTO(name, email, password);
+        userService.createUser(newUser);
+        int newUserId = userService.findUserByEmail(email).getId();
+        GroupRequestDTO group = new GroupRequestDTO("USER_" + newUser.getName(), newUserId);
+        groupService.createGroup(group);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
@@ -50,24 +54,26 @@ public class UserRestController {
                                         @RequestParam String name,
                                         @RequestParam String email,
                                         @RequestParam String password) {
-        User user = userService.findUserById(id);
-        if (user == null) return ResponseEntity.notFound().build();
+        UserResponseDTO found = userService.findUserById(id);
+        if (found == null) return ResponseEntity.notFound().build();
 
+        UserRequestDTO user = new UserRequestDTO(name, email, password);
         user.setName(name);
         user.setEmail(email);
         user.setPassword(password);
-        userService.updateUser(user);
+        userService.updateUser(id, user);
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(found);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id,
                                         @RequestParam int requesterId) {
-        User requester = userService.findUserById(requesterId);
+        UserResponseDTO requester = userService.findUserById(requesterId);
         if (requester == null) return ResponseEntity.status(401).body("No autorizado");
 
-        boolean result = userService.deleteUser(id, requester);
+        UserResponseDTO deleted = userService.findUserById(id);
+        boolean result = userService.deleteUser(deleted, requester);
         return result ? ResponseEntity.ok("Usuario eliminado")
                 : ResponseEntity.status(403).body("Acción no permitida");
     }
