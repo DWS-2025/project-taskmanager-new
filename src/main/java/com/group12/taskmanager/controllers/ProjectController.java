@@ -3,6 +3,7 @@ package com.group12.taskmanager.controllers;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.project.ProjectRequestDTO;
 import com.group12.taskmanager.dto.project.ProjectResponseDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
@@ -10,6 +11,7 @@ import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.TaskService;
+import com.group12.taskmanager.services.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,28 +27,30 @@ public class ProjectController {
     @Autowired private ProjectService projectService;
     @Autowired private TaskService taskService;
     @Autowired private GroupService groupService;
+    @Autowired private UserService userService;
 
     @GetMapping("/projects")
     public String getProjects(Model model, HttpSession session) {
-        User currentUser = (User) session.getAttribute("user");
+        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
         if (currentUser == null) return "redirect:/"; // Redirect to home if user not logged in
 
         model.addAttribute("user", currentUser);
-        List<Project> projects = new ArrayList<>();
-        List<Group> ownedGroups = new ArrayList<>();
+        List<ProjectResponseDTO> projects = new ArrayList<>();
+        List<GroupResponseDTO> ownedGroups = new ArrayList<>();
 
-        if (currentUser.getId().equals(1)) {
+        if (currentUser.getId() == 1) {
             // Admin user can see all projects and all groups
-            projects = projectService.getAllProjectsRaw();
-            ownedGroups = groupService.getAllGroupsRaw();
+            projects = projectService.getAllProjects();
+            ownedGroups = groupService.getAllGroups();
         } else {
             // Regular user: get projects from groups they belong to
-            for (Group group : currentUser.getGroups()) {
-                projects.addAll(projectService.getGroupProjectsRaw(group));
+            List<GroupResponseDTO> currentUserGroups = userService.getUserGroups(currentUser);
+            for (GroupResponseDTO group : currentUserGroups) {
+                projects.addAll(projectService.getGroupProjects(group));
             }
             // Groups where the user is the owner
-            ownedGroups = currentUser.getGroups().stream()
-                    .filter(g -> g.getOwner().getId().equals(currentUser.getId()))
+            ownedGroups = currentUserGroups.stream()
+                    .filter(g -> g.getOwnerId() == currentUser.getId())
                     .toList();
         }
 
@@ -66,12 +70,6 @@ public class ProjectController {
         ProjectRequestDTO dto = new ProjectRequestDTO(name, groupId); // Create project with given name and group
         projectService.createProject(dto);
         return "redirect:/projects";
-    }
-
-    @GetMapping("/new_project")
-    public ResponseEntity<?> newProject() {
-        // Return message for opening modal (used in frontend)
-        return ResponseEntity.ok(Collections.singletonMap("mensaje", "Abriendo modal"));
     }
 
     @GetMapping("/project/{id}")

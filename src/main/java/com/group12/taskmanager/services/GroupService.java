@@ -9,7 +9,6 @@ import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -62,11 +61,18 @@ public class GroupService {
         return toDTO(groupRepository.save(group));
     }
 
-    public GroupResponseDTO updateGroup(int id, GroupRequestDTO dto) {
+    public GroupResponseDTO updateGroupName(int id, GroupRequestDTO dto) {
         Group group = groupRepository.findById(id).orElse(null);
         if (group == null) return null;
 
         if (dto.getName() != null) group.setName(dto.getName());
+        return toDTO(groupRepository.save(group));
+    }
+    public GroupResponseDTO changeGroupOwner(int id, GroupRequestDTO dto) {
+        Group group = groupRepository.findById(id).orElse(null);
+        if (group == null) return null;
+
+        group.setOwner(userService.findUserByIdRaw(dto.getOwnerID()));
         return toDTO(groupRepository.save(group));
     }
 
@@ -91,6 +97,10 @@ public class GroupService {
         }
         return users;
     }
+    public List<User> getGroupUsersRaw(GroupResponseDTO dto) {
+        Group group = groupRepository.findByIdWithUsers(dto.getId());
+        return group.getUsers();
+    }
 
     public void addUserToGroup(GroupResponseDTO group, UserResponseDTO user) {
         groupRepository.addUserToGroup(group.getId(), user.getId());
@@ -100,14 +110,15 @@ public class GroupService {
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
     }
 
-    public Page<GroupResponseDTO> getGroupsPaginated(User currentUser, int page, int size) {
+    public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Group> groups;
 
-        if (currentUser.getId().equals(1)) { //if its admin it can see every group
+        if (currentUser.getId() == 1) { //if its admin it can see every group
             groups =  groupRepository.findAll(pageable);
         } else {
-            groups = groupRepository.findByUsersContains(currentUser, pageable); // normal user
+            User cUser = userRepository.findById(currentUser.getId()).get();
+            groups = groupRepository.findByUsersContains(cUser, pageable); // normal user
         }
         return groups.map(this::toDTO);
     }

@@ -70,7 +70,6 @@
             <label>
                 <input type="text" id="name" name="name" placeholder="Nombre del grupo" autocomplete="off" required>
             </label>
-            <input type="hidden" name="userId" value="{{user.id}}">
             <label>
                 <button type="submit">Guardar</button>
             </label>
@@ -87,6 +86,13 @@
 </div>
 
 <!-- Scripts -->
+<script>
+    const currentUser = {
+        id: {{user.id}},
+        name: "{{user.name}}",
+        email: "{{user.email}}"
+    };
+</script>
 <script src="/js/paginatio.js" defer></script>
 <script src="/js/groups.js" defer></script>
 

@@ -3,11 +3,10 @@ package com.group12.taskmanager.controllers.api;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
-import com.group12.taskmanager.models.Group;
-import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +40,7 @@ public class GroupRestController {
     @PutMapping("/{id}")
     public ResponseEntity<GroupResponseDTO> updateGroupName(@PathVariable int id, @RequestParam String name) {
         GroupRequestDTO dto = new GroupRequestDTO(name);
-        GroupResponseDTO updated = groupService.updateGroup(id, dto);
+        GroupResponseDTO updated = groupService.updateGroupName(id, dto);
         return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
     }
 
@@ -132,4 +131,72 @@ public class GroupRestController {
         List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
         return ResponseEntity.ok(groupUsers);
     }
+
+    // Obtener todos los grupos de un usuario
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<GroupResponseDTO>> getGroupsByUser(@PathVariable int userId) {
+        UserResponseDTO user = userService.findUserById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        List<GroupResponseDTO> groups = userService.getUserGroups(user);
+        return ResponseEntity.ok(groups);
+    }
+
+    // Permitir que un usuario abandone un grupo
+    @DeleteMapping("/{groupId}/leave")
+    public ResponseEntity<?> leaveGroup(@PathVariable int groupId, @RequestParam int userId) {
+        GroupResponseDTO group = groupService.findGroupById(groupId);
+        UserResponseDTO user = userService.findUserById(userId);
+
+        if (group == null || user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
+        if (!groupUsers.contains(user)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El usuario no pertenece al grupo.");
+        }
+
+        if (group.getOwnerId() == user.getId()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("El propietario no puede abandonar el grupo.");
+        }
+
+        groupService.removeUserFromGroup(group, user);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    // Buscar usuarios por nombre que NO estén ya en el grupo
+    @GetMapping("/{groupId}/search_users")
+    public ResponseEntity<List<UserResponseDTO>> searchUsers(
+            @PathVariable int groupId,
+            @RequestParam String q) {
+
+        GroupResponseDTO group = groupService.findGroupById(groupId);
+        if (group == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        List<UserResponseDTO> results = userService.searchUsersByNameExcludingGroup(q, group);
+        return ResponseEntity.ok(results);
+    }
+
+    // Grupos paginados del usuario
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(
+            @RequestParam int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        UserResponseDTO user = userService.findUserById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        Page<GroupResponseDTO> groups = groupService.getGroupsPaginated(user, page, size);
+        return ResponseEntity.ok(groups);
+    }
+
 }

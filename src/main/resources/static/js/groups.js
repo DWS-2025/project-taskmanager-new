@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const formData = new URLSearchParams();
         formData.append("name", document.getElementById("name").value);
-        formData.append("userId", document.querySelector("input[name='userId']").value);
+        formData.append("userId", currentUser.id);
         let url = "/save_group";
         let method = "POST";
 

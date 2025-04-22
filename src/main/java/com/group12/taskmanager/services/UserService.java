@@ -42,6 +42,9 @@ public class UserService {
     public UserResponseDTO findUserById(int id) {
         return toDTO(userRepository.findById(id).orElse(null));
     }
+    public User findUserByIdRaw(int id) {
+        return userRepository.findById(id).orElse(null);
+    }
 
     // Find user by username
     public UserResponseDTO findUserByUsername(String userName) {
@@ -68,12 +71,13 @@ public class UserService {
     }
 
     // Search users by name, excluding those already in the group
-    public List<UserResponseDTO> searchUsersByNameExcludingGroup(String q, Group group) {
+    public List<UserResponseDTO> searchUsersByNameExcludingGroup(String q, GroupResponseDTO group) {
         if (q == null || q.trim().isEmpty()) {
             return List.of(); // avoid returning all users if query is empty
         }
 
-        return userRepository.findByNameStartingWithExcludingGroup(q.trim(), group.getUsers())
+        List<User> groupUsers = groupService.getGroupUsersRaw(group);
+        return userRepository.findByNameStartingWithExcludingGroup(q.trim(), groupUsers)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -149,6 +153,13 @@ public class UserService {
             return (userRepository.findById(user.getId()).get().getPassword().equals(password));
         }
         return false;
+    }
+
+    public List<GroupResponseDTO> getUserGroups(UserResponseDTO user) {
+        List<Group> userGroups = userRepository.findGroupsByUserId(user.getId());
+        return userGroups.stream()
+                .map(groupService::toDTO)
+                .collect(Collectors.toList());
     }
 
 }
