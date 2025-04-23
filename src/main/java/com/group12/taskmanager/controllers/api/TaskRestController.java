@@ -39,7 +39,8 @@ public class TaskRestController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Boolean hasImage,
             @RequestParam int projectID) {
-        return ResponseEntity.ok(taskService.searchTasks(projectID, title, hasImage));
+        TaskResponseDTO dto = new TaskResponseDTO(title, hasImage, projectID);
+        return ResponseEntity.ok(taskService.searchTasks(dto));
     }
 
     @PostMapping

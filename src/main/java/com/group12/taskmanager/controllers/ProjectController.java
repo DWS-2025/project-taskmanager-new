@@ -62,16 +62,6 @@ public class ProjectController {
         return "index"; // Return view for project listing
     }
 
-    @PostMapping("/save_project")
-    public String saveProject(@RequestParam String name, @RequestParam int groupId) {
-        GroupResponseDTO group = groupService.findGroupById(groupId);
-        if (group == null) return "redirect:/"; // Redirect if group not found
-
-        ProjectRequestDTO dto = new ProjectRequestDTO(name, groupId); // Create project with given name and group
-        projectService.createProject(dto);
-        return "redirect:/projects";
-    }
-
     @GetMapping("/project/{id}")
     public String getProjectById(@PathVariable int id, Model model, HttpSession session) {
         if (session.getAttribute("user") == null) return "redirect:/";
@@ -93,6 +83,16 @@ public class ProjectController {
             model.addAttribute("tasks", new ArrayList<>());
         }
         return "project";
+    }
+
+    @PostMapping("/save_project")
+    public String saveProject(@RequestParam String name, @RequestParam int groupId) {
+        GroupResponseDTO group = groupService.findGroupById(groupId);
+        if (group == null) return "redirect:/"; // Redirect if group not found
+
+        ProjectRequestDTO dto = new ProjectRequestDTO(name, groupId); // Create project with given name and group
+        projectService.createProject(dto);
+        return "redirect:/projects";
     }
 
     @PostMapping("/project/{id}/delete_project")

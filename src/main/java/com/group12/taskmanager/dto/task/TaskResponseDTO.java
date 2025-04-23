@@ -10,6 +10,12 @@ public class TaskResponseDTO {
     public TaskResponseDTO() {
     }
 
+    public TaskResponseDTO(String title, boolean hasImage, int projectId) {
+        this.title = title;
+        this.hasImage = hasImage;
+        this.projectId = projectId;
+    }
+
     public TaskResponseDTO(int id, String title, String description, boolean hasImage, int projectId) {
         this.id = id;
         this.title = title;
@@ -42,7 +48,7 @@ public class TaskResponseDTO {
         this.description = description;
     }
 
-    public boolean isHasImage() {
+    public boolean getHasImage() {
         return hasImage;
     }
 
