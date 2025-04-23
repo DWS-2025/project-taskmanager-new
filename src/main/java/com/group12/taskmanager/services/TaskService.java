@@ -88,8 +88,8 @@ public class TaskService {
         return new TaskImageDTO(encoded);
     }
 
-    public List<TaskResponseDTO> searchTasks(String title, Boolean hasImage) {
-        return taskRepository.findAll().stream()
+    public List<TaskResponseDTO> searchTasks(int projectID, String title, Boolean hasImage) {
+        return taskRepository.findByProject(projectRepository.findById(projectID).get()).stream()
                 .filter(t -> title == null || t.getTitle().toLowerCase().contains(title.toLowerCase()))
                 .filter(t -> hasImage == null || hasImage.equals(t.getImage() != null))
                 .map(this::toDTO)

@@ -228,6 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const url = new URL("/api/tasks/search", window.location.origin);
         if (title) url.searchParams.append("title", title);
         url.searchParams.append("hasImage", hasImage);
+        url.searchParams.append("projectID", projectID);
 
         fetch(url)
             .then(res => res.json())
