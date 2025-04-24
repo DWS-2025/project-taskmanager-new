@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = "/login";
+                    window.location.href = "/logout";
                 } else {
                     return response.text().then(msg => {
                         alert(`Error: ${msg || "No se pudo eliminar al usuario"}`);
