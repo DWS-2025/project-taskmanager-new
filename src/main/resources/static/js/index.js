@@ -71,18 +71,12 @@ document.addEventListener("DOMContentLoaded", function () {
         taskItem.style.transition = "opacity 0.3s ease-out";
         taskItem.style.opacity = "0"; // Fade out animation
 
-        fetch(`/project/${projectId}/delete_project`, {
-            method: "POST",
+        fetch(`/api/projects/${projectId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
         })
-            .then(response => {
-                if (response.ok) {
-                    setTimeout(() => {
-                        document.querySelector(`[data-projectid='${projectId}']`).remove(); // Remove element after fade
-                    }, 300);
-                } else {
-                    console.error("Failed to delete project");
-                }
-            })
+            .then(response => response.json())
+            .then(() => {})
             .catch(error => console.error("Request error:", error));
     }
 
@@ -139,22 +133,26 @@ document.addEventListener("DOMContentLoaded", function () {
             formData.append("groupId", formNewProject.querySelector("input[name='groupId']").value);
         }
 
-        let url = "/save_project";
+        let url = "/api/projects";
         let method = "POST";
-
         if (currentProjectId) {
-            url = `/project/${currentProjectId}/edit_project`;
+            url += `/${currentProjectId}`;
             method = "PUT";
-            formData.append("projectId", currentProjectId);
         }
 
         fetch(url, {
             method: method,
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData.toString()
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: formData.get("name"),
+                groupId: formData.get("groupId")
+            })
         })
-            .then(response => response.text())
-            .then(data => location.reload()) // Reload the page to reflect changes
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                location.reload(); // Reload page to show new project
+            })
             .catch(error => console.error("Error saving/updating project:", error));
     }
 

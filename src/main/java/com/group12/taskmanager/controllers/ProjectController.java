@@ -84,40 +84,4 @@ public class ProjectController {
         }
         return "project";
     }
-
-    @PostMapping("/save_project")
-    public String saveProject(@RequestParam String name, @RequestParam int groupId) {
-        GroupResponseDTO group = groupService.findGroupById(groupId);
-        if (group == null) return "redirect:/"; // Redirect if group not found
-
-        ProjectRequestDTO dto = new ProjectRequestDTO(name, groupId); // Create project with given name and group
-        projectService.createProject(dto);
-        return "redirect:/projects";
-    }
-
-    @PostMapping("/project/{id}/delete_project")
-    public ResponseEntity<?> deleteProject(@PathVariable int id) {
-        ProjectResponseDTO project = projectService.findProjectById(id);
-        if (project == null)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
-
-
-        projectService.deleteProject(project); // Delete project
-        boolean removed = projectService.findProjectByIdRaw(id) == null;
-        return removed
-                ? ResponseEntity.ok(Collections.singletonMap("message", "Project deleted successfully"))
-                : ResponseEntity.status(500).body(Collections.singletonMap("error", "Error deleting project"));
-    }
-
-    @PutMapping("/project/{id}/edit_project")
-    public ResponseEntity<?> editProject(@PathVariable int id, @RequestParam String name) {
-        ProjectResponseDTO project = projectService.findProjectById(id);
-        if (project == null)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
-
-        project.setName(name); // Update project name
-        ProjectRequestDTO dto = new ProjectRequestDTO(project.getName(), project.getGroupId());
-        projectService.updateProject(project.getId(), dto); // save changes
-        return ResponseEntity.ok(Collections.singletonMap("success", true));
-    }
 }

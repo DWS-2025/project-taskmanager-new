@@ -57,6 +57,8 @@ public class ProjectService {
         if (project == null) return null;
 
         if (dto.getName() != null) project.setName(dto.getName());
+        if (dto.getGroupId() != 0) project.setGroup(groupRepository.findById(dto.getGroupId()).get());
+
         return toDTO(projectRepository.save(project));
     }
 
