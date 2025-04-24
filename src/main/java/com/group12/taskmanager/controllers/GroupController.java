@@ -54,7 +54,14 @@ public class GroupController {
         model.addAttribute("user", currentUser);
         return "groups";
     }
+    @GetMapping("/edit_user")
+    public String showEditUserPage(HttpSession session, Model model) {
+        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
+        if (currentUser == null) return "redirect:/login";
 
+        model.addAttribute("user", currentUser);
+        return "edit_user";
+    }
 
     @PostMapping("/leave_group/{groupId}")
     public ResponseEntity<?> leaveGroup(@PathVariable int groupId, HttpSession session) {
@@ -161,58 +168,6 @@ public class GroupController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "Error procesando la solicitud"));
         }
     }
-
-    @GetMapping("/edit_user")
-    public String showEditUserPage(HttpSession session, Model model) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null) return "redirect:/login";
-
-        model.addAttribute("user", currentUser);
-        return "edit_user";
-    }
-
-    @PostMapping("/delete_user/{userId}")
-    public String deleteUser(@PathVariable int userId, HttpSession session) {
-        if (userId != 1) {
-            UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-            if (currentUser == null) return "redirect:/error";
-
-            UserResponseDTO deletedUser = userService.findUserById(userId);
-            boolean deleted = userService.deleteUser(deletedUser, currentUser);
-            if (deleted && currentUser.getId() == userId) session.invalidate();
-            return deleted ? "redirect:/" : "redirect:/error";
-        }
-        return "redirect:/";
-    }
-
-    @PostMapping("/update_user")
-    public String updateUser(@RequestParam String name, @RequestParam String email, @RequestParam String password, HttpSession session) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser != null) {
-            GroupResponseDTO userGroup = userService.findPersonalGroup(currentUser);
-            if (password.isBlank()) {
-                password = userService.findUserByIdRaw(currentUser.getId()).getPassword();
-            }
-            if (email.isBlank()) {
-                email = userService.findUserByIdRaw(currentUser.getId()).getEmail();
-            }
-            if (name.isBlank()) {
-                name = userService.findUserByIdRaw(currentUser.getId()).getName();
-            } else {
-                GroupRequestDTO updatedGroup = new GroupRequestDTO("USER_" + name, userGroup.getOwnerId());
-                groupService.updateGroup(userGroup.getId(), updatedGroup);
-            }
-            UserRequestDTO updatedUser = new UserRequestDTO(name, email, password);
-            userService.updateUser(currentUser.getId(), updatedUser);
-
-
-            // Recargar desde la base de datos para reflejar los cambios
-            UserResponseDTO updatedUser1 = userService.findUserById(currentUser.getId());
-            session.setAttribute("user", updatedUser1);
-        }
-        return "redirect:/";
-    }
-
     @GetMapping("/group_members")
     @ResponseBody
     public List<UserResponseDTO> getGroupMembers(@RequestParam int groupId) {
@@ -232,6 +187,22 @@ public class GroupController {
 
         return users;
     }
+
+    @PostMapping("/delete_user/{userId}")
+    public String deleteUser(@PathVariable int userId, HttpSession session) {
+        if (userId != 1) {
+            UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
+            if (currentUser == null) return "redirect:/error";
+
+            UserResponseDTO deletedUser = userService.findUserById(userId);
+            boolean deleted = userService.deleteUser(deletedUser, currentUser);
+            if (deleted && currentUser.getId() == userId) session.invalidate();
+            return deleted ? "redirect:/" : "redirect:/error";
+        }
+        return "redirect:/";
+    }
+
+
 
     @GetMapping("/paginated_groups")
     @ResponseBody

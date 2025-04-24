@@ -84,14 +84,15 @@ public class UserService {
     }
 
     // Update existing user
-    public void updateUser(int id, UserRequestDTO dto) {
+    public UserResponseDTO updateUser(int id, UserRequestDTO dto) {
         User user = userRepository.findById(id).orElse(null);
-        if (user == null) return;
+        if (user == null) return null;
 
         if (dto.getName() != null) user.setName(dto.getName());
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
         if (dto.getPassword() != null) user.setPassword(dto.getPassword());
         userRepository.save(user); // Hibernate handles insert vs. update
+        return toDTO(user);
     }
 
     // Delete a user from the system with checks for ownership and permissions

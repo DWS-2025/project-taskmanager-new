@@ -1,6 +1,7 @@
 package com.group12.taskmanager.controllers.api;
 
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
+import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
@@ -50,31 +51,41 @@ public class UserRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id,
-                                        @RequestParam String name,
-                                        @RequestParam String email,
-                                        @RequestParam String password) {
-        UserResponseDTO found = userService.findUserById(id);
-        if (found == null) return ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserRequestDTO dto) {
+        UserResponseDTO user = userService.findUserById(id);
+        if (user == null) return ResponseEntity.notFound().build();
 
-        UserRequestDTO user = new UserRequestDTO(name, email, password);
-        user.setName(name);
-        user.setEmail(email);
-        user.setPassword(password);
-        userService.updateUser(id, user);
+        GroupResponseDTO userGroup = userService.findPersonalGroup(user);
+        if (dto.getPassword().isBlank() || dto.getPassword() == null) {
+            dto.setPassword(userService.findUserByIdRaw(user.getId()).getPassword());
+        }
+        if (dto.getEmail().isBlank() || dto.getEmail() == null) {
+            dto.setEmail(userService.findUserByIdRaw(user.getId()).getEmail());
+        }
+        if (dto.getName().isBlank() || dto.getName() == null) {
+            dto.setName(userService.findUserByIdRaw(user.getId()).getName());
+        } else {
+            GroupRequestDTO updatedGroup = new GroupRequestDTO("USER_" + dto.getName(), userGroup.getOwnerId());
+            groupService.updateGroup(userGroup.getId(), updatedGroup);
+        }
 
-        return ResponseEntity.ok(found);
+        UserResponseDTO success =  userService.updateUser(id, dto);
+        return (success != null) ? ResponseEntity.ok(user)
+                :  ResponseEntity.badRequest().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id,
                                         @RequestParam int requesterId) {
-        UserResponseDTO requester = userService.findUserById(requesterId);
-        if (requester == null) return ResponseEntity.status(401).body("No autorizado");
+        if (id != 1) {
+            UserResponseDTO requester = userService.findUserById(requesterId);
+            if (requester == null) return ResponseEntity.status(401).body("No autorizado");
 
-        UserResponseDTO deleted = userService.findUserById(id);
-        boolean result = userService.deleteUser(deleted, requester);
-        return result ? ResponseEntity.ok("Usuario eliminado")
-                : ResponseEntity.status(403).body("Acción no permitida");
+            UserResponseDTO deleted = userService.findUserById(id);
+            boolean result = userService.deleteUser(deleted, requester);
+            return result ? ResponseEntity.ok("Usuario eliminado")
+                    : ResponseEntity.status(403).body("Acción no permitida");
+        }
+        return ResponseEntity.status(403).body("Acción no permitida");
     }
 }
