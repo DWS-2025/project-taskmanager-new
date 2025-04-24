@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const groupUsersResult = document.getElementById("groupUsersResult");
     const btnAddSelectedUser = document.getElementById("btnAddSelectedUser");
     let currentGroupId = null;
+    let currentGroupName = null;
     let clickInsideModal = false;
     let newOwner = null;
 
@@ -92,23 +93,24 @@ document.addEventListener("DOMContentLoaded", function () {
     // Delete a group
     function handleDeleteGroup(event) {
         const groupId = event.target.dataset.groupid;
-        if (!groupId) {
-            console.error("No group selected for deletion.");
+        const requesterId = currentUser.id;
+
+        if (!groupId || !requesterId) {
+            console.error("Missing groupId or requesterId.");
             return;
         }
 
         if (confirm("Are you sure you want to delete this group? This action is irreversible.")) {
-            fetch(`/delete_group/${groupId}`, {
-                method: "POST",
+            const groupItem = event.target.closest(".group-item");
+            groupItem.style.transition = "opacity 0.3s ease-out";
+            groupItem.style.opacity = "0"; // Fade out animation
+
+            fetch(`/api/groups/${groupId}?requesterId=${requesterId}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" }
             })
                 .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert("Error deleting the group");
-                    }
-                })
+                .then(() => location.reload())
                 .catch(error => console.error("Request error:", error));
         }
     }
@@ -162,6 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Open modal to change group owner
     function openNewOwnerModal(event) {
         currentGroupId = event.target.dataset.groupid;
+        currentGroupName = event.target.dataset.groupname;
         document.querySelectorAll(".modalOptions").forEach(modal => {
             modal.classList.add("hidden");
             modal.style.display = "none";
@@ -216,20 +219,26 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch(`/group/${currentGroupId}/change_owner?newOwnerId=${newOwner}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        fetch(`/api/groups/${currentGroupId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: currentGroupName,
+                ownerID: newOwner
+            })
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    modalNewOwner.classList.add("hidden");
-                    modalNewOwner.style.display = "none";
-                    location.reload();
-                    alert("Owner changed successfully");
-                } else {
-                    alert("Error changing owner");
+            .then(async response => {
+                if (!response.ok) {
+                    const err = await response.text();
+                    alert(`Error: ${err || "Error changing owner"}`);
+                    return;
                 }
+
+                const data = await response.json();
+                modalNewOwner.classList.add("hidden");
+                modalNewOwner.style.display = "none";
+                location.reload();
+                alert("Owner changed successfully");
             })
             .catch(error => console.error("Request error:", error));
     }
@@ -240,20 +249,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const formData = new URLSearchParams();
         formData.append("name", document.getElementById("name").value);
-        formData.append("userId", currentUser.id);
-        let url = "/save_group";
+        formData.append("ownerID", currentUser.id);
+
+        let url = "/api/groups";
         let method = "POST";
 
         if (currentGroupId) {
-            url = `/edit_group/${currentGroupId}`;
-            method = "POST";
-            formData.append("groupId", currentGroupId);
+            url += `/${currentGroupId}`;
+            method = "PUT";
+            formData.delete("ownerID");
+            formData.append("ownerID", "0");
         }
 
         fetch(url, {
             method: method,
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData.toString()
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: formData.get("name"),
+                ownerID: formData.get("ownerID")
+            })
         })
             .then(response => response.text())
             .then(() => location.reload())

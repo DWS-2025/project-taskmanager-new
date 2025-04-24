@@ -55,15 +55,6 @@ public class GroupController {
         return "groups";
     }
 
-    @PostMapping("/save_group")
-    public String createGroup(@RequestParam String name, HttpSession session) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null) return "redirect:/login";
-
-        GroupRequestDTO newGroup = new GroupRequestDTO(name, currentUser.getId());
-        groupService.createGroup(newGroup);
-        return "redirect:/user_groups";
-    }
 
     @PostMapping("/leave_group/{groupId}")
     public ResponseEntity<?> leaveGroup(@PathVariable int groupId, HttpSession session) {
@@ -81,47 +72,6 @@ public class GroupController {
         session.setAttribute("user", currentUser);
 
         return ResponseEntity.ok("{\"success\": true}");
-    }
-
-    @PostMapping("/edit_group/{groupId}")
-    public ResponseEntity<?> editGroup(@PathVariable int groupId, @RequestParam String name, HttpSession session) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autenticado\"}");
-
-        GroupResponseDTO currentGroup = groupService.findGroupById(groupId);
-        if (currentGroup.getOwnerId() != currentUser.getId()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autorizado\"}");
-        }
-
-        GroupRequestDTO updatedGroup = new GroupRequestDTO(name, currentUser.getId());
-        GroupResponseDTO success = groupService.updateGroupName(groupId, updatedGroup);
-
-        session.setAttribute("user", currentUser);
-
-        if (success != null) {
-            return ResponseEntity.ok("{\"success\": true}");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Error al actualizar el grupo\"}");
-        }
-    }
-
-    @PostMapping("/delete_group/{groupId}")
-    public ResponseEntity<?> deleteGroup(@PathVariable int groupId, HttpSession session) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autenticado\"}");
-
-        if (currentUser.getId() != groupService.findGroupById(groupId).getOwnerId())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"success\": false, \"message\": \"No autorizado\"}");
-
-        GroupResponseDTO group = groupService.findGroupById(groupId);
-        boolean success = groupService.deleteGroup(group);
-
-        session.setAttribute("user", currentUser);
-
-        return success ? ResponseEntity.ok("{\"success\": true}")
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"Error al eliminar el grupo\"}");
     }
 
     @GetMapping("/manage_members/{groupId}")
@@ -249,8 +199,8 @@ public class GroupController {
             if (name.isBlank()) {
                 name = userService.findUserByIdRaw(currentUser.getId()).getName();
             } else {
-                GroupRequestDTO updatedGroup = new GroupRequestDTO("USER_" + name);
-                groupService.updateGroupName(userGroup.getId(), updatedGroup);
+                GroupRequestDTO updatedGroup = new GroupRequestDTO("USER_" + name, userGroup.getOwnerId());
+                groupService.updateGroup(userGroup.getId(), updatedGroup);
             }
             UserRequestDTO updatedUser = new UserRequestDTO(name, email, password);
             userService.updateUser(currentUser.getId(), updatedUser);
@@ -262,53 +212,6 @@ public class GroupController {
         }
         return "redirect:/";
     }
-
-    @Transactional
-    @PostMapping("/group/{groupId}/change_owner")
-    public ResponseEntity<?> changeGroupOwner(
-            @PathVariable int groupId,
-            @RequestParam int newOwnerId,
-            HttpSession session) {
-
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
-        }
-
-        GroupResponseDTO group = groupService.findGroupById(groupId);
-        if (group == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Grupo no encontrado");
-        }
-
-        // Verificamos que el usuario actual sea el propietario
-        if (group.getOwnerId() != currentUser.getId()) {
-            if (currentUser.getId() != 1) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes permisos para cambiar el propietario");
-            }
-        }
-
-        UserResponseDTO newOwner = userService.findUserById(newOwnerId);
-        List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
-        if (newOwner == null || !groupUsers.contains(newOwner)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El nuevo propietario debe ser un miembro del grupo");
-        }
-
-        // Cambiar propietario
-        GroupRequestDTO updatedGroup = new GroupRequestDTO("GROUP_" + group.getName(), newOwnerId);
-        groupService.changeGroupOwner(group.getId(), updatedGroup);
-
-        List<GroupResponseDTO> currentUserGroups = userService.getUserGroups(currentUser);
-        currentUserGroups.stream()
-                .filter(g -> g.getId() == groupId)
-                .findFirst()
-                .ifPresent(g -> {
-                    g.setOwnerId(newOwner.getId());
-                    g.setIsOwner(g.getOwnerId() == newOwnerId);
-                });
-
-        return ResponseEntity.ok(Collections.singletonMap("success", true));
-    }
-
 
     @GetMapping("/group_members")
     @ResponseBody

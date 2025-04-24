@@ -84,9 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleEditProject(event) {
         currentProjectId = event.currentTarget.dataset.projectid;
         const projectItem = event.currentTarget.closest(".project-item");
-        const projectName = projectItem.querySelector("b").innerText;
-
-        formNewProject.querySelector("input[name='name']").value = projectName;
+        // set form title to project name
+        formNewProject.querySelector("input[name='name']").value = projectItem.querySelector("b").innerText;
 
         // Hide all open modals
         document.querySelectorAll(".modalOptions").forEach(modal => {

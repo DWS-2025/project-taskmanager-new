@@ -31,17 +31,25 @@ public class GroupRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createGroup(@RequestParam GroupRequestDTO dto) {
+    public ResponseEntity<?> createGroup(@RequestBody GroupRequestDTO dto) {
         GroupResponseDTO group = groupService.createGroup(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(group);
 
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GroupResponseDTO> updateGroupName(@PathVariable int id, @RequestParam String name) {
-        GroupRequestDTO dto = new GroupRequestDTO(name);
-        GroupResponseDTO updated = groupService.updateGroupName(id, dto);
-        return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<GroupResponseDTO> updateGroup(@PathVariable int id, @RequestBody GroupRequestDTO dto) {
+        GroupResponseDTO group = groupService.findGroupById(id);
+        if (group == null) return ResponseEntity.notFound().build();
+
+        if (dto.getOwnerID() == 0) {
+            dto.setOwnerID(groupService.findGroupById(id).getOwnerId());
+        } else {
+            if (userService.findUserById(dto.getOwnerID()) == null)
+                return ResponseEntity.notFound().build();
+        }
+        GroupResponseDTO updated = groupService.updateGroup(id, dto);
+        return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.badRequest().build();
     }
 
     @DeleteMapping("/{id}")
@@ -104,22 +112,6 @@ public class GroupRestController {
         if (group == null || user == null) return ResponseEntity.notFound().build();
 
         groupService.removeUserFromGroup(group, user);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @PutMapping("/{id}/change_owner")
-    public ResponseEntity<?> changeOwner(@PathVariable int id, @RequestParam int newOwnerId) {
-        GroupResponseDTO group = groupService.findGroupById(id);
-        UserResponseDTO newOwner = userService.findUserById(newOwnerId);
-
-        List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
-        if (group == null || newOwner == null || !groupUsers.contains(newOwner)) {
-            return ResponseEntity.badRequest().body("Datos inválidos");
-        }
-
-        group.setOwnerId(newOwner.getId());
-        GroupRequestDTO groupReq = new GroupRequestDTO(group.getName(), group.getOwnerId());
-        groupService.saveGroup(group.getId(), groupReq);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

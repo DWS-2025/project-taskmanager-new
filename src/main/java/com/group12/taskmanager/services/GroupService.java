@@ -61,11 +61,12 @@ public class GroupService {
         return toDTO(groupRepository.save(group));
     }
 
-    public GroupResponseDTO updateGroupName(int id, GroupRequestDTO dto) {
+    public GroupResponseDTO updateGroup(int id, GroupRequestDTO dto) {
         Group group = groupRepository.findById(id).orElse(null);
         if (group == null) return null;
 
         if (dto.getName() != null) group.setName(dto.getName());
+        if (dto.getOwnerID() != 0) group.setOwner(userRepository.findById(dto.getOwnerID()).get());
         return toDTO(groupRepository.save(group));
     }
     public GroupResponseDTO changeGroupOwner(int id, GroupRequestDTO dto) {

@@ -6,9 +6,6 @@ public class GroupRequestDTO {
 
     public GroupRequestDTO() {}
 
-    public GroupRequestDTO(String name) {
-        this.name = name;
-    }
     public GroupRequestDTO(String name, int ownerID) {
         this.name = name;
         this.ownerID = ownerID;
