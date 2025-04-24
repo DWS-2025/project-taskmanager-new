@@ -1,5 +1,9 @@
 package com.group12.taskmanager.controllers.api;
 
+import com.group12.taskmanager.dto.group.GroupRequestDTO;
+import com.group12.taskmanager.dto.group.GroupResponseDTO;
+import com.group12.taskmanager.dto.user.UserRequestDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
@@ -18,57 +22,72 @@ public class UserRestController {
     @Autowired private GroupService groupService;
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserResponseDTO> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable int id) {
-        User user = userService.findUserById(id);
+        UserResponseDTO user = userService.findUserById(id);
         return (user != null) ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestParam String name,
-                                        @RequestParam String email,
-                                        @RequestParam String password) {
-        if (userService.findUserByUsername(name) != null)
+    public ResponseEntity<?> createUser(@RequestBody UserRequestDTO dto, @RequestParam String confirm_password) {
+        if (userService.findUserByUsername(dto.getName()) != null)
             return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
-        if (userService.findUserByEmail(email) != null)
+        if (userService.findUserByEmail(dto.getEmail()) != null)
             return ResponseEntity.badRequest().body("El email ya está registrado");
+        if (!dto.getPassword().equals(confirm_password))
+            return ResponseEntity.badRequest().body("Las contraseñas no coinciden");
 
-        User newUser = new User(name, email, password);
-        userService.addUser(newUser);
-        Group group = groupService.createGroup("USER_" + newUser.getName(), newUser);
-        groupService.saveGroup(group);
+        UserRequestDTO newUser = new UserRequestDTO(dto.getName(), dto.getEmail(), dto.getPassword());
+        userService.createUser(newUser);
+
+        UserResponseDTO createdUser = userService.findUserByEmail(dto.getEmail());
+        int newUserId = createdUser.getId();
+        GroupRequestDTO group = new GroupRequestDTO("USER_" + newUser.getName(), newUserId);
+        groupService.createGroup(group);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id,
-                                        @RequestParam String name,
-                                        @RequestParam String email,
-                                        @RequestParam String password) {
-        User user = userService.findUserById(id);
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserRequestDTO dto) {
+        UserResponseDTO user = userService.findUserById(id);
         if (user == null) return ResponseEntity.notFound().build();
 
-        user.setName(name);
-        user.setEmail(email);
-        user.setPassword(password);
-        userService.updateUser(user);
+        GroupResponseDTO userGroup = userService.findPersonalGroup(user);
+        if (dto.getPassword().isBlank() || dto.getPassword() == null) {
+            dto.setPassword(userService.findUserByIdRaw(user.getId()).getPassword());
+        }
+        if (dto.getEmail().isBlank() || dto.getEmail() == null) {
+            dto.setEmail(userService.findUserByIdRaw(user.getId()).getEmail());
+        }
+        if (dto.getName().isBlank() || dto.getName() == null) {
+            dto.setName(userService.findUserByIdRaw(user.getId()).getName());
+        } else {
+            GroupRequestDTO updatedGroup = new GroupRequestDTO("USER_" + dto.getName(), userGroup.getOwnerId());
+            groupService.updateGroup(userGroup.getId(), updatedGroup);
+        }
 
-        return ResponseEntity.ok(user);
+        UserResponseDTO success =  userService.updateUser(id, dto);
+        return (success != null) ? ResponseEntity.ok(user)
+                :  ResponseEntity.badRequest().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id,
                                         @RequestParam int requesterId) {
-        User requester = userService.findUserById(requesterId);
-        if (requester == null) return ResponseEntity.status(401).body("No autorizado");
+        if (id != 1) {
+            UserResponseDTO requester = userService.findUserById(requesterId);
+            if (requester == null) return ResponseEntity.status(401).body("No autorizado");
 
-        boolean result = userService.deleteUser(id, requester);
-        return result ? ResponseEntity.ok("Usuario eliminado")
-                : ResponseEntity.status(403).body("Acción no permitida");
+            UserResponseDTO deleted = userService.findUserById(id);
+            boolean result = userService.deleteUser(deleted, requester);
+            return result ? ResponseEntity.ok("Usuario eliminado")
+                    : ResponseEntity.status(403).body("Acción no permitida");
+        }
+        return ResponseEntity.status(403).body("Acción no permitida");
     }
 }

@@ -1,6 +1,9 @@
 package com.group12.taskmanager.controllers;
 
-import com.group12.taskmanager.dto.*;
+import com.group12.taskmanager.dto.group.GroupResponseDTO;
+import com.group12.taskmanager.dto.project.ProjectRequestDTO;
+import com.group12.taskmanager.dto.project.ProjectResponseDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
@@ -15,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 @Controller
@@ -27,28 +27,30 @@ public class ProjectController {
     @Autowired private ProjectService projectService;
     @Autowired private TaskService taskService;
     @Autowired private GroupService groupService;
+    @Autowired private UserService userService;
 
     @GetMapping("/projects")
     public String getProjects(Model model, HttpSession session) {
-        User currentUser = (User) session.getAttribute("user");
+        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
         if (currentUser == null) return "redirect:/"; // Redirect to home if user not logged in
 
         model.addAttribute("user", currentUser);
-        List<Project> projects = new ArrayList<>();
-        List<Group> ownedGroups = new ArrayList<>();
+        List<ProjectResponseDTO> projects = new ArrayList<>();
+        List<GroupResponseDTO> ownedGroups = new ArrayList<>();
 
-        if (currentUser.getId().equals(1)) {
+        if (currentUser.getId() == 1) {
             // Admin user can see all projects and all groups
-            projects = projectService.getAllProjectsRaw();
+            projects = projectService.getAllProjects();
             ownedGroups = groupService.getAllGroups();
         } else {
             // Regular user: get projects from groups they belong to
-            for (Group group : currentUser.getGroups()) {
-                projects.addAll(projectService.getGroupProjectsRaw(group));
+            List<GroupResponseDTO> currentUserGroups = userService.getUserGroups(currentUser);
+            for (GroupResponseDTO group : currentUserGroups) {
+                projects.addAll(projectService.getGroupProjects(group));
             }
             // Groups where the user is the owner
-            ownedGroups = currentUser.getGroups().stream()
-                    .filter(g -> g.getOwner().getId().equals(currentUser.getId()))
+            ownedGroups = currentUserGroups.stream()
+                    .filter(g -> g.getOwnerId() == currentUser.getId())
                     .toList();
         }
 
@@ -60,26 +62,10 @@ public class ProjectController {
         return "index"; // Return view for project listing
     }
 
-    @PostMapping("/save_project")
-    public String saveProject(@RequestParam String name, @RequestParam int groupId) {
-        Group group = groupService.findGroupById(groupId);
-        if (group == null) return "redirect:/"; // Redirect if group not found
-
-        ProjectRequestDTO dto = new ProjectRequestDTO(name, groupId); // Create project with given name and group
-        projectService.createProject(dto);
-        return "redirect:/projects";
-    }
-
-    @GetMapping("/new_project")
-    public ResponseEntity<?> newProject() {
-        // Return message for opening modal (used in frontend)
-        return ResponseEntity.ok(Collections.singletonMap("mensaje", "Abriendo modal"));
-    }
-
     @GetMapping("/project/{id}")
     public String getProjectById(@PathVariable int id, Model model, HttpSession session) {
         if (session.getAttribute("user") == null) return "redirect:/";
-        Project project = projectService.findProjectById(id);
+        Project project = projectService.findProjectByIdRaw(id);
         List<Task> tasks = taskService.getProjectTasksRaw(project);
 
         for (Task task : tasks) {
@@ -97,103 +83,5 @@ public class ProjectController {
             model.addAttribute("tasks", new ArrayList<>());
         }
         return "project";
-    }
-
-
-    @PostMapping("/project/{id}/save_task")
-    @ResponseBody
-    public String saveTask(@PathVariable int id,
-                           @RequestParam String title,
-                           @RequestParam String description,
-                           @RequestParam(required = false) MultipartFile image) {
-
-        Project project = projectService.findProjectById(id);
-        if (project == null) return "redirect:/";
-
-        TaskRequestDTO dto = new TaskRequestDTO(title, description, project.getId());
-        TaskResponseDTO created = taskService.addTask(dto);
-
-        if (image != null && !image.isEmpty()) {
-            if (image.getSize() > 5 * 1024 * 1024) {
-                throw new IllegalArgumentException("Image too large (max 5MB)");
-            }
-
-            try {
-                byte[] imageBytes = image.getBytes();
-                String base64 = Base64.getEncoder().encodeToString(imageBytes);
-                taskService.uploadImage(created.getId(), new TaskImageDTO(base64));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return "redirect:/project/" + id;
-    }
-
-
-    @DeleteMapping("/project/{id}/delete_task")
-    public ResponseEntity<?> deleteTask(@PathVariable int id, @RequestParam int taskId) {
-        Task task = taskService.findTaskById(taskId);
-        if (task == null || task.getProject().getId() != id)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Task not found"));
-
-        taskService.removeTask(taskId); // Delete task
-        return ResponseEntity.ok(Collections.singletonMap("message", "Task deleted successfully"));
-    }
-
-    @PutMapping("/project/{id}/edit_task")
-    public ResponseEntity<?> editTask(@PathVariable int id,
-                                      @RequestParam int taskId,
-                                      @RequestParam String title,
-                                      @RequestParam String description,
-                                      @RequestParam(required = false) MultipartFile image) {
-
-        TaskRequestDTO dto = new TaskRequestDTO(title, description, id);
-        TaskResponseDTO updated = taskService.updateTask(taskId, dto);
-
-        if (updated == null) {
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Task not found"));
-        }
-
-        if (image != null && !image.isEmpty()) {
-            if (image.getSize() > 5 * 1024 * 1024) {
-                throw new IllegalArgumentException("Image too large (max 5MB)");
-            }
-
-            try {
-                String base64 = Base64.getEncoder().encodeToString(image.getBytes());
-                taskService.uploadImage(taskId, new TaskImageDTO(base64));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return ResponseEntity.ok(Collections.singletonMap("message", "Task updated successfully"));
-    }
-
-
-    @PostMapping("/project/{id}/delete_project")
-    public ResponseEntity<?> deleteProject(@PathVariable int id) {
-        Project project = projectService.findProjectById(id);
-        if (project == null)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
-
-        projectService.deleteProject(id); // Delete project
-        boolean removed = projectService.findProjectById(id) == null;
-        return removed
-                ? ResponseEntity.ok(Collections.singletonMap("message", "Project deleted successfully"))
-                : ResponseEntity.status(500).body(Collections.singletonMap("error", "Error deleting project"));
-    }
-
-    @PutMapping("/project/{id}/edit_project")
-    public ResponseEntity<?> editProject(@PathVariable int id, @RequestParam String name) {
-        Project project = projectService.findProjectById(id);
-        if (project == null)
-            return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
-
-        project.setName(name); // Update project name
-        ProjectRequestDTO dto = new ProjectRequestDTO(project.getName(), project.getGroup().getId());
-        projectService.updateProject(project.getId(), dto); // save changes
-        return ResponseEntity.ok(Collections.singletonMap("success", true));
     }
 }

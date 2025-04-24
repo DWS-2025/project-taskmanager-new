@@ -1,16 +1,17 @@
 package com.group12.taskmanager.repositories;
 
+import com.group12.taskmanager.models.Group;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.group12.taskmanager.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface  UserRepository extends JpaRepository<User, Integer> {
-    User findByName(String name);
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.groups WHERE u.email = :email")
-    User findByEmailWithGroups(@Param("email") String email);
+    Optional<User> findByName(String name);
+    Optional<User> findByEmail(String email);
 
     @Query("""
     SELECT u FROM User u
@@ -21,4 +22,8 @@ public interface  UserRepository extends JpaRepository<User, Integer> {
             @Param("prefix") String prefix,
             @Param("excluded") List<User> excluded
     );
+
+    @Query("SELECT g FROM User u JOIN u.groups g WHERE u.id = :id")
+    List<Group> findGroupsByUserId(@Param("id") int id);
+
 }

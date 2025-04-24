@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Assign event listeners to task buttons
-    function asignarEventosBotones() {
+    function assignEventsButtons() {
         document.querySelectorAll(".btnMoreOptions").forEach(button => {
             button.removeEventListener("click", handleMoreOptionsClick);
             button.addEventListener("click", handleMoreOptionsClick);
@@ -80,32 +80,24 @@ document.addEventListener("DOMContentLoaded", function () {
         taskItem.style.transition = "opacity 0.3s ease-out";
         taskItem.style.opacity = "0";
 
-        fetch(`/project/${projectID}/delete_task?taskId=${taskId}`, {
+        fetch(`/api/tasks/${taskId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         })
             .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    console.log("Task deleted successfully");
-                    document.querySelector(`[data-taskid='${taskId}']`).remove();
-                    actualizarListaTareas(); // Refresh task list
-                } else {
-                    console.error("Error deleting task");
-                }
-            })
+            .then(() => {})
             .catch(error => console.error("Request error:", error));
     }
 
     // Refresh the list of tasks from server
-    function actualizarListaTareas() {
-        fetch(`/project/${projectID}`)
+    function updateTaskList() {
+        fetch(`/api/tasks/project/${projectID}`)
             .then(response => response.text())
             .then(html => {
                 document.getElementById("task-list").innerHTML =
                     new DOMParser().parseFromString(html, "text/html")
                         .querySelector("#task-list").innerHTML;
-                asignarEventosBotones(); // Reassign event listeners after reload
+                assignEventsButtons(); // Reassign event listeners after reload
             })
             .catch(error => console.error("Error updating task list:", error));
     }
@@ -181,37 +173,46 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
 
         const formData = new FormData(formNewTask);
-        formData.append("projectID", projectID);
-
-        if (currentTaskId) {
-            formData.append("taskId", currentTaskId);
-
-            fetch(`/project/${projectID}/edit_task`, {
-                method: "PUT",
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    location.reload(); // Reload page to reflect changes
-                })
-                .catch(error => console.error("Error updating task:", error));
+        const file = formData.get("image");
+        const body = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            projectId: parseInt(projectID)
+        };
+        if (file instanceof File && file.size > 0) {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                body.image = reader.result; // Base64
+                sendTask(body);
+            };
+            reader.readAsDataURL(file);
         } else {
-            fetch(`/project/${projectID}/save_task`, {
-                method: "POST",
-                body: formData
-            })
-                .then(response => response.text())
-                .then(data => {
-                    console.log(data);
-                    location.reload(); // Reload page to show new task
-                })
-                .catch(error => console.error("Error saving task:", error));
+            sendTask(body);
         }
     });
+    function sendTask(body) {
+        let url = "/api/tasks";
+        let method = "POST";
+        if (currentTaskId) {
+            url += `/${currentTaskId}`;
+            method = "PUT";
+        }
+
+        fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                location.reload(); // Reload page to show new task
+            })
+            .catch(error => console.error("Error saving/updating task:", error));
+    }
 
     // Initial event setup
-    asignarEventosBotones();
+    assignEventsButtons();
 
     document.getElementById("searchForm").addEventListener("submit", function (e) {
         e.preventDefault();
@@ -222,12 +223,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const url = new URL("/api/tasks/search", window.location.origin);
         if (title) url.searchParams.append("title", title);
         url.searchParams.append("hasImage", hasImage);
+        url.searchParams.append("projectID", projectID);
 
         fetch(url)
             .then(res => res.json())
             .then(tasks => {
                 renderTaskList(tasks);
-                asignarEventosBotones();
+                assignEventsButtons();
             })
             .catch(err => console.error("Error al buscar tareas:", err));
     });

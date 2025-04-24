@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="/css/index.css">
         <title>Home</title>
     </head>
-    <body>
+    <body data-userid="{{user.id}}">
         <h1>Proyectos</h1>
 
         <ul>
@@ -57,9 +57,7 @@
                     <a href="/logout">Cerrar sesión</a>
                 </button>
 
-                <form id="deleteAccountForm" action="/delete_user/{{user.id}}" method="POST">
-                    <button type="submit" id="deleteAccountBtn">Eliminar cuenta</button>
-                </form>
+                <button id="deleteAccountBtn" type="button">Eliminar cuenta</button>
 
             </div>
         </div>
@@ -68,7 +66,7 @@
         <div id="modalProject" class="modal hidden">
             <div class="modal-content">
                 <h2>Nuevo Proyecto</h2>
-                <form id="formNewProject" action="/save_project" method="POST">
+                <form id="formNewProject">
                     <input type="text" id="name" name="name" placeholder="Nombre del proyecto" autocomplete="off" required>
                     {{#multipleGroups}}
                         <select name="groupId" required>
@@ -89,5 +87,6 @@
 
         <!-- Asegúrate que este script carga correctamente -->
         <script src="/js/index.js" defer></script>
+        <script src="/js/actionsUser.js" defer></script>
     </body>
 </html>

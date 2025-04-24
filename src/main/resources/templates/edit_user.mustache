@@ -7,9 +7,9 @@
         <link rel="stylesheet" href="/css/useredits.css">
         <title>Editar Usuario</title>
     </head>
-    <body>
+    <body data-userid="{{user.id}}">
         <h1>Datos personales</h1>
-        <form action="/update_user" method="POST">
+        <form id="formEditUser">
             <label for="name">Nombre:</label>
             <input type="text" id="name" name="name" value="{{user.name}}" autocomplete="off" required>
 
@@ -17,11 +17,12 @@
             <input type="email" id="email" name="email" value="{{user.email}}" autocomplete="off" required>
 
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" placeholder="Dejar en blanco para no cambiar" autocomplete="off">
+            <input type="password" id="password" name="password" value="" autocomplete="off">
 
             <button type="submit">Guardar cambios</button>
         </form>
 
         <a href="/">Cancelar</a>
     </body>
+    <script src="/js/actionsUser.js" defer></script>
 </html>

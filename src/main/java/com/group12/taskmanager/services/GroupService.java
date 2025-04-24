@@ -1,99 +1,130 @@
 package com.group12.taskmanager.services;
 
-import com.group12.taskmanager.dto.ProjectResponseDTO;
+import com.group12.taskmanager.dto.project.*;
+import com.group12.taskmanager.dto.group.*;
+import com.group12.taskmanager.dto.user.*;
 import com.group12.taskmanager.models.Group;
-import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
+import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
-
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupService {
 
     @Autowired
     private GroupRepository groupRepository;
-
     @Autowired
     private ProjectService projectService;
-
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
-    public List<Group> getAllGroups() {
-        return groupRepository.findAllByOrderByIdDesc();
+    public List<GroupResponseDTO> getAllGroups() {
+        return groupRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+    public List<Group> getAllGroupsRaw() {
+        return groupRepository.findAll();
     }
 
-    public void saveGroup(Group group) {
+    public GroupResponseDTO findGroupById(int groupId) {
+        Group group = groupRepository.findById(groupId).orElse(null);
+        return (group != null) ? toDTO(group) : null;
+    }
+
+    public void saveGroup(int id, GroupRequestDTO dto) {
+        Group group = groupRepository.findById(id).get();
+        group.setName(dto.getName());
+        User owner = userRepository.findById(dto.getOwnerID()).get();
+        group.setOwner(owner);
         groupRepository.save(group);
     }
 
-    public Group findGroupById(int groupId) {
-        return groupRepository.findByIdWithUsers(groupId);
-    }
-    public Group createGroup(String name, User owner) {
-        Group newGroup = new Group(name, owner);
-        newGroup.getUsers().add(owner);
-        owner.getGroups().add(newGroup);
-        saveGroup(newGroup);
-        return groupRepository.save(newGroup);
+    public GroupResponseDTO createGroup(GroupRequestDTO dto) {
+        User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
+        if (owner == null) return null;
+
+        Group group = new Group(dto.getName(), owner);
+        group.getUsers().add(owner);
+
+        return toDTO(groupRepository.save(group));
     }
 
-    public boolean updateGroupName(int groupId, String newName) {
-        Optional<Group> optionalGroup = groupRepository.findById(groupId);
-        if (optionalGroup.isPresent()) {
-            Group group = optionalGroup.get();
-            group.setName(newName);
-            groupRepository.save(group);
+    public GroupResponseDTO updateGroup(int id, GroupRequestDTO dto) {
+        Group group = groupRepository.findById(id).orElse(null);
+        if (group == null) return null;
+
+        if (dto.getName() != null) group.setName(dto.getName());
+        if (dto.getOwnerID() != 0) group.setOwner(userRepository.findById(dto.getOwnerID()).get());
+        return toDTO(groupRepository.save(group));
+    }
+    public GroupResponseDTO changeGroupOwner(int id, GroupRequestDTO dto) {
+        Group group = groupRepository.findById(id).orElse(null);
+        if (group == null) return null;
+
+        group.setOwner(userService.findUserByIdRaw(dto.getOwnerID()));
+        return toDTO(groupRepository.save(group));
+    }
+
+    public boolean deleteGroup(GroupResponseDTO dto) {
+        int id = dto.getId();
+        if (groupRepository.existsById(id)) {
+            List<ProjectResponseDTO> projects = projectService.getGroupProjects(findGroupById(id));
+            for (ProjectResponseDTO p : projects) {
+                projectService.deleteProject(p);
+            }
+            groupRepository.deleteById(id);
             return true;
         }
         return false;
     }
 
-    @Transactional
-    public boolean deleteGroup(int groupId, User currentUser) {
-        Group group = findGroupById(groupId);
-
-        if (group != null) {
-            if (group.getOwner().getId().equals(currentUser.getId()) || currentUser.getId().equals(1)) {
-                for (ProjectResponseDTO project : projectService.getProjectsByGroupId(groupId)) {
-                    projectService.deleteProject(project.getId());
-                }
-                if (currentUser.getId().equals(1) && group.getName().startsWith("USER_")) {
-                    userService.deleteUser(group.getOwner().getId(), currentUser);
-                } else {
-                    groupRepository.delete(group);
-                }
-                return true;
-            }
+    public List<UserResponseDTO> getGroupUsers(GroupResponseDTO dto) {
+        Group group = groupRepository.findByIdWithUsers(dto.getId());
+        List<UserResponseDTO> users = new ArrayList<>();
+        for (User u : group.getUsers()) {
+            users.add(userService.toDTO(u));
         }
-
-        return false;
+        return users;
+    }
+    public List<User> getGroupUsersRaw(GroupResponseDTO dto) {
+        Group group = groupRepository.findByIdWithUsers(dto.getId());
+        return group.getUsers();
     }
 
-    @Transactional
-    public void removeUserFromGroup(Group group, User user) {
-        group.getUsers().remove(user);
+    public void addUserToGroup(GroupResponseDTO group, UserResponseDTO user) {
+        groupRepository.addUserToGroup(group.getId(), user.getId());
+    }
+
+    public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
     }
 
-
-    public Page<Group> getGroupsPaginated(User currentUser, int page, int size) {
+    public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
+        Page<Group> groups;
 
-        if (currentUser.getId().equals(1)) { //if its admin it can see every group
-            return groupRepository.findAll(pageable); // Método predeterminado de JpaRepository
+        if (currentUser.getId() == 1) { //if its admin it can see every group
+            groups =  groupRepository.findAll(pageable);
         } else {
-            return groupRepository.findByUsersContains(currentUser, pageable); // normal user
+            User cUser = userRepository.findById(currentUser.getId()).get();
+            groups = groupRepository.findByUsersContains(cUser, pageable); // normal user
         }
+        return groups.map(this::toDTO);
     }
+    protected GroupResponseDTO toDTO(Group group) {
+        return new GroupResponseDTO(group.getId(), group.getName(), group.getOwner().getId());
+    }
+
 }

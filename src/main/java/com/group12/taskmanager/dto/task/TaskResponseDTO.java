@@ -1,4 +1,4 @@
-package com.group12.taskmanager.dto;
+package com.group12.taskmanager.dto.task;
 
 public class TaskResponseDTO {
     private int id;
@@ -8,6 +8,12 @@ public class TaskResponseDTO {
     private int projectId;
 
     public TaskResponseDTO() {
+    }
+
+    public TaskResponseDTO(String title, boolean hasImage, int projectId) {
+        this.title = title;
+        this.hasImage = hasImage;
+        this.projectId = projectId;
     }
 
     public TaskResponseDTO(int id, String title, String description, boolean hasImage, int projectId) {
@@ -42,7 +48,7 @@ public class TaskResponseDTO {
         this.description = description;
     }
 
-    public boolean isHasImage() {
+    public boolean getHasImage() {
         return hasImage;
     }
 
