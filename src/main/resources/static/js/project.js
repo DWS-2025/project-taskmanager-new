@@ -173,48 +173,43 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
 
         const formData = new FormData(formNewTask);
-        formData.append("projectID", projectID);
-
-        if (currentTaskId) {
-            formData.append("taskId", currentTaskId);
-
-            fetch(`/api/tasks/${currentTaskId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title: formData.get("title"),
-                    description: formData.get("description"),
-                    projectId: parseInt(projectID)
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    location.reload(); // Reload page to reflect changes
-                })
-                .catch(error => console.error("Error updating task:", error));
+        const file = formData.get("image");
+        const body = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            projectId: parseInt(projectID)
+        };
+        if (file instanceof File && file.size > 0) {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                body.image = reader.result; // Base64
+                sendTask(body);
+            };
+            reader.readAsDataURL(file);
         } else {
-            fetch(`/api/tasks`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title: formData.get("title"),
-                    description: formData.get("description"),
-                    projectId: parseInt(projectID)
-                })
-            })
-                .then(response => response.text())
-                .then(data => {
-                    console.log(data);
-                    location.reload(); // Reload page to show new task
-                })
-                .catch(error => console.error("Error saving task:", error));
+            sendTask(body);
         }
     });
+    function sendTask(body) {
+        let url = "/api/tasks";
+        let method = "POST";
+        if (currentTaskId) {
+            url += `/${currentTaskId}`;
+            method = "PUT";
+        }
+
+        fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                location.reload(); // Reload page to show new task
+            })
+            .catch(error => console.error("Error saving/updating task:", error));
+    }
 
     // Initial event setup
     assignEventsButtons();

@@ -39,10 +39,23 @@ public class TaskService {
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
         if (project == null) return null;
 
+        byte[] imageBytes = null;
+        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+            if (dto.getImage().length() > 7_000_000) {
+                throw new IllegalArgumentException("Base64 image is too large (max ~5MB)");
+            }
+            try {
+                imageBytes = Base64.getDecoder().decode(dto.getImage().split(",")[1]);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid base64 image", e);
+            }
+        }
+
         Task task = new Task();
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());
         task.setProject(project);
+        task.setImage(imageBytes); // Set image data
 
         Task saved = taskRepository.save(task);
         return toDTO(saved);
@@ -67,6 +80,20 @@ public class TaskService {
 
         if (dto.getTitle() != null) task.setTitle(dto.getTitle());
         if (dto.getDescription() != null) task.setDescription(dto.getDescription());
+        if (dto.getImage() != null) {
+            byte[] imageBytes = null;
+            if (!dto.getImage().isEmpty()) {
+                if (dto.getImage().length() > 7_000_000) {
+                    throw new IllegalArgumentException("Base64 image is too large (max ~5MB)");
+                }
+                try {
+                    imageBytes = Base64.getDecoder().decode(dto.getImage().split(",")[1]);
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("Invalid base64 image", e);
+                }
+            }
+            task.setImage(imageBytes);
+        }
 
         return toDTO(taskRepository.save(task));
     }

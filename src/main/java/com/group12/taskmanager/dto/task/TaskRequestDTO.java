@@ -4,13 +4,21 @@ public class TaskRequestDTO {
     private String title;
     private String description;
     private int projectId;
+    private String image;
 
     public TaskRequestDTO() {
     }
 
+    public TaskRequestDTO(String title, String description, String image, int projectId) {
+        this.title = title;
+        this.description = description;
+        this.projectId = projectId;
+        this.image = image;
+    }
     public TaskRequestDTO(String title, String description, int projectId) {
         this.title = title;
         this.description = description;
+        this.image = null;
         this.projectId = projectId;
     }
 
@@ -36,5 +44,13 @@ public class TaskRequestDTO {
 
     public void setProjectId(int projectId) {
         this.projectId = projectId;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
