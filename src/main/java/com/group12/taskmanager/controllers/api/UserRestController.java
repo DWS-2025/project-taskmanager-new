@@ -33,17 +33,19 @@ public class UserRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestParam String name,
-                                        @RequestParam String email,
-                                        @RequestParam String password) {
-        if (userService.findUserByUsername(name) != null)
+    public ResponseEntity<?> createUser(@RequestBody UserRequestDTO dto, @RequestParam String confirm_password) {
+        if (userService.findUserByUsername(dto.getName()) != null)
             return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
-        if (userService.findUserByEmail(email) != null)
+        if (userService.findUserByEmail(dto.getEmail()) != null)
             return ResponseEntity.badRequest().body("El email ya está registrado");
+        if (!dto.getPassword().equals(confirm_password))
+            return ResponseEntity.badRequest().body("Las contraseñas no coinciden");
 
-        UserRequestDTO newUser = new UserRequestDTO(name, email, password);
+        UserRequestDTO newUser = new UserRequestDTO(dto.getName(), dto.getEmail(), dto.getPassword());
         userService.createUser(newUser);
-        int newUserId = userService.findUserByEmail(email).getId();
+
+        UserResponseDTO createdUser = userService.findUserByEmail(dto.getEmail());
+        int newUserId = createdUser.getId();
         GroupRequestDTO group = new GroupRequestDTO("USER_" + newUser.getName(), newUserId);
         groupService.createGroup(group);
 

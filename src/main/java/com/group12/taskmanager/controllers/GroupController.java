@@ -63,6 +63,7 @@ public class GroupController {
         return "edit_user";
     }
 
+
     @PostMapping("/leave_group/{groupId}")
     public ResponseEntity<?> leaveGroup(@PathVariable int groupId, HttpSession session) {
         UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
@@ -187,22 +188,6 @@ public class GroupController {
 
         return users;
     }
-
-    @PostMapping("/delete_user/{userId}")
-    public String deleteUser(@PathVariable int userId, HttpSession session) {
-        if (userId != 1) {
-            UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-            if (currentUser == null) return "redirect:/error";
-
-            UserResponseDTO deletedUser = userService.findUserById(userId);
-            boolean deleted = userService.deleteUser(deletedUser, currentUser);
-            if (deleted && currentUser.getId() == userId) session.invalidate();
-            return deleted ? "redirect:/" : "redirect:/error";
-        }
-        return "redirect:/";
-    }
-
-
 
     @GetMapping("/paginated_groups")
     @ResponseBody

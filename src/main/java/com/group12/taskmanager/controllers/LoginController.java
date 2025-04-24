@@ -91,47 +91,4 @@ public class LoginController {
         return "redirect:/"; // Redirect to login page
     }
 
-    @GetMapping("/register")
-    public String showRegisterPage() {
-        // Redirect to login (possibly no separate register view)
-        return "redirect:/";
-    }
-
-    @PostMapping("/register")
-    public String register(@RequestParam String new_username,
-                           @RequestParam String email,
-                           @RequestParam String new_password,
-                           @RequestParam String confirm_password,
-                           RedirectAttributes redirectAttrs) {
-
-        // Check if username already exists
-        if (userService.findUserByUsername(new_username) != null) {
-            redirectAttrs.addFlashAttribute("register_error", "El usuario ya existe");
-            return "redirect:/";
-        }
-        // Check if email is already registered
-        if (userService.findUserByEmail(email) != null) {
-            redirectAttrs.addFlashAttribute("register_error", "El email ya está registrado");
-            return "redirect:/";
-        }
-        // Check if passwords match
-        if (!new_password.equals(confirm_password)) {
-            redirectAttrs.addFlashAttribute("register_error", "Las contraseñas no coinciden");
-            return "redirect:/";
-        }
-
-        // Create new user
-        UserRequestDTO newUser = new UserRequestDTO(new_username, email, new_password);
-        // Save user in 'user' table
-        userService.createUser(newUser);
-
-        // Create personal group for the new user
-        UserResponseDTO createdUser = userService.findUserByEmail(email);
-        int newUserID = createdUser.getId();
-        groupService.createGroup(new GroupRequestDTO( "USER_" + newUser.getName(), newUserID)); // Group is automatically linked to the user
-
-        // Send success message
-        redirectAttrs.addFlashAttribute("register_success", "Registro exitoso. Inicia sesión.");
-        return "redirect:/";
-    }
 }
