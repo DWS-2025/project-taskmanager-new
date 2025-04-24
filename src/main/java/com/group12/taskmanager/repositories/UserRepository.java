@@ -7,11 +7,11 @@ import com.group12.taskmanager.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface  UserRepository extends JpaRepository<User, Integer> {
-    User findByName(String name);
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.groups WHERE u.email = :email")
-    User findByEmailWithGroups(@Param("email") String email);
+    Optional<User> findByName(String name);
+    Optional<User> findByEmail(String email);
 
     @Query("""
     SELECT u FROM User u

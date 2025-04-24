@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class LoginController {
@@ -101,33 +102,36 @@ public class LoginController {
                            @RequestParam String email,
                            @RequestParam String new_password,
                            @RequestParam String confirm_password,
-                           Model model) {
+                           RedirectAttributes redirectAttrs) {
 
         // Check if username already exists
         if (userService.findUserByUsername(new_username) != null) {
-            model.addAttribute("error", "El usuario ya existe");
+            redirectAttrs.addFlashAttribute("register_error", "El usuario ya existe");
             return "redirect:/";
         }
         // Check if email is already registered
         if (userService.findUserByEmail(email) != null) {
-            model.addAttribute("error", "El email ya está registrado");
+            redirectAttrs.addFlashAttribute("register_error", "El email ya está registrado");
             return "redirect:/";
         }
         // Check if passwords match
         if (!new_password.equals(confirm_password)) {
-            model.addAttribute("error", "Las contraseñas no coinciden");
+            redirectAttrs.addFlashAttribute("register_error", "Las contraseñas no coinciden");
             return "redirect:/";
         }
 
         // Create new user
         UserRequestDTO newUser = new UserRequestDTO(new_username, email, new_password);
-        userService.createUser(newUser); // Save user in 'user' table
-        int newUserID = userService.findUserByEmail(email).getId();
+        // Save user in 'user' table
+        userService.createUser(newUser);
+
         // Create personal group for the new user
+        UserResponseDTO createdUser = userService.findUserByEmail(email);
+        int newUserID = createdUser.getId();
         groupService.createGroup(new GroupRequestDTO( "USER_" + newUser.getName(), newUserID)); // Group is automatically linked to the user
 
         // Send success message
-        model.addAttribute("success_message", "Registro exitoso, inicia sesión");
+        redirectAttrs.addFlashAttribute("register_success", "Registro exitoso. Inicia sesión.");
         return "redirect:/";
     }
 }

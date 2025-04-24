@@ -46,6 +46,10 @@
     <div id="register-container" class="container" style="display: none;">
         <h1>Registrarse</h1>
 
+        {{#register_success}}
+            <p class="success">{{register_success}}</p>
+        {{/register_success}}
+
         {{#register_error}}
             <p class="error">{{register_error}}</p>
         {{/register_error}}

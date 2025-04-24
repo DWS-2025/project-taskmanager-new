@@ -48,7 +48,9 @@ public class UserService {
 
     // Find user by username
     public UserResponseDTO findUserByUsername(String userName) {
-        return toDTO(userRepository.findByName(userName));
+        User user = userRepository.findByName(userName).orElse(null);
+        if (user == null) return null;
+        return toDTO(user);
     }
 
     // Find the user's personal group named "USER_<username>"
@@ -67,7 +69,9 @@ public class UserService {
 
     // Updated to use custom query that fetches groups to avoid LazyInitializationException
     public UserResponseDTO findUserByEmail(String email) {
-        return toDTO(userRepository.findByEmailWithGroups(email)); // Custom repo method used
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) return null;
+        return toDTO(user); // Custom repo method used
     }
 
     // Search users by name, excluding those already in the group
