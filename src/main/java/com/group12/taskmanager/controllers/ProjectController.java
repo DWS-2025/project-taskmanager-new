@@ -35,19 +35,15 @@ public class ProjectController {
         if (currentUser == null) return "redirect:/"; // Redirect to home if user not logged in
 
         model.addAttribute("user", currentUser);
-        List<ProjectResponseDTO> projects = new ArrayList<>();
+
         List<GroupResponseDTO> ownedGroups = new ArrayList<>();
 
         if (currentUser.getId() == 1) {
             // Admin user can see all projects and all groups
-            projects = projectService.getAllProjects();
             ownedGroups = groupService.getAllGroups();
         } else {
             // Regular user: get projects from groups they belong to
             List<GroupResponseDTO> currentUserGroups = userService.getUserGroups(currentUser);
-            for (GroupResponseDTO group : currentUserGroups) {
-                projects.addAll(projectService.getGroupProjects(group));
-            }
             // Groups where the user is the owner
             ownedGroups = currentUserGroups.stream()
                     .filter(g -> g.getOwnerId() == currentUser.getId())
@@ -57,9 +53,8 @@ public class ProjectController {
         model.addAttribute("ownedGroups", ownedGroups);
         model.addAttribute("multipleGroups", ownedGroups.size() > 1);
         model.addAttribute("singleGroup", ownedGroups.size() == 1 ? ownedGroups.get(0) : null);
-        model.addAttribute("projects", projects);
 
-        return "index"; // Return view for project listing
+        return "index"; // projects loaded by JS from /api/projects/p/:id
     }
 
     @GetMapping("/project/{id}")

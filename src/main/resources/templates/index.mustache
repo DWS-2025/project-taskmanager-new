@@ -11,25 +11,6 @@
         <h1>Proyectos</h1>
 
         <ul id="project-list">
-            {{#projects}}
-                <li class="project-item" data-projectid="{{id}}">
-                    <div class="project-content">
-                        <a href="/project/{{id}}"><b>{{name}}</b></a>
-                        <button class="btnMoreOptions" data-projectid="{{id}}">
-                            <img src="/img/menu.png" alt="Más opciones">
-                        </button>
-                    </div>
-
-                    <!-- Modal de opciones -->
-                    <div class="modalOptions modal hidden" id="modalOptions-{{id}}">
-                        <div class="modal-content">
-                            <h2>{{name}}</h2>
-                            <button class="btnDeleteProject" data-projectid="{{id}}">Eliminar Proyecto</button>
-                            <button class="btnEditProject" data-projectid="{{id}}">Editar Proyecto</button>
-                        </div>
-                    </div>
-                </li>
-            {{/projects}}
 
         </ul>
 

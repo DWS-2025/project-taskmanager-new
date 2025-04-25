@@ -4,11 +4,17 @@ import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.project.ProjectRequestDTO;
 import com.group12.taskmanager.dto.project.ProjectResponseDTO;
 import com.group12.taskmanager.dto.task.TaskResponseDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
+import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.ProjectRepository;
+import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,8 +26,9 @@ public class ProjectService {
 
     @Autowired private ProjectRepository projectRepository;
     @Autowired private GroupRepository groupRepository;
+    @Autowired private TaskService taskService;
     @Autowired
-    private TaskService taskService;
+    private UserRepository userRepository;
 
     public List<ProjectResponseDTO> getAllProjects() {
         return projectRepository.findAll().stream()
@@ -97,11 +104,18 @@ public class ProjectService {
         return projectRepository.findById(id).orElse(null);
     }
 
-    public List<Project> getGroupProjectsRaw(Group group) {
-        return projectRepository.findByGroup(group);
-    }
-    public List<Project> getAllProjectsRaw() {
-        return projectRepository.findAll();
+    public Page<ProjectResponseDTO> getProjectsPaginated(UserResponseDTO currentUser, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Project> projects;
+
+        if (currentUser.getId() == 1) { //if its admin it can see every project
+            projects =  projectRepository.findAll(pageable);
+        } else {
+            User userEntity = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            projects = projectRepository.findByUser(userEntity, pageable);
+        }
+        return projects.map(this::toDTO);
     }
 
 

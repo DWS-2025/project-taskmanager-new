@@ -1,13 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const uls = Array.from(document.querySelectorAll("ul"));
+    const userId = document.body.dataset.userid;
+    const itemsPerPage = 4;
 
-    const itemsPerPage = 4; // El máximo por página
+    const config = [
+        {
+            listId: "group-list",
+            endpoint: `/api/groups/p/${userId}`,
+            itemClass: "group-item",
+            renderItem: renderGroupItem
+        },
+        {
+            listId: "project-list",
+            endpoint: `/api/projects/p/${userId}`,
+            itemClass: "project-item",
+            renderItem: renderProjectItem
+        }
+    ];
 
-    uls.forEach(ul => {
-        const listItems = Array.from(ul.querySelectorAll(".group-item, .project-item"));
-        if (listItems.length <= itemsPerPage) return; // Si no hay suficientes, no paginar
+    config.forEach(({ listId, endpoint, itemClass, renderItem }) => {
+        const ul = document.getElementById(listId);
+        if (!ul) return;
 
-        // Crear controles de paginación
+        let currentPage = 0;
+        let totalPages = 1;
+
         const paginationControls = document.createElement("div");
         paginationControls.className = "pagination-controls";
 
@@ -16,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         prevBtn.disabled = true;
 
         const pageLabel = document.createElement("span");
-        pageLabel.textContent = "Página 1";
+        pageLabel.textContent = "P\u00E1gina 1";
 
         const nextBtn = document.createElement("button");
         nextBtn.textContent = "Siguiente";
@@ -24,51 +40,126 @@ document.addEventListener("DOMContentLoaded", () => {
         paginationControls.append(prevBtn, pageLabel, nextBtn);
         ul.insertAdjacentElement("afterend", paginationControls);
 
-        const totalPages = Math.ceil(listItems.length / itemsPerPage);
-        let currentPage = 1;
+        const loadData = async (page = 0) => {
+            try {
+                const response = await fetch(`${endpoint}?page=${page}&size=${itemsPerPage}`);
+                const data = await response.json();
 
-        const renderPage = (page) => {
-            const start = (page - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
+                ul.innerHTML = "";
+                totalPages = data.totalPages;
+                currentPage = data.number;
 
-            listItems.forEach(item => {
-                item.style.display = "none";
-                item.style.opacity = 0;
-                item.style.pointerEvents = "none";
-            });
+                data.content.forEach(item => {
+                    const li = renderItem(item);
+                    ul.appendChild(li);
+                });
 
-            listItems.slice(start, end).forEach(item => {
-                item.style.display = "flex"; // O "block", depende del diseño
-                void item.offsetWidth; // Forzar reflow
-                item.style.opacity = 1;
-                item.style.pointerEvents = "auto";
-            });
+                pageLabel.textContent = `Página ${currentPage + 1}`;
+                prevBtn.disabled = currentPage === 0;
+                nextBtn.disabled = currentPage + 1 >= totalPages;
 
-            pageLabel.textContent = `P\u00E1gina ${page}`;
-            prevBtn.disabled = page === 1;
-            nextBtn.disabled = page === totalPages;
+                if (window.assignGroupButtonEvents) {
+                    window.assignGroupButtonEvents(); // solo se aplica a grupos
+                }
+            } catch (err) {
+                console.error(`Error cargando ${listId}:`, err);
+            }
         };
 
         prevBtn.addEventListener("click", () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderPage(currentPage);
-            }
+            if (currentPage > 0) loadData(currentPage - 1);
         });
 
         nextBtn.addEventListener("click", () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderPage(currentPage);
-            }
+            if (currentPage + 1 < totalPages) loadData(currentPage + 1);
         });
 
-        // Mostrar controles solo si hay más de itemsPerPage
-        if (listItems.length > itemsPerPage) {
-            paginationControls.style.display = "flex";
-            renderPage(currentPage);
-        } else {
-            paginationControls.style.display = "none";
-        }
+        loadData();
     });
+
+    function renderGroupItem(group) {
+        const li = document.createElement("li");
+        li.className = "group-item";
+        li.dataset.groupid = group.id;
+
+        const content = document.createElement("div");
+        content.className = "group-content";
+
+        const title = document.createElement("b");
+        title.textContent = group.name;
+
+        const btnOptions = document.createElement("button");
+        btnOptions.className = "btnMoreOptions";
+        btnOptions.dataset.groupid = group.id;
+        btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
+
+        content.append(title, btnOptions);
+        li.appendChild(content);
+
+        const modal = document.createElement("div");
+        modal.className = "modalOptions modal hidden";
+        modal.id = `modalOptions-${group.id}`;
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "modal-content";
+        modalContent.innerHTML = `<h2>${group.name}</h2>`;
+
+        if (!group.isPersonal) {
+            if (group.isOwner) {
+                modalContent.innerHTML += `
+                    <button class="btnEditGroup" data-groupid="${group.id}">Editar Grupo</button>
+                    <button class="btnManageMembers" data-groupid="${group.id}">Gestionar Miembros</button>
+                    <button class="btnChangeOwner" data-groupid="${group.id}" data-groupname="${group.name}">Cambiar Propietario</button>
+                    <button class="btnDeleteGroup" data-groupid="${group.id}">Eliminar Grupo</button>
+                `;
+            } else {
+                modalContent.innerHTML += `
+                    <button class="btnLeaveGroup" data-groupid="${group.id}">Salir del Grupo</button>
+                `;
+            }
+        }
+
+        modal.appendChild(modalContent);
+        li.appendChild(modal);
+
+        return li;
+    }
+
+    function renderProjectItem(project) {
+        const li = document.createElement("li");
+        li.className = "project-item";
+        li.dataset.projectid = project.id;
+
+        const content = document.createElement("div");
+        content.className = "project-content";
+
+        const link = document.createElement("a");
+        link.href = `/project/${project.id}`;
+        link.innerHTML = `<b>${project.name}</b>`;
+
+        const btnOptions = document.createElement("button");
+        btnOptions.className = "btnMoreOptions";
+        btnOptions.dataset.projectid = project.id;
+        btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
+
+        content.append(link, btnOptions);
+        li.appendChild(content);
+
+        const modal = document.createElement("div");
+        modal.className = "modalOptions modal hidden";
+        modal.id = `modalOptions-${project.id}`;
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "modal-content";
+        modalContent.innerHTML = `
+            <h2>${project.name}</h2>
+            <button class="btnDeleteProject" data-projectid="${project.id}">Eliminar Proyecto</button>
+            <button class="btnEditProject" data-projectid="${project.id}">Editar Proyecto</button>
+        `;
+
+        modal.appendChild(modalContent);
+        li.appendChild(modal);
+
+        return li;
+    }
 });

@@ -8,6 +8,9 @@ import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -99,6 +102,34 @@ public class GroupService {
 
     public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
+    }
+
+    public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Group> groups;
+
+        if (currentUser.getId() == 1) { //if its admin it can see every group
+            groups =  groupRepository.findAll(pageable);
+        } else {
+            User userEntity = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            groups = groupRepository.findByUsersContains(userEntity, pageable); // normal user
+        }
+
+        return groups.map(group -> {
+            GroupResponseDTO dto = toDTO(group);
+
+            // flags logic
+            if (currentUser.getId() == 1) {
+                dto.setIsOwner(true);
+                dto.setIsPersonal(group.getName().equals("USER_admin"));
+            } else {
+                dto.setIsOwner(group.getOwner().getId() == currentUser.getId());
+                dto.setIsPersonal(group.getName().equals("USER_" + currentUser.getName()));
+            }
+
+            return dto;
+        });
     }
 
     protected GroupResponseDTO toDTO(Group group) {

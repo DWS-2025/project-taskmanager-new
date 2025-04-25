@@ -25,27 +25,9 @@ public class GroupController {
     public String getUserGroups(Model model, HttpSession session) {
         UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
         if (currentUser == null) return "redirect:/login";
-        List<GroupResponseDTO> groups;
 
-        if (currentUser.getId() == 1) {
-            groups = groupService.getAllGroups();
-            for (GroupResponseDTO group : groups) {
-                group.setIsOwner(true);
-                group.setIsPersonal(group.getName().equals("USER_admin"));
-            }
-        } else {
-            groups = userService.getUserGroups(currentUser);
-            for (GroupResponseDTO group : groups) {
-                // si el usuario es el dueño
-                group.setIsOwner(group.getOwnerId() == currentUser.getId());
-                group.setIsPersonal(group.getName().equals("USER_" + currentUser.getName()));
-            }
-        }
-
-
-        model.addAttribute("groups", groups);
         model.addAttribute("user", currentUser);
-        return "groups";
+        return "groups"; // groups loaded by JS from /api/groups/p/:id
     }
     @GetMapping("/edit_user")
     public String showEditUserPage(HttpSession session, Model model) {
