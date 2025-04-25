@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/groups.css">
     <title>Grupos</title>
 </head>
-<body>
+<body data-userid="{{user.id}}">
 
 <div>
     <a href="/projects"><button id="btnBack"></button></a>
@@ -15,50 +15,9 @@
 
 <h1>Mis Grupos</h1>
 
-<div id="spinner" style="display: none;">Cargando...</div>
-
 <ul id="group-list">
-    {{#groups}}
-        <li class="group-item" data-groupid="{{id}}">
-            <div class="group-content">
-                <b>{{name}}</b>
-                <button class="btnMoreOptions" data-groupid="{{id}}">
-                    <img src="/img/menu.png" alt="Más opciones">
-                </button>
-            </div>
 
-            <div class="modalOptions modal hidden" id="modalOptions-{{id}}">
-                <div class="modal-content">
-                    <h2>{{name}}</h2>
-
-                    <!-- Solo mostrar opciones si no es un grupo personal -->
-                    {{^isPersonal}}
-                        {{#isOwner}}
-                            <button class="btnEditGroup" data-groupid="{{id}}">Editar Grupo</button>
-                            <button class="btnManageMembers" data-groupid="{{id}}">Gestionar Miembros</button>
-                            <button class="btnChangeOwner" data-groupid="{{id}}" data-groupname="{{name}}">Cambiar Propietario</button>
-                            <button class="btnDeleteGroup" data-groupid="{{id}}">Eliminar Grupo</button>
-                        {{/isOwner}}
-
-                        {{^isOwner}}
-                            <button class="btnLeaveGroup" data-groupid="{{id}}">Salir del Grupo</button>
-                        {{/isOwner}}
-                    {{/isPersonal}}
-                </div>
-            </div>
-        </li>
-    {{/groups}}
-
-    {{^groups}}
-        <li>No hay grupos disponibles.</li>
-    {{/groups}}
 </ul>
-
-<div class="pagination-controls">
-    <button id="prevPage" disabled>Anterior</button>
-    <span id="currentPage">Page 1</span>
-    <button id="nextPage">Siguiente </button>
-</div>
 
 <button id="btnNewItem">Nuevo Grupo</button>
 
@@ -93,7 +52,7 @@
         email: "{{user.email}}"
     };
 </script>
-<script src="/js/paginatio.js" defer></script>
+<script src="/js/pagination.js" defer></script>
 <script src="/js/groups.js" defer></script>
 
 </body>

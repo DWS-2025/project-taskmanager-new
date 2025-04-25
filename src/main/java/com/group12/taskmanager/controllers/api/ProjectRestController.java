@@ -3,9 +3,12 @@ package com.group12.taskmanager.controllers.api;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.project.ProjectRequestDTO;
 import com.group12.taskmanager.dto.project.ProjectResponseDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.ProjectService;
+import com.group12.taskmanager.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +21,7 @@ public class ProjectRestController {
 
     @Autowired private ProjectService projectService;
     @Autowired private GroupService groupService;
+    @Autowired private UserService userService;
 
     @GetMapping
     public ResponseEntity<List<ProjectResponseDTO>> getAllProjects() {
@@ -59,5 +63,20 @@ public class ProjectRestController {
         return deleted
                 ? ResponseEntity.ok().build()
                 : ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/p/{userId}")
+    public ResponseEntity<Page<ProjectResponseDTO>> getPaginatedProjects(
+            @PathVariable int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        UserResponseDTO user = userService.findUserById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        Page<ProjectResponseDTO> projects = projectService.getProjectsPaginated(user, page, size);
+        return ResponseEntity.ok(projects);
     }
 }

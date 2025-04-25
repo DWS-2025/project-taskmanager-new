@@ -8,10 +8,10 @@ import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,22 +20,15 @@ import java.util.stream.Collectors;
 @Service
 public class GroupService {
 
-    @Autowired
-    private GroupRepository groupRepository;
-    @Autowired
-    private ProjectService projectService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private GroupRepository groupRepository;
+    @Autowired private ProjectService projectService;
+    @Autowired private UserService userService;
+    @Autowired private UserRepository userRepository;
 
     public List<GroupResponseDTO> getAllGroups() {
         return groupRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
-    }
-    public List<Group> getAllGroupsRaw() {
-        return groupRepository.findAll();
     }
 
     public GroupResponseDTO findGroupById(int groupId) {
@@ -118,11 +111,27 @@ public class GroupService {
         if (currentUser.getId() == 1) { //if its admin it can see every group
             groups =  groupRepository.findAll(pageable);
         } else {
-            User cUser = userRepository.findById(currentUser.getId()).get();
-            groups = groupRepository.findByUsersContains(cUser, pageable); // normal user
+            User userEntity = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            groups = groupRepository.findByUsersContains(userEntity, pageable); // normal user
         }
-        return groups.map(this::toDTO);
+
+        return groups.map(group -> {
+            GroupResponseDTO dto = toDTO(group);
+
+            // flags logic
+            if (currentUser.getId() == 1) {
+                dto.setIsOwner(true);
+                dto.setIsPersonal(group.getName().equals("USER_admin"));
+            } else {
+                dto.setIsOwner(group.getOwner().getId() == currentUser.getId());
+                dto.setIsPersonal(group.getName().equals("USER_" + currentUser.getName()));
+            }
+
+            return dto;
+        });
     }
+
     protected GroupResponseDTO toDTO(Group group) {
         return new GroupResponseDTO(group.getId(), group.getName(), group.getOwner().getId());
     }

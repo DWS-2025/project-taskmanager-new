@@ -175,10 +175,9 @@ public class GroupRestController {
         return ResponseEntity.ok(results);
     }
 
-    // Grupos paginados del usuario
-    @GetMapping("/paginated")
+    @GetMapping("/p/{userId}")
     public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(
-            @RequestParam int userId,
+            @PathVariable int userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 

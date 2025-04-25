@@ -135,7 +135,7 @@ input, textarea {
     align-items: center; /* Alineamos al centro verticalmente */
     gap: 10px; /* Espaciado entre los elementos */
     max-width: 800px;
-    margin: 40px auto 20px;
+    margin: 10px auto 20px;
     padding: 10px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 15px;

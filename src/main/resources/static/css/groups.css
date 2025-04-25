@@ -40,3 +40,8 @@ body {
 #btnNewItem {
     right: 20px; /* Position the button 20px from the right edge */
 }
+
+
+.group-item {
+    transition: opacity 0.4s ease;
+}

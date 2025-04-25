@@ -127,3 +127,6 @@ body {
     background: rgba(139, 0, 0, 0.82);
 }
 
+.project-item {
+    transition: opacity 0.4s ease;
+}
