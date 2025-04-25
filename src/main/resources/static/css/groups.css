@@ -45,7 +45,3 @@ body {
 .group-item {
     transition: opacity 0.4s ease;
 }
-#group-list {
-    min-height: 400px;
-    max-height: 400px;
-}

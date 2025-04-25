@@ -1,6 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
     const userId = document.body.dataset.userid;
-    const itemsPerPage = 4;
+    const itemsPerPage = 5;
+
+    let listContainer = document.getElementById("group-list");
+    if (!listContainer) listContainer = document.getElementById("project-list");
+    listContainer.style.minHeight = `${itemsPerPage * 100}px`;
+    listContainer.style.maxHeight = `${itemsPerPage * 100}px`;
 
     const config = [
         {
@@ -49,12 +54,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 totalPages = data.totalPages;
                 currentPage = data.number;
 
+                if (totalPages <= 1 || data.content.length === 0) {
+                    paginationControls.style.display = "none";
+                } else {
+                    paginationControls.style.display = "flex";
+                }
+
                 data.content.forEach(item => {
                     const li = renderItem(item);
                     ul.appendChild(li);
                 });
 
-                pageLabel.textContent = `Página ${currentPage + 1}`;
+                pageLabel.textContent = `P\u00E1gina ${currentPage + 1}`;
                 prevBtn.disabled = currentPage === 0;
                 nextBtn.disabled = currentPage + 1 >= totalPages;
 

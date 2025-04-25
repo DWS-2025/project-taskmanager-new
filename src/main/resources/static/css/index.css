@@ -130,7 +130,3 @@ body {
 .project-item {
     transition: opacity 0.4s ease;
 }
-#project-list {
-    min-height: 400px;
-    max-height: 400px;
-}
