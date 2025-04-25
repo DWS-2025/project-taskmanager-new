@@ -10,7 +10,7 @@
     <body data-userid="{{user.id}}">
         <h1>Proyectos</h1>
 
-        <ul>
+        <ul id="project-list">
             {{#projects}}
                 <li class="project-item" data-projectid="{{id}}">
                     <div class="project-content">
@@ -85,7 +85,7 @@
             </div>
         </div>
 
-        <!-- Asegúrate que este script carga correctamente -->
+        <script src="/js/pagination.js" defer></script>
         <script src="/js/index.js" defer></script>
         <script src="/js/actionsUser.js" defer></script>
     </body>

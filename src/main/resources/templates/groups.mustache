@@ -15,8 +15,6 @@
 
 <h1>Mis Grupos</h1>
 
-<div id="spinner" style="display: none;">Cargando...</div>
-
 <ul id="group-list">
     {{#groups}}
         <li class="group-item" data-groupid="{{id}}">
@@ -53,12 +51,6 @@
         <li>No hay grupos disponibles.</li>
     {{/groups}}
 </ul>
-
-<div class="pagination-controls">
-    <button id="prevPage" disabled>Anterior</button>
-    <span id="currentPage">Page 1</span>
-    <button id="nextPage">Siguiente </button>
-</div>
 
 <button id="btnNewItem">Nuevo Grupo</button>
 
