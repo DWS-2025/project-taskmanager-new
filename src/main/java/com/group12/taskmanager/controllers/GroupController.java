@@ -1,11 +1,7 @@
 package com.group12.taskmanager.controllers;
 
-import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
-import com.group12.taskmanager.dto.user.UserRequestDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
-import com.group12.taskmanager.models.Group;
-import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -13,12 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.data.domain.Page;
-
 
 import java.util.*;
 
@@ -187,21 +180,5 @@ public class GroupController {
         }
 
         return users;
-    }
-
-    @GetMapping("/paginated_groups")
-    @ResponseBody
-    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
-            HttpSession session) {
-
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        Page<GroupResponseDTO> groupPage = groupService.getGroupsPaginated(currentUser, page, size);
-        return ResponseEntity.ok(groupPage);
     }
 }

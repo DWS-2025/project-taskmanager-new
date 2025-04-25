@@ -8,9 +8,6 @@ import org.springframework.data.domain.Pageable;
 import com.group12.taskmanager.models.User;
 import org.springframework.data.domain.Page;
 
-
-import java.util.List;
-
 public interface GroupRepository extends JpaRepository<Group, Integer> {
 
     @Query("SELECT g FROM Group g LEFT JOIN FETCH g.users WHERE g.id = :groupId")

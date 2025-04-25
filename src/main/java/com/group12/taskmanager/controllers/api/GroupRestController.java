@@ -6,7 +6,6 @@ import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -173,22 +172,6 @@ public class GroupRestController {
 
         List<UserResponseDTO> results = userService.searchUsersByNameExcludingGroup(q, group);
         return ResponseEntity.ok(results);
-    }
-
-    // Grupos paginados del usuario
-    @GetMapping("/paginated")
-    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(
-            @RequestParam int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
-
-        UserResponseDTO user = userService.findUserById(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        Page<GroupResponseDTO> groups = groupService.getGroupsPaginated(user, page, size);
-        return ResponseEntity.ok(groups);
     }
 
 }

@@ -18,7 +18,8 @@ h1 {
     text-align: center;
     color: white;
     font-size: 3.2em;
-    margin-top: 50px;
+    margin-top: 30px;
+    margin-bottom: 20px;
     font-weight: bold;
     text-shadow: 3px 3px 3px rgba(0, 0, 0, 0.7); /* Adds shadow for readability */
     text-transform: uppercase;
@@ -29,7 +30,7 @@ ul {
     list-style: none;
     padding: 0;
     width: 80%;
-    margin: 20px auto;
+    margin: 5px auto;
 }
 
 /* General button styling */

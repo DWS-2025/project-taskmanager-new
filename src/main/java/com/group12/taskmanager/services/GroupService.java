@@ -9,9 +9,6 @@ import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,22 +17,15 @@ import java.util.stream.Collectors;
 @Service
 public class GroupService {
 
-    @Autowired
-    private GroupRepository groupRepository;
-    @Autowired
-    private ProjectService projectService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private GroupRepository groupRepository;
+    @Autowired private ProjectService projectService;
+    @Autowired private UserService userService;
+    @Autowired private UserRepository userRepository;
 
     public List<GroupResponseDTO> getAllGroups() {
         return groupRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
-    }
-    public List<Group> getAllGroupsRaw() {
-        return groupRepository.findAll();
     }
 
     public GroupResponseDTO findGroupById(int groupId) {
@@ -111,18 +101,6 @@ public class GroupService {
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
     }
 
-    public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Group> groups;
-
-        if (currentUser.getId() == 1) { //if its admin it can see every group
-            groups =  groupRepository.findAll(pageable);
-        } else {
-            User cUser = userRepository.findById(currentUser.getId()).get();
-            groups = groupRepository.findByUsersContains(cUser, pageable); // normal user
-        }
-        return groups.map(this::toDTO);
-    }
     protected GroupResponseDTO toDTO(Group group) {
         return new GroupResponseDTO(group.getId(), group.getName(), group.getOwner().getId());
     }
