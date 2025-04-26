@@ -66,26 +66,36 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleDeleteMember(event) {
         const userId = event.target.dataset.userid;
         const groupId = document.body.dataset.groupid;
+        currentUserId = document.body.dataset.userid;
         if (!userId || !groupId) {
             console.error("No user or group selected for deletion.");
             return;
         }
 
         if (confirm("Are you sure you want to remove this member from the group?")) {
-            fetch(`/delete_member/${userId}?groupId=${groupId}`, {
+            fetch(`/api/groups/${groupId}/${userId}`, {
                 method: "DELETE",
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({currentUserId: currentUserId})
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            alert(errorData.message);
+                            throw new Error("Network response was not ok");
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         console.log("Member successfully removed");
                         document.querySelector(`[data-userid='${userId}']`).remove();
                         if (data.message === "own") {
                             // If an admin removes themselves from a group
-                            window.location.href = `/manage_members/${groupId}`;
+                            window.location.href = `/${groupId}/members`;
                         }
                     } else {
                         alert(data.message);
@@ -117,8 +127,13 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch(`/search_users?q=${encodeURIComponent(query)}&groupId=${groupId}`)
-            .then(response => response.json())
+        fetch(`/api/groups/${groupId}/search_users?q=${encodeURIComponent(query)}`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Error searching user(s): ${res.status}`);
+                }
+                return res.json();
+            })
             .then(users => {
                 userSearchResults.innerHTML = "";
                 users.forEach(user => {
@@ -131,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     checkbox.dataset.userid = user.id;
                     checkbox.classList.add("user-checkbox");
 
-                    // Create label with user name
+                    // Create label with username
                     const label = document.createElement("label");
                     label.textContent = user.name;
                     label.setAttribute("for", `user-${user.id}`);
@@ -150,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     userSearchResults.appendChild(li);
                 });
             })
-            .catch(error => console.error("User search error:", error));
+            .catch(error => console.error("User search error:", error.message));
     }
 
     // Add selected users to the group
@@ -172,10 +187,13 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch("/add_members", {
+        fetch(`/api/groups/${groupId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ groupId, userIds: Array.from(selectedUsers), currentUserId })
+            body: JSON.stringify({
+                currentUserId: currentUserId,
+                userIds: Array.from(selectedUsers)
+            })
         })
             .then(response => response.json())
             .then(data => {

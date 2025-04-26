@@ -2,6 +2,7 @@ package com.group12.taskmanager.controllers.api;
 
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
+import com.group12.taskmanager.dto.requests.*;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
@@ -28,6 +29,18 @@ public class GroupRestController {
     public ResponseEntity<GroupResponseDTO> getGroupById(@PathVariable int id) {
         GroupResponseDTO group = groupService.findGroupById(id);
         return (group != null) ? ResponseEntity.ok(group) : ResponseEntity.notFound().build();
+    }
+
+    // Get all User's groups
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<GroupResponseDTO>> getGroupsByUser(@PathVariable int userId) {
+        UserResponseDTO user = userService.findUserById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        List<GroupResponseDTO> groups = userService.getUserGroups(user);
+        return ResponseEntity.ok(groups);
     }
 
     @PostMapping
@@ -69,21 +82,50 @@ public class GroupRestController {
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
-    @PostMapping("/{id}/members")
-    public ResponseEntity<?> addMembers(@PathVariable int id, @RequestBody Map<String, Object> payload) {
+    //Group Members Controllers -----------------------------------------------------------------------
+
+    // Controller used in change owner modal, returns all members except the current owner
+    @GetMapping("/{id}/members")
+    public ResponseEntity<?> getGroupMembers(@PathVariable int id) {
+        GroupResponseDTO group = groupService.findGroupById(id);
+        if (group == null) return ResponseEntity.notFound().build();
+
+        List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
+        // Removes group owner
+        for (UserResponseDTO user : groupUsers) {
+            if (group.getOwnerId() == user.getId()) {
+                groupUsers.remove(user);
+                break;
+            }
+        }
+        return ResponseEntity.ok(groupUsers);
+    }
+
+    // Search users by name, and they can't be in the group yet
+    @GetMapping("/{id}/search_users")
+    public ResponseEntity<List<UserResponseDTO>> searchUsers(@PathVariable int id, @RequestParam String q) {
+        GroupResponseDTO group = groupService.findGroupById(id);
+        if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        List<UserResponseDTO> results = userService.searchUsersByNameExcludingGroup(q, group);
+        return ResponseEntity.ok(results);
+    }
+
+    @PostMapping("/{id}")
+    public ResponseEntity<?> addMembersToGroup(@PathVariable int id, @RequestBody AddMembersRequestDTO request) {
         try {
-            int currentUserId = Integer.parseInt(payload.get("currentUserId").toString());
+            int currentUserId = request.getCurrentUserId();
             UserResponseDTO currentUser = userService.findUserById(currentUserId);
             GroupResponseDTO group = groupService.findGroupById(id);
 
-            if (currentUser == null || group == null || group.getOwnerId()!=currentUser.getId()) {
+            if (currentUser == null || group == null || group.getOwnerId() != currentUser.getId()) {
                 if (currentUser == null || currentUser.getId() != 1) {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                             .body(Collections.singletonMap("message", "No autorizado"));
                 }
             }
 
-            List<Integer> userIds = ((List<?>) payload.get("userIds")).stream()
+            List<Integer> userIds = (List<Integer>) request.getUserIds().stream()
                     .map(idObj -> Integer.parseInt(idObj.toString()))
                     .toList();
 
@@ -95,8 +137,7 @@ public class GroupRestController {
                 }
             }
 
-            GroupResponseDTO dto = groupService.findGroupById(id);
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(Collections.singletonMap("success", true));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -104,82 +145,76 @@ public class GroupRestController {
         }
     }
 
+    @DeleteMapping("/{id}/{userId}")
+    public ResponseEntity<?> removeMemberFromGroup(@PathVariable int id, @PathVariable int userId, @RequestBody CurrentUserRequestDTO request) {
+        UserResponseDTO currentUser = userService.findUserById(request.getCurrentUserId());
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("message", "No autenticado"));
+        }
 
-    @DeleteMapping("/{id}/members/{userId}")
-    public ResponseEntity<?> removeMember(@PathVariable int id, @PathVariable int userId) {
         GroupResponseDTO group = groupService.findGroupById(id);
         UserResponseDTO user = userService.findUserById(userId);
         if (group == null || user == null) return ResponseEntity.notFound().build();
 
+        if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != 1)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("message", "No autorizado"));
+
+        if (currentUser.getId() == userId) {
+            // ADMIN validation
+            if (currentUser.getId() != 1 || group.getOwnerId() == 1) // if the user is admin and IS NOT the owner
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Collections.singletonMap("message", "No puedes eliminarte si eres el propietario"));
+        }
+
         groupService.removeUserFromGroup(group, user);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
 
-    @GetMapping("/{id}/members")
-    public ResponseEntity<?> getGroupMembers(@PathVariable int id) {
-        GroupResponseDTO group = groupService.findGroupById(id);
-        if (group == null) return ResponseEntity.notFound().build();
-
-        List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
-        return ResponseEntity.ok(groupUsers);
-    }
-
-    // Obtener todos los grupos de un usuario
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<GroupResponseDTO>> getGroupsByUser(@PathVariable int userId) {
-        UserResponseDTO user = userService.findUserById(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (currentUser.getId() == userId) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "own");
+            return ResponseEntity.ok(response);
         }
 
-        List<GroupResponseDTO> groups = userService.getUserGroups(user);
-        return ResponseEntity.ok(groups);
+        return ResponseEntity.ok(Collections.singletonMap("success", true));
     }
 
-    // Permitir que un usuario abandone un grupo
-    @DeleteMapping("/{groupId}/leave")
-    public ResponseEntity<?> leaveGroup(@PathVariable int groupId, @RequestParam int userId) {
+    // Allow user leave a group
+    @DeleteMapping("/l/{groupId}")
+    public ResponseEntity<?> leaveGroup(@PathVariable int groupId, @RequestBody CurrentUserRequestDTO request) {
         GroupResponseDTO group = groupService.findGroupById(groupId);
-        UserResponseDTO user = userService.findUserById(userId);
+        UserResponseDTO currentUser = userService.findUserById(request.getCurrentUserId());
 
-        if (group == null || user == null) {
+        if (group == null || currentUser == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        if(group.getOwnerId() == currentUser.getId())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"No se puede salir del grupo\"}");
 
         List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
-        if (!groupUsers.contains(user)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El usuario no pertenece al grupo.");
+        boolean found = false;
+        for (UserResponseDTO user : groupUsers) {
+            if (user.getId() == currentUser.getId()) {
+                found = true;
+                break;
+            }
         }
+        if (!found) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "El usuario no pertenece al grupo."));
 
-        if (group.getOwnerId() == user.getId()) {
+        if (group.getOwnerId() == currentUser.getId()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("El propietario no puede abandonar el grupo.");
         }
 
-        groupService.removeUserFromGroup(group, user);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        groupService.removeUserFromGroup(group, currentUser);
+        return ResponseEntity.ok("{\"success\": true}");
     }
 
-    // Buscar usuarios por nombre que NO estén ya en el grupo
-    @GetMapping("/{groupId}/search_users")
-    public ResponseEntity<List<UserResponseDTO>> searchUsers(
-            @PathVariable int groupId,
-            @RequestParam String q) {
-
-        GroupResponseDTO group = groupService.findGroupById(groupId);
-        if (group == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        List<UserResponseDTO> results = userService.searchUsersByNameExcludingGroup(q, group);
-        return ResponseEntity.ok(results);
-    }
+    //Pagination Controller -----------------------------------------------------------------------
 
     @GetMapping("/p/{userId}")
-    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(
-            @PathVariable int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(@PathVariable int userId,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
 
         UserResponseDTO user = userService.findUserById(userId);
         if (user == null) {
