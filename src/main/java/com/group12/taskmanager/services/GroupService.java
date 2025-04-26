@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,13 +63,6 @@ public class GroupService {
         if (dto.getOwnerID() != 0) group.setOwner(userRepository.findById(dto.getOwnerID()).get());
         return toDTO(groupRepository.save(group));
     }
-    public GroupResponseDTO changeGroupOwner(int id, GroupRequestDTO dto) {
-        Group group = groupRepository.findById(id).orElse(null);
-        if (group == null) return null;
-
-        group.setOwner(userService.findUserByIdRaw(dto.getOwnerID()));
-        return toDTO(groupRepository.save(group));
-    }
 
     public boolean deleteGroup(GroupResponseDTO dto) {
         int id = dto.getId();
@@ -96,10 +90,12 @@ public class GroupService {
         return group.getUsers();
     }
 
+    @Transactional
     public void addUserToGroup(GroupResponseDTO group, UserResponseDTO user) {
         groupRepository.addUserToGroup(group.getId(), user.getId());
     }
 
+    @Transactional
     public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
     }

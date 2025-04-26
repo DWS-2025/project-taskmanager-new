@@ -69,16 +69,24 @@ document.addEventListener("DOMContentLoaded", function () {
     // Leave a group
     function handleLeaveGroup(event) {
         const groupId = event.target.dataset.groupid;
+        const currentUserId = document.body.dataset.userid;
         if (!groupId) {
             console.error("No group selected to leave.");
             return;
         }
 
         if (confirm("Are you sure you want to leave this group?")) {
-            fetch(`/leave_group/${groupId}`, {
-                method: "POST",
+            fetch(`/api/groups/l/${groupId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({currentUserId: currentUserId})
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         location.reload();
@@ -122,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("No group selected.");
             return;
         }
-        window.location.href = `/manage_members/${groupId}`;
+        window.location.href = `/${groupId}/members`;
     }
 
     // Open modal for editing group
@@ -176,8 +184,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Fetch and show current group members to select a new owner
     function showGroupMembers() {
-        fetch(`/group_members?groupId=${currentGroupId}`)
-            .then(res => res.json())
+        fetch(`/api/groups/${currentGroupId}/members`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Error fetching members: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(users => {
                 groupUsersResult.innerHTML = "";
                 users.forEach(user => {
@@ -208,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             })
             .catch(err => {
-                console.error("Error loading members:", err);
+                console.error("Error loading members:", err.message);
             });
     }
 
