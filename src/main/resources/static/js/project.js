@@ -77,29 +77,23 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Deleting task ID: " + taskId);
 
         const taskItem = event.target.closest(".task-item");
-        taskItem.style.transition = "opacity 0.3s ease-out";
-        taskItem.style.opacity = "0";
 
         fetch(`/api/tasks/${taskId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         })
-            .then(response => response.json())
-            .then(() => {})
-            .catch(error => console.error("Request error:", error));
-    }
-
-    // Refresh the list of tasks from server
-    function updateTaskList() {
-        fetch(`/api/tasks/project/${projectID}`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById("task-list").innerHTML =
-                    new DOMParser().parseFromString(html, "text/html")
-                        .querySelector("#task-list").innerHTML;
-                assignEventsButtons(); // Reassign event listeners after reload
+            .then(response => {
+                if (response.ok) {
+                    taskItem.style.transition = "opacity 0.3s ease-out";
+                    taskItem.style.opacity = "0";
+                    setTimeout(() => {
+                        taskItem.remove();
+                    }, 300);
+                } else {
+                    console.error("Error deleting task:", response.status);
+                }
             })
-            .catch(error => console.error("Error updating task list:", error));
+            .catch(error => console.error("Request error:", error));
     }
 
     // Handle editing a task (fill form with current values)
@@ -211,9 +205,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Error saving/updating task:", error));
     }
 
-    // Initial event setup
-    assignEventsButtons();
-
     document.getElementById("searchForm").addEventListener("submit", function (e) {
         e.preventDefault();
 
@@ -247,6 +238,29 @@ document.addEventListener("DOMContentLoaded", function () {
             content.className = "task-content";
             content.innerHTML = `<b>${task.title}</b><p>${task.description}</p>`;
 
+            const btn = document.createElement("button");
+            btn.className = "btnMoreOptions";
+            btn.dataset.taskid = task.id;
+            btn.innerHTML = `<img src="/img/menu.png" alt="Más opciones" style="width:16px; height:16px;">`;
+            content.appendChild(btn);
+
+            li.appendChild(content);
+
+            // Modal siempre creado
+            const modal = document.createElement("div");
+            modal.className = "modalOptions modal";
+            modal.innerHTML = `
+            <div class="modal-content">
+                <h2>${task.title}</h2>
+                <button class="btnDeleteTask" data-taskid="${task.id}">Eliminar Tarea</button>
+                <button class="btnEditTask" data-taskid="${task.id}">Editar Tarea</button>
+            </div>
+        `;
+            li.appendChild(modal);
+
+            taskList.appendChild(li);
+
+            // Cargar imagen después
             if (task.hasImage) {
                 fetch(`/api/tasks/${task.id}/image`)
                     .then(res => res.json())
@@ -257,17 +271,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         content.appendChild(img);
                     });
             }
-
-            const btn = document.createElement("button");
-            btn.className = "btnMoreOptions";
-            btn.dataset.taskid = task.id;
-            btn.innerHTML = `<img src="/img/menu.png" alt="Más opciones" style="width:16px; height:16px;">`;
-            content.appendChild(btn);
-
-            li.appendChild(content);
-            taskList.appendChild(li);
         });
+
+        assignEventsButtons();
     }
 
+    // Initial event setup
+    assignEventsButtons();
 });
 

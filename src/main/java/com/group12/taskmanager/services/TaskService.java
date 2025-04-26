@@ -117,26 +117,24 @@ public class TaskService {
     }
 
     public List<TaskResponseDTO> searchTasks(TaskResponseDTO dto) {
-        List<TaskResponseDTO> response = new ArrayList<>();
-        if (dto.getHasImage() && dto.getTitle() != null) {
-            response = taskRepository.findByProject(projectRepository.findById(dto.getProjectId()).get()).stream()
-                    .filter(t -> t.getTitle().toLowerCase().contains(dto.getTitle().toLowerCase()))
-                    .filter(t -> dto.getHasImage() == (t.getImage() != null))
-                    .map(this::toDTO)
-                    .collect(Collectors.toList());
-        } else if (dto.getHasImage()) {
-            response = taskRepository.findByProject(projectRepository.findById(dto.getProjectId()).get()).stream()
-                    .filter(t -> dto.getHasImage() == (t.getImage() != null))
-                    .map(this::toDTO)
-                    .collect(Collectors.toList());
-        } else if (dto.getTitle() != null) {
-            response = taskRepository.findByProject(projectRepository.findById(dto.getProjectId()).get()).stream()
-                    .filter(t -> t.getTitle().toLowerCase().contains(dto.getTitle().toLowerCase()))
-                    .map(this::toDTO)
-                    .collect(Collectors.toList());
-        }
-        return response;
+        Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
+        if (project == null) return List.of();
+
+        return taskRepository.findByProject(project).stream()
+                .filter(t -> {
+                    boolean matchesImage = dto.getHasImage() ? (t.getImage() != null) : (t.getImage() == null);
+                    boolean matchesTitle = true;
+
+                    if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
+                        matchesTitle = t.getTitle().toLowerCase().contains(dto.getTitle().toLowerCase());
+                    }
+
+                    return matchesImage && matchesTitle;
+                })
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
+
 
     private TaskResponseDTO toDTO(Task task) {
         return new TaskResponseDTO(
