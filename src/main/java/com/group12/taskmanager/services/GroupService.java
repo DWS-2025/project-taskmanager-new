@@ -21,10 +21,16 @@ import java.util.stream.Collectors;
 @Service
 public class GroupService {
 
-    @Autowired private GroupRepository groupRepository;
-    @Autowired private ProjectService projectService;
     @Autowired private UserService userService;
-    @Autowired private UserRepository userRepository;
+    private final GroupRepository groupRepository;
+    private final ProjectService projectService;
+    private final UserRepository userRepository;
+
+    public GroupService(GroupRepository groupRepository, ProjectService projectService, UserRepository userRepository) {
+        this.groupRepository = groupRepository;
+        this.projectService = projectService;
+        this.userRepository = userRepository;
+    }
 
     public List<GroupResponseDTO> getAllGroups() {
         return groupRepository.findAll().stream()
@@ -38,11 +44,15 @@ public class GroupService {
     }
 
     public void saveGroup(int id, GroupRequestDTO dto) {
-        Group group = groupRepository.findById(id).get();
-        group.setName(dto.getName());
-        User owner = userRepository.findById(dto.getOwnerID()).get();
-        group.setOwner(owner);
-        groupRepository.save(group);
+        Group group = groupRepository.findById(id).orElse(null);
+        User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
+        if (group != null && owner != null) {
+            group.setName(dto.getName());
+            group.setOwner(owner);
+            groupRepository.save(group);
+        }else {
+            System.out.println("Invalid credentials at GroupService - saveGroup()");
+        }
     }
 
     public GroupResponseDTO createGroup(GroupRequestDTO dto) {
@@ -57,10 +67,11 @@ public class GroupService {
 
     public GroupResponseDTO updateGroup(int id, GroupRequestDTO dto) {
         Group group = groupRepository.findById(id).orElse(null);
-        if (group == null) return null;
+        User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
+        if (group == null || owner == null) return null;
 
         if (dto.getName() != null) group.setName(dto.getName());
-        if (dto.getOwnerID() != 0) group.setOwner(userRepository.findById(dto.getOwnerID()).get());
+        if (dto.getOwnerID() != 0) group.setOwner(owner);
         return toDTO(groupRepository.save(group));
     }
 
@@ -97,7 +108,7 @@ public class GroupService {
 
     @Transactional
     public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
-        groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the BBDD
+        groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the DB
     }
 
     public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {

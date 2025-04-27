@@ -11,7 +11,6 @@ import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.ProjectRepository;
 import com.group12.taskmanager.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,11 +23,17 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectService {
 
-    @Autowired private ProjectRepository projectRepository;
-    @Autowired private GroupRepository groupRepository;
-    @Autowired private TaskService taskService;
-    @Autowired
-    private UserRepository userRepository;
+    private final ProjectRepository projectRepository;
+    private final GroupRepository groupRepository;
+    private final TaskService taskService;
+    private final UserRepository userRepository;
+
+    public ProjectService(ProjectRepository projectRepository, GroupRepository groupRepository, TaskService taskService, UserRepository userRepository) {
+        this.projectRepository = projectRepository;
+        this.groupRepository = groupRepository;
+        this.taskService = taskService;
+        this.userRepository = userRepository;
+    }
 
     public List<ProjectResponseDTO> getAllProjects() {
         return projectRepository.findAll().stream()
@@ -40,13 +45,10 @@ public class ProjectService {
         Project project = projectRepository.findById(id).orElse(null);
         return (project != null) ? toDTO(project) : null;
     }
-
-    public List<ProjectResponseDTO> getProjectsByGroupId(int groupId) {
-        return projectRepository.findByGroup_Id(groupId).stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+    // Compatibility: allow access to entity for Mustache views
+    public Project findProjectByIdRaw(int id) {
+        return projectRepository.findById(id).orElse(null);
     }
-
 
     public ProjectResponseDTO createProject(ProjectRequestDTO dto) {
         Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
@@ -61,10 +63,11 @@ public class ProjectService {
 
     public ProjectResponseDTO updateProject(int id, ProjectRequestDTO dto) {
         Project project = projectRepository.findById(id).orElse(null);
-        if (project == null) return null;
+        Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
+        if (project == null || group == null) return null;
 
         if (dto.getName() != null) project.setName(dto.getName());
-        if (dto.getGroupId() != 0) project.setGroup(groupRepository.findById(dto.getGroupId()).get());
+        if (dto.getGroupId() != 0) project.setGroup(group);
 
         return toDTO(projectRepository.save(project));
     }
@@ -91,24 +94,6 @@ public class ProjectService {
         return projectsDTO;
     }
 
-    private ProjectResponseDTO toDTO(Project project) {
-        return new ProjectResponseDTO(
-                project.getId(),
-                project.getName(),
-                project.getGroup().getId()
-        );
-    }
-    private ProjectResponseDTO toDTO(Project project, int userId) {
-        ProjectResponseDTO dto = toDTO(project); // llama al simple
-        boolean isOwner = userId == 1 || project.getGroup().getOwner().getId() == userId;
-        dto.setOwner(isOwner);
-        return dto;
-    }
-    // Compatibility: allow access to entity for Mustache views
-    public Project findProjectByIdRaw(int id) {
-        return projectRepository.findById(id).orElse(null);
-    }
-
     public Page<ProjectResponseDTO> getProjectsPaginated(UserResponseDTO currentUser, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Project> projects;
@@ -123,6 +108,18 @@ public class ProjectService {
         return projects.map(p -> toDTO(p, currentUser.getId()));
     }
 
-
+    private ProjectResponseDTO toDTO(Project project) {
+        return new ProjectResponseDTO(
+                project.getId(),
+                project.getName(),
+                project.getGroup().getId()
+        );
+    }
+    private ProjectResponseDTO toDTO(Project project, int userId) {
+        ProjectResponseDTO dto = toDTO(project); // llama al simple
+        boolean isOwner = userId == 1 || project.getGroup().getOwner().getId() == userId;
+        dto.setOwner(isOwner);
+        return dto;
+    }
 
 }
