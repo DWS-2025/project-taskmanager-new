@@ -4,9 +4,6 @@ public class ProjectRequestDTO {
     private String name;
     private int groupId;
 
-    public ProjectRequestDTO() {
-    }
-
     public ProjectRequestDTO(String name, int groupId) {
         this.name = name;
         this.groupId = groupId;

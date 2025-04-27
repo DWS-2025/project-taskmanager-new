@@ -2,19 +2,10 @@ package com.group12.taskmanager.dto.task;
 
 public class TaskRequestDTO {
     private String title;
-    private String description;
-    private int projectId;
+    private final String description;
+    private final int projectId;
     private String image;
 
-    public TaskRequestDTO() {
-    }
-
-    public TaskRequestDTO(String title, String description, String image, int projectId) {
-        this.title = title;
-        this.description = description;
-        this.projectId = projectId;
-        this.image = image;
-    }
     public TaskRequestDTO(String title, String description, int projectId) {
         this.title = title;
         this.description = description;
@@ -34,16 +25,8 @@ public class TaskRequestDTO {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public int getProjectId() {
         return projectId;
-    }
-
-    public void setProjectId(int projectId) {
-        this.projectId = projectId;
     }
 
     public String getImage() {

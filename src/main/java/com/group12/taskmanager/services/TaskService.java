@@ -109,9 +109,9 @@ public class TaskService {
 
     public boolean uploadImage(int id, TaskImageDTO dto) {
         Task task = taskRepository.findById(id).orElse(null);
-        if (task == null || dto.getBase64() == null) return false;
+        if (task == null || dto.base64() == null) return false;
 
-        byte[] imageBytes = Base64.getDecoder().decode(dto.getBase64());
+        byte[] imageBytes = Base64.getDecoder().decode(dto.base64());
         task.setImage(imageBytes);
         taskRepository.save(task);
         return true;

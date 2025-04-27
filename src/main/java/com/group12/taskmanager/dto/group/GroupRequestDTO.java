@@ -4,8 +4,6 @@ public class GroupRequestDTO {
     private String name;
     private int ownerID;
 
-    public GroupRequestDTO() {}
-
     public GroupRequestDTO(String name, int ownerID) {
         this.name = name;
         this.ownerID = ownerID;
