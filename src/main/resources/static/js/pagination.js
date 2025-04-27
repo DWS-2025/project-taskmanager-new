@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
             renderItem: renderProjectItem
         }
     ];
-
     config.forEach(({ listId, endpoint, renderItem }) => {
         const ul = document.getElementById(listId);
         if (!ul) return;
@@ -46,6 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const loadData = async (page = 0) => {
             try {
                 const response = await fetch(`${endpoint}?page=${page}&size=${itemsPerPage}`);
+
+                /**
+                 * @typedef {Object} PaginationData
+                 * @property {number} totalPages
+                 * @property {number} number
+                 * @property {Array<Object>} content
+                 */
+                /**
+                 * @type {PaginationData}
+                 */
                 const data = await response.json();
 
                 ul.innerHTML = "";
@@ -79,20 +88,23 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         prevBtn.addEventListener("click", () => {
-            if (currentPage > 0) loadData(currentPage - 1);
+            if (currentPage > 0) void loadData(currentPage - 1);
         });
 
         nextBtn.addEventListener("click", () => {
-            if (currentPage + 1 < totalPages) loadData(currentPage + 1);
+            if (currentPage + 1 < totalPages) void loadData(currentPage + 1);
         });
 
-        loadData();
+        void loadData();
     });
 
+    /**
+     * @param {{ id: number, name: string, isPersonal: boolean, isOwner: boolean }} group
+     */
     function renderGroupItem(group) {
         const li = document.createElement("li");
         li.className = "group-item";
-        li.dataset.groupid = group.id;
+        li.dataset.groupid = group.id.toString(10);
 
         const content = document.createElement("div");
         content.className = "group-content";
@@ -102,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";
-        btnOptions.dataset.groupid = group.id;
+        btnOptions.dataset.groupid = group.id.toString(10);
         btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
 
         content.append(title, btnOptions);
@@ -137,11 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return li;
     }
 
+    /**
+     * @param {{ id: number, name: string, groupId: number, owner: boolean }} project
+     */
     function renderProjectItem(project) {
         const li = document.createElement("li");
         li.className = "project-item";
-        li.dataset.projectid = project.id;
-        li.dataset.groupid = project.groupId;
+        li.dataset.projectid = project.id.toString(10);
+        li.dataset.groupid = project.groupId.toString(10);
 
         const content = document.createElement("div");
         content.className = "project-content";
@@ -152,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";
-        btnOptions.dataset.projectid = project.id;
+        btnOptions.dataset.projectid = project.id.toString(10);
         btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
 
         content.append(link, btnOptions);

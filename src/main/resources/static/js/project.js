@@ -1,6 +1,4 @@
-// Run this once the DOM has fully loaded
 document.addEventListener("DOMContentLoaded", function () {
-    // Elements used throughout the script
     const modalTask = document.getElementById("modalTask");
     const btnNewTask = document.getElementById("btnNewItem");
     const formNewTask = document.getElementById("formNewTask");
@@ -10,15 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let currentTaskId = null;
     let clickInsideModal = false;
-
-    // Display selected file name
-    fileInput.addEventListener('change', function () {
-        if (fileInput.files.length > 0) {
-            fileName.textContent = fileInput.files[0].name;
-        } else {
-            fileName.textContent = "No file selected";
-        }
-    });
 
     // Assign event listeners to task buttons
     function assignEventsButtons() {
@@ -45,8 +34,50 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.addEventListener("mouseup", handleModalMouseUp);
         });
     }
+    // Display selected file name
+    fileInput.addEventListener('change', function () {
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = "No file selected";
+        }
+    });
+    btnNewTask.addEventListener("click", function () {
+        currentTaskId = null;
 
-    // Handle "More Options" button click
+        formNewTask.querySelector("input[name='title']").value = "";
+        formNewTask.querySelector("textarea[name='description']").value = "";
+        formNewTask.querySelector("input[name='image']").value = "";
+
+        const hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");
+        if (hiddenImageInput) {
+            hiddenImageInput.remove();
+        }
+
+        modalTask.style.display = "flex";
+    });
+    formNewTask.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(formNewTask);
+        const file = formData.get("image");
+        const body = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            projectId: parseInt(projectID)
+        };
+        if (file instanceof File && file.size > 0) {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                body.image = reader.result; // Base64
+                sendTask(body);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            sendTask(body);
+        }
+    });
+
     function handleMoreOptionsClick(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
         console.log("currentTaskId = " + currentTaskId);
@@ -65,38 +96,36 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     }
-
-    // Handle deleting a task
-    function handleDeleteTask(event) {
-        const taskId = event.target.dataset.taskid;
-        if (!taskId) {
-            console.error("No task selected to delete.");
-            return;
+    // Handle clicking outside the modal to close it
+    function handleModalMouseDown(event) {
+        clickInsideModal = !!(event.target.closest(".modal-content") || event.target.closest("#formNewTask"));
+    }
+    function handleModalMouseUp(event) {
+        if (!clickInsideModal && event.target.classList.contains("modal")) {
+            event.target.style.display = "none";
         }
-
-        console.log("Deleting task ID: " + taskId);
-
-        const taskItem = event.target.closest(".task-item");
-
-        fetch(`/api/tasks/${taskId}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" }
-        })
-            .then(response => {
-                if (response.ok) {
-                    taskItem.style.transition = "opacity 0.3s ease-out";
-                    taskItem.style.opacity = "0";
-                    setTimeout(() => {
-                        taskItem.remove();
-                    }, 300);
-                } else {
-                    console.error("Error deleting task:", response.status);
-                }
-            })
-            .catch(error => console.error("Request error:", error));
     }
 
-    // Handle editing a task (fill form with current values)
+    function sendTask(body) {
+        let url = "/api/tasks";
+        let method = "POST";
+        if (currentTaskId) {
+            url += `/${currentTaskId}`;
+            method = "PUT";
+        }
+
+        fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                location.reload(); // Reload page to show new task
+            })
+            .catch(error => console.error("Error saving/updating task:", error));
+    }
     function handleEditTask(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
 
@@ -130,79 +159,98 @@ document.addEventListener("DOMContentLoaded", function () {
 
         modalTask.style.display = "flex";
     }
-
-    // Handle clicking outside the modal to close it
-    function handleModalMouseDown(event) {
-        if (event.target.closest(".modal-content") || event.target.closest("#formNewTask")) {
-            clickInsideModal = true;
-        } else {
-            clickInsideModal = false;
-        }
-    }
-
-    function handleModalMouseUp(event) {
-        if (!clickInsideModal && event.target.classList.contains("modal")) {
-            event.target.style.display = "none";
-        }
-    }
-
-    // Handle "New Task" button click
-    btnNewTask.addEventListener("click", function () {
-        currentTaskId = null;
-
-        formNewTask.querySelector("input[name='title']").value = "";
-        formNewTask.querySelector("textarea[name='description']").value = "";
-        formNewTask.querySelector("input[name='image']").value = "";
-
-        const hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");
-        if (hiddenImageInput) {
-            hiddenImageInput.remove();
+    function handleDeleteTask(event) {
+        const taskId = event.target.dataset.taskid;
+        if (!taskId) {
+            console.error("No task selected to delete.");
+            return;
         }
 
-        modalTask.style.display = "flex";
-    });
+        console.log("Deleting task ID: " + taskId);
 
-    // Handle task form submission (create or update)
-    formNewTask.addEventListener("submit", function (event) {
-        event.preventDefault();
+        const taskItem = event.target.closest(".task-item");
 
-        const formData = new FormData(formNewTask);
-        const file = formData.get("image");
-        const body = {
-            title: formData.get("title"),
-            description: formData.get("description"),
-            projectId: parseInt(projectID)
-        };
-        if (file instanceof File && file.size > 0) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                body.image = reader.result; // Base64
-                sendTask(body);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            sendTask(body);
-        }
-    });
-    function sendTask(body) {
-        let url = "/api/tasks";
-        let method = "POST";
-        if (currentTaskId) {
-            url += `/${currentTaskId}`;
-            method = "PUT";
-        }
-
-        fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
+        fetch(`/api/tasks/${taskId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" }
         })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                location.reload(); // Reload page to show new task
+            .then(response => {
+                if (response.ok) {
+                    taskItem.style.transition = "opacity 0.3s ease-out";
+                    taskItem.style.opacity = "0";
+                    setTimeout(() => {
+                        taskItem.remove();
+                    }, 300);
+                } else {
+                    console.error("Error deleting task:", response.status);
+                }
             })
-            .catch(error => console.error("Error saving/updating task:", error));
+            .catch(error => console.error("Request error:", error));
+    }
+
+    /**
+     * @typedef {Object} Task
+     * @property {number} id
+     * @property {string} title
+     * @property {string} description
+     * @property {boolean} hasImage
+     */
+    /**
+     * @typedef {Object} ImageData
+     * @property {string} base64
+     */
+    /**
+     * @param {Task[]} tasks
+     */
+    function renderTaskList(tasks) {
+        const taskList = document.getElementById("task-list");
+        taskList.innerHTML = "";
+
+        tasks.forEach(task => {
+            const li = document.createElement("li");
+            li.className = "task-item";
+            li.dataset.taskid = task.id.toString(10);
+
+            const content = document.createElement("div");
+            content.className = "task-content";
+            content.innerHTML = `<b>${task.title}</b><p>${task.description}</p>`;
+
+            const btn = document.createElement("button");
+            btn.className = "btnMoreOptions";
+            btn.dataset.taskid = task.id.toString(10);
+            btn.innerHTML = `<img src="/img/menu.png" alt="Más opciones" style="width:16px; height:16px;">`;
+            content.appendChild(btn);
+
+            li.appendChild(content);
+
+            const modal = document.createElement("div");
+            modal.className = "modalOptions modal";
+            modal.innerHTML = `
+            <div class="modal-content">
+                <h2>${task.title}</h2>
+                <button class="btnDeleteTask" data-taskid="${task.id}">Eliminar Tarea</button>
+                <button class="btnEditTask" data-taskid="${task.id}">Editar Tarea</button>
+            </div>
+        `;
+            li.appendChild(modal);
+
+            taskList.appendChild(li);
+
+            // Cargar imagen después
+            if (task.hasImage) {
+                /** @type {Promise<ImageData>} */
+                fetch(`/api/tasks/${task.id}/image`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const img = document.createElement("img");
+                        img.src = `data:image/jpeg;base64,${data.base64}`;
+                        img.style.maxWidth = "200px";
+                        content.appendChild(img);
+                    });
+            }
+        });
+
+        assignEventsButtons();
     }
 
     document.getElementById("searchForm").addEventListener("submit", function (e) {
@@ -224,57 +272,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(err => console.error("Error al buscar tareas:", err));
     });
-
-    function renderTaskList(tasks) {
-        const taskList = document.getElementById("task-list");
-        taskList.innerHTML = "";
-
-        tasks.forEach(task => {
-            const li = document.createElement("li");
-            li.className = "task-item";
-            li.dataset.taskid = task.id;
-
-            const content = document.createElement("div");
-            content.className = "task-content";
-            content.innerHTML = `<b>${task.title}</b><p>${task.description}</p>`;
-
-            const btn = document.createElement("button");
-            btn.className = "btnMoreOptions";
-            btn.dataset.taskid = task.id;
-            btn.innerHTML = `<img src="/img/menu.png" alt="Más opciones" style="width:16px; height:16px;">`;
-            content.appendChild(btn);
-
-            li.appendChild(content);
-
-            // Modal siempre creado
-            const modal = document.createElement("div");
-            modal.className = "modalOptions modal";
-            modal.innerHTML = `
-            <div class="modal-content">
-                <h2>${task.title}</h2>
-                <button class="btnDeleteTask" data-taskid="${task.id}">Eliminar Tarea</button>
-                <button class="btnEditTask" data-taskid="${task.id}">Editar Tarea</button>
-            </div>
-        `;
-            li.appendChild(modal);
-
-            taskList.appendChild(li);
-
-            // Cargar imagen después
-            if (task.hasImage) {
-                fetch(`/api/tasks/${task.id}/image`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const img = document.createElement("img");
-                        img.src = `data:image/jpeg;base64,${data.base64}`;
-                        img.style.maxWidth = "200px";
-                        content.appendChild(img);
-                    });
-            }
-        });
-
-        assignEventsButtons();
-    }
 
     // Initial event setup
     assignEventsButtons();

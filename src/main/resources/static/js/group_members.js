@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Elements
     const btnNewMember = document.getElementById("btnNewItem");
     const modalSearchUsers = document.getElementById("modalSearchUsers");
     const searchUserInput = document.getElementById("searchUserInput");
@@ -44,12 +43,6 @@ document.addEventListener("DOMContentLoaded", function () {
         btnAddSelectedUsers.addEventListener("click", handleAddSelectedUsers);
     }
 
-    // Show modal to search users
-    function openSearchModal() {
-        modalSearchUsers.classList.remove("hidden");
-        modalSearchUsers.style.display = "flex"
-    }
-
     // Open options modal for specific user
     function handleMoreOptionsClick(event) {
         currentUserId = event.currentTarget.dataset.userid;
@@ -61,61 +54,22 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.style.display = "flex";
         }
     }
-
-    // Delete a member from the group
-    function handleDeleteMember(event) {
-        const userId = event.target.dataset.userid;
-        const groupId = document.body.dataset.groupid;
-        currentUserId = document.body.dataset.userid;
-        if (!userId || !groupId) {
-            console.error("No user or group selected for deletion.");
-            return;
-        }
-
-        if (confirm("Are you sure you want to remove this member from the group?")) {
-            fetch(`/api/groups/${groupId}/${userId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({currentUserId: currentUserId})
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(errorData => {
-                            alert(errorData.message);
-                            throw new Error("Network response was not ok");
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        console.log("Member successfully removed");
-                        document.querySelector(`[data-userid='${userId}']`).remove();
-                        if (data.message === "own") {
-                            // If an admin removes themselves from a group
-                            window.location.href = `/${groupId}/members`;
-                        }
-                    } else {
-                        alert(data.message);
-                    }
-                })
-                .catch(error => console.error("Request error:", error));
-        }
-    }
-
     // Detect click inside modal
     function handleModalMouseDown(event) {
         clickInsideModal = !!event.target.closest(".modal-content");
     }
-
     // Close modal if clicked outside
     function handleModalMouseUp(event) {
         if (!clickInsideModal && event.target.classList.contains("modal")) {
             event.target.classList.add("hidden");
             event.target.style.display = "none";
         }
+    }
+
+    // Show modal to search users
+    function openSearchModal() {
+        modalSearchUsers.classList.remove("hidden");
+        modalSearchUsers.style.display = "flex"
     }
 
     // Search users via AJAX when typing
@@ -167,7 +121,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => console.error("User search error:", error.message));
     }
-
     // Add selected users to the group
     function handleAddSelectedUsers() {
         const checkboxes = document.querySelectorAll(".user-checkbox:checked");
@@ -204,6 +157,48 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             })
             .catch(error => console.error("Request error:", error));
+    }
+    // Delete a member from the group
+    function handleDeleteMember(event) {
+        const userId = event.target.dataset.userid;
+        const groupId = document.body.dataset.groupid;
+        currentUserId = document.body.dataset.userid;
+        if (!userId || !groupId) {
+            console.error("No user or group selected for deletion.");
+            return;
+        }
+
+        if (confirm("Are you sure you want to remove this member from the group?")) {
+            fetch(`/api/groups/${groupId}/${userId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({currentUserId: currentUserId})
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            alert(errorData.message);
+                            throw new Error("Network response was not ok");
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log("Member successfully removed");
+                        document.querySelector(`[data-userid='${userId}']`).remove();
+                        if (data.message === "own") {
+                            // If an admin removes themselves from a group
+                            window.location.href = `/${groupId}/members`;
+                        }
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error("Request error:", error));
+        }
     }
 
     // Initial event assignment on page load

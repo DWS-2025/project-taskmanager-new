@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Get elements from DOM
     const modalGroup = document.getElementById("modalGroup");
     const modalNewOwner = document.getElementById("modalChangeOwner");
     const modalTitle = modalGroup.querySelector("h2");
@@ -53,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.addEventListener("mouseup", handleModalMouseUp);
         });
     }
+    window.assignGroupButtonEvents = assignGroupButtonEvents; // Expose the function globally
 
     // Show options modal for the group
     function handleMoreOptionsClick(event) {
@@ -65,40 +65,91 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.style.display = "flex";
         }
     }
-
-    // Leave a group
-    function handleLeaveGroup(event) {
-        const groupId = event.target.dataset.groupid;
-        const currentUserId = document.body.dataset.userid;
-        if (!groupId) {
-            console.error("No group selected to leave.");
-            return;
-        }
-
-        if (confirm("Are you sure you want to leave this group?")) {
-            fetch(`/api/groups/l/${groupId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({currentUserId: currentUserId})
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error("Network response was not ok");
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        console.error("Error leaving the group");
-                    }
-                })
-                .catch(error => console.error("Request error:", error));
+    // Detect clicks inside modal
+    function handleModalMouseDown(event) {
+        clickInsideModal = !!event.target.closest(".modal-content");
+    }
+    // Close modal when clicking outside
+    function handleModalMouseUp(event) {
+        if (!clickInsideModal && event.target.classList.contains("modal")) {
+            event.target.classList.add("hidden");
+            event.target.style.display = "none";
         }
     }
 
-    // Delete a group
+    // Open modal for creating a new group
+    function openNewGroupModal() {
+        currentGroupId = null;
+        inputGroupName.value = ""; // Clear input
+        modalTitle.innerText = "Nuevo Grupo"; // Reset modal title
+        modalGroup.style.display = "flex";
+    }
+    // Open modal to change group owner
+    function openNewOwnerModal(event) {
+        currentGroupId = event.target.dataset.groupid;
+        currentGroupName = event.target.dataset.groupname;
+        document.querySelectorAll(".modalOptions").forEach(modal => {
+            modal.classList.add("hidden");
+            modal.style.display = "none";
+        });
+        modalNewOwner.classList.remove("hidden");
+        modalNewOwner.style.display = "flex";
+        showGroupMembers();
+    }
+
+    // Navigate to group member management page
+    function handleManageMembers(event) {
+        const groupId = event.target.dataset.groupid;
+        if (!groupId) {
+            console.error("No group selected.");
+            return;
+        }
+        window.location.href = `/${groupId}/members`;
+    }
+
+    // Save or update a group
+    function saveGroup(event) {
+        event.preventDefault();
+
+        const formData = new URLSearchParams();
+        formData.append("name", document.getElementById("name").value);
+        formData.append("ownerID", currentUser.id);
+
+        let url = "/api/groups";
+        let method = "POST";
+
+        if (currentGroupId) {
+            url += `/${currentGroupId}`;
+            method = "PUT";
+            formData.delete("ownerID");
+            formData.append("ownerID", "0");
+        }
+
+        fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: formData.get("name"),
+                ownerID: formData.get("ownerID")
+            })
+        })
+            .then(response => response.text())
+            .then(() => location.reload())
+            .catch(error => console.error("Error saving/updating group:", error));
+    }
+    function handleEditGroup(event) {
+        currentGroupId = event.currentTarget.dataset.groupid;
+        const groupItem = event.currentTarget.closest(".group-item");
+        inputGroupName.value = groupItem.querySelector("b").innerText; // Set current name
+        modalTitle.innerText = "Cambiar Nombre"; // Change modal title
+        modalGroup.style.display = "flex";
+
+        const modal = groupItem.querySelector(".modalOptions");
+        if (modal) {
+            modal.classList.add("hidden");
+            modal.style.display = "none";
+        }
+    }
     function handleDeleteGroup(event) {
         const groupId = event.target.dataset.groupid;
         const requesterId = currentUser.id;
@@ -130,64 +181,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 .catch(error => console.error("Request error:", error));
         }
     }
-
-    // Navigate to group member management page
-    function handleManageMembers(event) {
+    function handleLeaveGroup(event) {
         const groupId = event.target.dataset.groupid;
+        const currentUserId = document.body.dataset.userid;
         if (!groupId) {
-            console.error("No group selected.");
+            console.error("No group selected to leave.");
             return;
         }
-        window.location.href = `/${groupId}/members`;
-    }
 
-    // Open modal for editing group
-    function handleEditGroup(event) {
-        currentGroupId = event.currentTarget.dataset.groupid;
-        const groupItem = event.currentTarget.closest(".group-item");
-        inputGroupName.value = groupItem.querySelector("b").innerText; // Set current name
-        modalTitle.innerText = "Cambiar Nombre"; // Change modal title
-        modalGroup.style.display = "flex";
-
-        const modal = groupItem.querySelector(".modalOptions");
-        if (modal) {
-            modal.classList.add("hidden");
-            modal.style.display = "none";
+        if (confirm("Are you sure you want to leave this group?")) {
+            fetch(`/api/groups/l/${groupId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({currentUserId: currentUserId})
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        console.error("Error leaving the group");
+                    }
+                })
+                .catch(error => console.error("Request error:", error));
         }
-    }
-
-    // Open modal for creating a new group
-    function openNewGroupModal() {
-        currentGroupId = null;
-        inputGroupName.value = ""; // Clear input
-        modalTitle.innerText = "Nuevo Grupo"; // Reset modal title
-        modalGroup.style.display = "flex";
-    }
-
-    // Detect clicks inside modal
-    function handleModalMouseDown(event) {
-        clickInsideModal = !!event.target.closest(".modal-content");
-    }
-
-    // Close modal when clicking outside
-    function handleModalMouseUp(event) {
-        if (!clickInsideModal && event.target.classList.contains("modal")) {
-            event.target.classList.add("hidden");
-            event.target.style.display = "none";
-        }
-    }
-
-    // Open modal to change group owner
-    function openNewOwnerModal(event) {
-        currentGroupId = event.target.dataset.groupid;
-        currentGroupName = event.target.dataset.groupname;
-        document.querySelectorAll(".modalOptions").forEach(modal => {
-            modal.classList.add("hidden");
-            modal.style.display = "none";
-        });
-        modalNewOwner.classList.remove("hidden");
-        modalNewOwner.style.display = "flex";
-        showGroupMembers();
     }
 
     // Fetch and show current group members to select a new owner
@@ -232,7 +254,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error("Error loading members:", err.message);
             });
     }
-
     // Change group owner
     function handleChangeOwner() {
         if (newOwner == null) {
@@ -255,44 +276,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
-                const data = await response.json();
                 modalNewOwner.classList.add("hidden");
                 modalNewOwner.style.display = "none";
                 location.reload();
                 alert("Owner changed successfully");
             })
             .catch(error => console.error("Request error:", error));
-    }
-
-    // Save or update a group
-    function saveGroup(event) {
-        event.preventDefault();
-
-        const formData = new URLSearchParams();
-        formData.append("name", document.getElementById("name").value);
-        formData.append("ownerID", currentUser.id);
-
-        let url = "/api/groups";
-        let method = "POST";
-
-        if (currentGroupId) {
-            url += `/${currentGroupId}`;
-            method = "PUT";
-            formData.delete("ownerID");
-            formData.append("ownerID", "0");
-        }
-
-        fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name: formData.get("name"),
-                ownerID: formData.get("ownerID")
-            })
-        })
-            .then(response => response.text())
-            .then(() => location.reload())
-            .catch(error => console.error("Error saving/updating group:", error));
     }
 
     // Initial event bindings on page load
@@ -304,7 +293,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     assignEvents();
-
-    // Expose the function globally
-    window.assignGroupButtonEvents = assignGroupButtonEvents;
 });
