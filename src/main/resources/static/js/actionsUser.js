@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = "/";
                     alert("Usuario creado correctamente")
+                    window.location.href = "/logout";
                 } else {
                     return response.text().then(msg => {
                         alert(`Error: ${msg || "No se pudo crear el usuario"}`);

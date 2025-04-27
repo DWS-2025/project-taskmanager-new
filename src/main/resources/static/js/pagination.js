@@ -11,18 +11,16 @@ document.addEventListener("DOMContentLoaded", () => {
         {
             listId: "group-list",
             endpoint: `/api/groups/p/${userId}`,
-            itemClass: "group-item",
             renderItem: renderGroupItem
         },
         {
             listId: "project-list",
             endpoint: `/api/projects/p/${userId}`,
-            itemClass: "project-item",
             renderItem: renderProjectItem
         }
     ];
 
-    config.forEach(({ listId, endpoint, itemClass, renderItem }) => {
+    config.forEach(({ listId, endpoint, renderItem }) => {
         const ul = document.getElementById(listId);
         if (!ul) return;
 
@@ -70,7 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 nextBtn.disabled = currentPage + 1 >= totalPages;
 
                 if (window.assignGroupButtonEvents) {
-                    window.assignGroupButtonEvents(); // solo se aplica a grupos
+                    window.assignGroupButtonEvents();
+                }
+                if (window.assignProjectButtonEvents) {
+                    window.assignProjectButtonEvents();
                 }
             } catch (err) {
                 console.error(`Error cargando ${listId}:`, err);
@@ -140,6 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const li = document.createElement("li");
         li.className = "project-item";
         li.dataset.projectid = project.id;
+        li.dataset.groupid = project.groupId;
 
         const content = document.createElement("div");
         content.className = "project-content";
@@ -162,11 +164,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const modalContent = document.createElement("div");
         modalContent.className = "modal-content";
-        modalContent.innerHTML = `
-            <h2>${project.name}</h2>
+        modalContent.innerHTML = `<h2>${project.name}</h2>`;
+        if (project.owner) {
+            modalContent.innerHTML += `
             <button class="btnDeleteProject" data-projectid="${project.id}">Eliminar Proyecto</button>
             <button class="btnEditProject" data-projectid="${project.id}">Editar Proyecto</button>
         `;
+        }
 
         modal.appendChild(modalContent);
         li.appendChild(modal);

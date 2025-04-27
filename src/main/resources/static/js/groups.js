@@ -110,15 +110,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (confirm("Are you sure you want to delete this group? This action is irreversible.")) {
             const groupItem = event.target.closest(".group-item");
-            groupItem.style.transition = "opacity 0.3s ease-out";
-            groupItem.style.opacity = "0"; // Fade out animation
 
             fetch(`/api/groups/${groupId}?requesterId=${requesterId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" }
             })
-                .then(response => response.json())
-                .then(() => location.reload())
+                .then(response => {
+                    if (response.ok) {
+                        groupItem.style.transition = "opacity 0.3s ease-out";
+                        groupItem.style.opacity = "0";
+
+                        setTimeout(() => {
+                            groupItem.remove();
+                        }, 300);
+                    } else {
+                        console.error("Error deleting the group.");
+                    }
+                })
                 .catch(error => console.error("Request error:", error));
         }
     }
