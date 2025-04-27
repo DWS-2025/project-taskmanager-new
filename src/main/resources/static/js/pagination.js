@@ -1,7 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+    let activeLoadData = null;
+    let activeCurrentPage = 0;
     const userId = document.body.dataset.userid;
-    const itemsPerPage = 5;
-
+    const itemHeight = 120; // cada ítem ocupa 120px aprox.
+    const windowHeight = window.innerHeight;
+    let itemsPerPage = Math.max(1, Math.floor(windowHeight / itemHeight));
     let listContainer = document.getElementById("group-list");
     if (!listContainer) listContainer = document.getElementById("project-list");
     listContainer.style.minHeight = `${itemsPerPage * 100}px`;
@@ -81,6 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (window.assignProjectButtonEvents) {
                     window.assignProjectButtonEvents();
+                }
+
+                // Si esta lista está visible (es la actual), actualizar la carga activa
+                if (ul.offsetParent !== null) {
+                    activeLoadData = loadData;
+                    activeCurrentPage = currentPage;
                 }
             } catch (err) {
                 console.error(`Error cargando ${listId}:`, err);
@@ -192,4 +201,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return li;
     }
+
+    // Global listener to resize and adapt the content
+    window.addEventListener("resize", () => {
+        itemsPerPage = Math.max(1, Math.floor(window.innerHeight / itemHeight));
+
+        let listContainer = document.getElementById("group-list") || document.getElementById("project-list");
+        if (listContainer) {
+            listContainer.style.minHeight = `${itemsPerPage * 100}px`;
+            listContainer.style.maxHeight = `${itemsPerPage * 100}px`;
+        }
+
+        if (activeLoadData) {
+            activeLoadData(activeCurrentPage);
+        }
+    });
 });
