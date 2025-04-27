@@ -1,5 +1,6 @@
 package com.group12.taskmanager.controllers.api;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
@@ -17,10 +18,12 @@ public class UserRestController {
 
     private final UserService userService;
     private final GroupService groupService;
+    private final GlobalConstants globalConstants;
 
-    public UserRestController(UserService userService, GroupService groupService) {
+    public UserRestController(UserService userService, GroupService groupService, GlobalConstants globalConstants) {
         this.userService = userService;
         this.groupService = groupService;
+        this.globalConstants = globalConstants;
     }
 
     @GetMapping
@@ -80,7 +83,7 @@ public class UserRestController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id, @RequestParam int requesterId) {
-        if (id != 1) {
+        if (id != globalConstants.getAdminID()) {
             UserResponseDTO requester = userService.findUserById(requesterId);
             if (requester == null) return ResponseEntity.status(401).body("No autorizado");
 

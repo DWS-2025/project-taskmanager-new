@@ -1,5 +1,6 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
@@ -19,9 +20,11 @@ public class UserService {
 
     @Autowired private GroupService groupService;
     private final UserRepository userRepository;
+    private final GlobalConstants globalConstants;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, GlobalConstants globalConstants) {
         this.userRepository = userRepository;
+        this.globalConstants = globalConstants;
     }
 
     public List<UserResponseDTO> getAllUsers() {
@@ -88,7 +91,7 @@ public class UserService {
         if (currentUser == null) return false;
         // Only the own user or an admin (ID 1) can delete
         if (currentUser.getId() != userId) {
-            if (currentUser.getId() != 1) {
+            if (currentUser.getId() != globalConstants.getAdminID()) {
                 System.out.println("Not authorized to delete this account.");
                 return false;
             }

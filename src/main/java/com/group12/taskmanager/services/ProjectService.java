@@ -1,5 +1,6 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.project.ProjectRequestDTO;
 import com.group12.taskmanager.dto.project.ProjectResponseDTO;
@@ -27,12 +28,14 @@ public class ProjectService {
     private final GroupRepository groupRepository;
     private final TaskService taskService;
     private final UserRepository userRepository;
+    private final GlobalConstants globalConstants;
 
-    public ProjectService(ProjectRepository projectRepository, GroupRepository groupRepository, TaskService taskService, UserRepository userRepository) {
+    public ProjectService(ProjectRepository projectRepository, GroupRepository groupRepository, TaskService taskService, UserRepository userRepository, GlobalConstants globalConstants) {
         this.projectRepository = projectRepository;
         this.groupRepository = groupRepository;
         this.taskService = taskService;
         this.userRepository = userRepository;
+        this.globalConstants = globalConstants;
     }
 
     public List<ProjectResponseDTO> getAllProjects() {
@@ -98,7 +101,7 @@ public class ProjectService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Project> projects;
 
-        if (currentUser.getId() == 1) { //if its admin it can see every project
+        if (currentUser.getId() == globalConstants.getAdminID()) { //if its admin it can see every project
             projects =  projectRepository.findAll(pageable);
         } else {
             User userEntity = userRepository.findById(currentUser.getId())
@@ -117,7 +120,7 @@ public class ProjectService {
     }
     private ProjectResponseDTO toDTO(Project project, int userId) {
         ProjectResponseDTO dto = toDTO(project); // llama al simple
-        boolean isOwner = userId == 1 || project.getGroup().getOwner().getId() == userId;
+        boolean isOwner = userId == globalConstants.getAdminID() || project.getGroup().getOwner().getId() == userId;
         dto.setOwner(isOwner);
         return dto;
     }

@@ -1,5 +1,6 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.project.*;
 import com.group12.taskmanager.dto.group.*;
 import com.group12.taskmanager.dto.user.*;
@@ -25,11 +26,13 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final ProjectService projectService;
     private final UserRepository userRepository;
+    private final GlobalConstants globalConstants;
 
-    public GroupService(GroupRepository groupRepository, ProjectService projectService, UserRepository userRepository) {
+    public GroupService(GroupRepository groupRepository, ProjectService projectService, UserRepository userRepository, GlobalConstants globalConstants) {
         this.groupRepository = groupRepository;
         this.projectService = projectService;
         this.userRepository = userRepository;
+        this.globalConstants = globalConstants;
     }
 
     public List<GroupResponseDTO> getAllGroups() {
@@ -115,7 +118,7 @@ public class GroupService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Group> groups;
 
-        if (currentUser.getId() == 1) { //if its admin it can see every group
+        if (currentUser.getId() == globalConstants.getAdminID()) { //if its admin it can see every group
             groups =  groupRepository.findAll(pageable);
         } else {
             User userEntity = userRepository.findById(currentUser.getId())
@@ -127,7 +130,7 @@ public class GroupService {
             GroupResponseDTO dto = toDTO(group);
 
             // flags logic
-            if (currentUser.getId() == 1) {
+            if (currentUser.getId() == globalConstants.getAdminID()) {
                 dto.setIsOwner(true);
                 dto.setIsPersonal(group.getName().equals("USER_admin"));
             } else {

@@ -1,5 +1,6 @@
 package com.group12.taskmanager.controllers.api;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.requests.*;
@@ -18,10 +19,12 @@ public class GroupRestController {
 
     private final GroupService groupService;
     private final UserService userService;
+    private final GlobalConstants globalConstants;
 
-    public GroupRestController(GroupService groupService, UserService userService) {
+    public GroupRestController(GroupService groupService, UserService userService, GlobalConstants globalConstants) {
         this.groupService = groupService;
         this.userService = userService;
+        this.globalConstants = globalConstants;
     }
 
     @GetMapping
@@ -77,7 +80,7 @@ public class GroupRestController {
         if (requester == null || group == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-        if (group.getOwnerId() != requesterId && requester.getId() != 1)
+        if (group.getOwnerId() != requesterId && requester.getId() != globalConstants.getAdminID())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         boolean deleted = groupService.deleteGroup(group);
@@ -124,7 +127,7 @@ public class GroupRestController {
             GroupResponseDTO group = groupService.findGroupById(id);
             if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-            if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != 1) {
+            if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != globalConstants.getAdminID()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Collections.singletonMap("message", "No autorizado"));
             }
@@ -161,13 +164,13 @@ public class GroupRestController {
         UserResponseDTO user = userService.findUserById(userId);
         if (group == null || user == null) return ResponseEntity.notFound().build();
 
-        if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != 1)
+        if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != globalConstants.getAdminID())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Collections.singletonMap("message", "No autorizado"));
 
         if (currentUser.getId() == userId) {
             // ADMIN validation
-            if (currentUser.getId() != 1 || group.getOwnerId() == 1) // if the user is admin and IS NOT the owner
+            if (currentUser.getId() != globalConstants.getAdminID() || group.getOwnerId() == globalConstants.getAdminID()) // if the user is admin and IS NOT the owner
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Collections.singletonMap("message", "No puedes eliminarte si eres el propietario"));
         }

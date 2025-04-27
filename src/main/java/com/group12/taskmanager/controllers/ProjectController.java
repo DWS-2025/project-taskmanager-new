@@ -1,5 +1,6 @@
 package com.group12.taskmanager.controllers;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Project;
@@ -22,24 +23,26 @@ public class ProjectController {
     private final TaskService taskService;
     private final GroupService groupService;
     private final UserService userService;
+    private final GlobalConstants globalConstants;
 
-    public ProjectController(ProjectService projectService, TaskService taskService, GroupService groupService, UserService userService) {
+    public ProjectController(ProjectService projectService, TaskService taskService, GroupService groupService, UserService userService, GlobalConstants globalConstants) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.groupService = groupService;
         this.userService = userService;
+        this.globalConstants = globalConstants;
     }
 
     @GetMapping("/projects")
     public String getProjects(Model model, HttpSession session) {
         UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null) return "redirect:/"; // Redirect to home if user not logged in
+        if (currentUser == null) return "redirect:/";
 
         model.addAttribute("user", currentUser);
 
         List<GroupResponseDTO> ownedGroups;
 
-        if (currentUser.getId() == 1) {
+        if (currentUser.getId() == globalConstants.getAdminID()) {
             // Admin user can see all projects and all groups
             ownedGroups = groupService.getAllGroups();
         } else {
