@@ -6,7 +6,6 @@ import com.group12.taskmanager.dto.requests.*;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,13 @@ import java.util.*;
 @RequestMapping("/api/groups")
 public class GroupRestController {
 
-    @Autowired private GroupService groupService;
-    @Autowired private UserService userService;
+    private final GroupService groupService;
+    private final UserService userService;
+
+    public GroupRestController(GroupService groupService, UserService userService) {
+        this.groupService = groupService;
+        this.userService = userService;
+    }
 
     @GetMapping
     public ResponseEntity<List<GroupResponseDTO>> getAllGroups() {
@@ -82,7 +86,7 @@ public class GroupRestController {
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
-    //Group Members Controllers -----------------------------------------------------------------------
+    // Group Members Controllers -----------------------------------------------------------------------
 
     // Controller used in change owner modal, returns all members except the current owner
     @GetMapping("/{id}/members")
@@ -116,16 +120,16 @@ public class GroupRestController {
         try {
             int currentUserId = request.getCurrentUserId();
             UserResponseDTO currentUser = userService.findUserById(currentUserId);
+            if (currentUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             GroupResponseDTO group = groupService.findGroupById(id);
+            if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-            if (currentUser == null || group == null || group.getOwnerId() != currentUser.getId()) {
-                if (currentUser == null || currentUser.getId() != 1) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                            .body(Collections.singletonMap("message", "No autorizado"));
-                }
+            if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != 1) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Collections.singletonMap("message", "No autorizado"));
             }
 
-            List<Integer> userIds = (List<Integer>) request.getUserIds().stream()
+            List<Integer> userIds = request.getUserIds().stream()
                     .map(idObj -> Integer.parseInt(idObj.toString()))
                     .toList();
 
@@ -210,7 +214,7 @@ public class GroupRestController {
         return ResponseEntity.ok("{\"success\": true}");
     }
 
-    //Pagination Controller -----------------------------------------------------------------------
+    // Pagination Controller --------------------------------------------------------------------------
 
     @GetMapping("/p/{userId}")
     public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(@PathVariable int userId,
