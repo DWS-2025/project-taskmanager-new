@@ -173,6 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         setTimeout(() => {
                             groupItem.remove();
+                            window.handlePaginationAfterDelete();
                         }, 300);
                     } else {
                         console.error("Error deleting the group.");

@@ -202,6 +202,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return li;
     }
 
+    function handlePaginationAfterDelete() {
+        if (activeLoadData) {
+            const remainingItems = document.querySelectorAll("#group-list li, #project-list li").length;
+
+            if (remainingItems === 0 && activeCurrentPage > 0) {
+                activeLoadData(activeCurrentPage - 1);
+            } else {
+                activeLoadData(activeCurrentPage);
+            }
+        }
+    }
+    window.handlePaginationAfterDelete = handlePaginationAfterDelete;
+
     // Global listener to resize and adapt the content
     window.addEventListener("resize", () => {
         itemsPerPage = Math.max(1, Math.floor(window.innerHeight / itemHeight));
