@@ -5,8 +5,6 @@ public class UserRequestDTO {
     private String email;
     private String password;
 
-    public UserRequestDTO() {}
-
     public UserRequestDTO(String name, String email, String password) {
         this.name = name;
         this.email = email;

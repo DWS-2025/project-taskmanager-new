@@ -18,19 +18,12 @@ public class CustomErrorController implements ErrorController {
         if (status != null) {
             int statusCode = Integer.parseInt(status.toString());
             // Customize the error message based on status code
-            switch (statusCode) {
-                case 404:
-                    errorMessage = "Error 404 - Page not found.";
-                    break;
-                case 500:
-                    errorMessage = "Error 500 - Internal server error.";
-                    break;
-                case 403:
-                    errorMessage = "Error 403 - Access forbidden.";
-                    break;
-                default:
-                    errorMessage = "Error code: " + statusCode;
-            }
+            errorMessage = switch (statusCode) {
+                case 404 -> "Error 404 - Page not found.";
+                case 500 -> "Error 500 - Internal server error.";
+                case 403 -> "Error 403 - Access forbidden.";
+                default -> "Error code: " + statusCode;
+            };
         }
 
         model.addAttribute("errorMessage", errorMessage);

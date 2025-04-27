@@ -1,20 +1,15 @@
 package com.group12.taskmanager.controllers;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
-import com.group12.taskmanager.dto.project.ProjectRequestDTO;
-import com.group12.taskmanager.dto.project.ProjectResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
-import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
-import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.TaskService;
 import com.group12.taskmanager.services.UserService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,21 +19,30 @@ import java.util.*;
 @Controller
 public class ProjectController {
 
-    @Autowired private ProjectService projectService;
-    @Autowired private TaskService taskService;
-    @Autowired private GroupService groupService;
-    @Autowired private UserService userService;
+    private final ProjectService projectService;
+    private final TaskService taskService;
+    private final GroupService groupService;
+    private final UserService userService;
+    private final GlobalConstants globalConstants;
+
+    public ProjectController(ProjectService projectService, TaskService taskService, GroupService groupService, UserService userService, GlobalConstants globalConstants) {
+        this.projectService = projectService;
+        this.taskService = taskService;
+        this.groupService = groupService;
+        this.userService = userService;
+        this.globalConstants = globalConstants;
+    }
 
     @GetMapping("/projects")
     public String getProjects(Model model, HttpSession session) {
         UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
-        if (currentUser == null) return "redirect:/"; // Redirect to home if user not logged in
+        if (currentUser == null) return "redirect:/";
 
         model.addAttribute("user", currentUser);
 
-        List<GroupResponseDTO> ownedGroups = new ArrayList<>();
+        List<GroupResponseDTO> ownedGroups;
 
-        if (currentUser.getId() == 1) {
+        if (currentUser.getId() == globalConstants.getAdminID()) {
             // Admin user can see all projects and all groups
             ownedGroups = groupService.getAllGroups();
         } else {
@@ -52,7 +56,7 @@ public class ProjectController {
 
         model.addAttribute("ownedGroups", ownedGroups);
         model.addAttribute("multipleGroups", ownedGroups.size() > 1);
-        model.addAttribute("singleGroup", ownedGroups.size() == 1 ? ownedGroups.get(0) : null);
+        model.addAttribute("singleGroup", ownedGroups.size() == 1 ? ownedGroups.getFirst() : null);
 
         return "index"; // projects loaded by JS from /api/projects/p/:id
     }

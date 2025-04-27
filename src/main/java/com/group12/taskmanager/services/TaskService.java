@@ -8,10 +8,8 @@ import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
 import com.group12.taskmanager.repositories.ProjectRepository;
 import com.group12.taskmanager.repositories.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,8 +17,13 @@ import java.util.stream.Collectors;
 @Service
 public class TaskService {
 
-    @Autowired private TaskRepository taskRepository;
-    @Autowired private ProjectRepository projectRepository;
+    private final TaskRepository taskRepository;
+    private final ProjectRepository projectRepository;
+
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository) {
+        this.taskRepository = taskRepository;
+        this.projectRepository = projectRepository;
+    }
 
     public List<TaskResponseDTO> getAllTasks() {
         return taskRepository.findAll().stream()
@@ -28,11 +31,21 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    public TaskResponseDTO findTaskById(int id) {
+        Task task = taskRepository.findById(id).orElse(null);
+        if (task == null) return null;
+        return toDTO(task);
+    }
+
     public List<TaskResponseDTO> getProjectTasks(ProjectResponseDTO dto) {
-        Project project = projectRepository.findById(dto.getId()).get();
+        Project project = projectRepository.findById(dto.getId()).orElse(null);
+        if (project == null) return null;
         return taskRepository.findByProject(project).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
+    }
+    public List<Task> getProjectTasksRaw(Project project) {
+        return taskRepository.findByProject(project);
     }
 
     public TaskResponseDTO addTask(TaskRequestDTO dto) {
@@ -61,19 +74,6 @@ public class TaskService {
         return toDTO(saved);
     }
 
-    public TaskResponseDTO findTaskById(int id) {
-        return toDTO(taskRepository.findById(id).orElse(null));
-    }
-
-    public boolean removeTask(TaskResponseDTO dto) {
-        int id = dto.getId();
-        if (taskRepository.existsById(id)) {
-            taskRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
     public TaskResponseDTO updateTask(int id, TaskRequestDTO dto) {
         Task task = taskRepository.findById(id).orElse(null);
         if (task == null) return null;
@@ -98,11 +98,20 @@ public class TaskService {
         return toDTO(taskRepository.save(task));
     }
 
+    public boolean removeTask(TaskResponseDTO dto) {
+        int id = dto.getId();
+        if (taskRepository.existsById(id)) {
+            taskRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
     public boolean uploadImage(int id, TaskImageDTO dto) {
         Task task = taskRepository.findById(id).orElse(null);
-        if (task == null || dto.getBase64() == null) return false;
+        if (task == null || dto.base64() == null) return false;
 
-        byte[] imageBytes = Base64.getDecoder().decode(dto.getBase64());
+        byte[] imageBytes = Base64.getDecoder().decode(dto.base64());
         task.setImage(imageBytes);
         taskRepository.save(task);
         return true;
@@ -146,10 +155,6 @@ public class TaskService {
                 task.getImage() != null,
                 task.getProject().getId()
         );
-    }
-
-    public List<Task> getProjectTasksRaw(Project project) {
-        return taskRepository.findByProject(project);
     }
 
 }

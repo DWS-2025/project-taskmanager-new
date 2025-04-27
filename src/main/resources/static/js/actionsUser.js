@@ -1,9 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
-
     const formEditUser = document.getElementById("formEditUser");
     const deleteButton = document.getElementById("deleteAccountBtn");
     const formNewUser = document.getElementById("formNewUser");
     const currentUserId = document.body.dataset.userid;
+
+    function assignEvents() {
+        if (formEditUser) formEditUser.addEventListener("submit", sendEditUserData);
+        if (deleteButton) deleteButton.addEventListener("click", deleteAccount);
+        if (formNewUser) formNewUser.addEventListener("submit", sendNewUserData);
+    }
 
     function sendNewUserData(event) {
         event.preventDefault();
@@ -81,10 +86,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-    function assignEvents() {
-        if (formEditUser) formEditUser.addEventListener("submit", sendEditUserData);
-        if (deleteButton) deleteButton.addEventListener("click", deleteAccount);
-        if (formNewUser) formNewUser.addEventListener("submit", sendNewUserData);
-    }
     assignEvents();
 });

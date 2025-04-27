@@ -4,18 +4,14 @@ public class TaskResponseDTO {
     private int id;
     private String title;
     private String description;
-    private boolean hasImage;
-    private int projectId;
-
-    public TaskResponseDTO() {
-    }
+    private final boolean hasImage;
+    private final int projectId;
 
     public TaskResponseDTO(String title, boolean hasImage, int projectId) {
         this.title = title;
         this.hasImage = hasImage;
         this.projectId = projectId;
     }
-
     public TaskResponseDTO(int id, String title, String description, boolean hasImage, int projectId) {
         this.id = id;
         this.title = title;
@@ -44,23 +40,11 @@ public class TaskResponseDTO {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public boolean getHasImage() {
         return hasImage;
     }
 
-    public void setHasImage(boolean hasImage) {
-        this.hasImage = hasImage;
-    }
-
     public int getProjectId() {
         return projectId;
-    }
-
-    public void setProjectId(int projectId) {
-        this.projectId = projectId;
     }
 }

@@ -7,10 +7,8 @@ import com.group12.taskmanager.dto.task.TaskImageDTO;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,10 +16,13 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 public class TaskRestController {
 
-    @Autowired
-    private TaskService taskService;
-    @Autowired
-    private ProjectService projectService;
+    private final TaskService taskService;
+    private final ProjectService projectService;
+
+    public TaskRestController(TaskService taskService, ProjectService projectService) {
+        this.taskService = taskService;
+        this.projectService = projectService;
+    }
 
     @GetMapping
     public ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
@@ -36,10 +37,8 @@ public class TaskRestController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<TaskResponseDTO>> searchTasks(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) Boolean hasImage,
-            @RequestParam int projectID) {
+    public ResponseEntity<List<TaskResponseDTO>> searchTasks(@RequestParam(required = false) String title,
+            @RequestParam(required = false) Boolean hasImage, @RequestParam int projectID) {
         TaskResponseDTO dto = new TaskResponseDTO(title, hasImage, projectID);
         return ResponseEntity.ok(taskService.searchTasks(dto));
     }

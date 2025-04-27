@@ -5,8 +5,6 @@ public class UserResponseDTO {
     private String name;
     private String email;
 
-    public UserResponseDTO() {}
-
     public UserResponseDTO(int id, String name, String email) {
         this.id = id;
         this.name = name;

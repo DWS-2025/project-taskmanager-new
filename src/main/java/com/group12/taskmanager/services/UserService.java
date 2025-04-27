@@ -1,5 +1,6 @@
 package com.group12.taskmanager.services;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
@@ -7,7 +8,6 @@ import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +18,14 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private GroupService groupService;
+    @Autowired private GroupService groupService;
+    private final UserRepository userRepository;
+    private final GlobalConstants globalConstants;
+
+    public UserService(UserRepository userRepository, GlobalConstants globalConstants) {
+        this.userRepository = userRepository;
+        this.globalConstants = globalConstants;
+    }
 
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -29,51 +33,20 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    // Save a new user and ensure bidirectional relation with groups
-    public void createUser(UserRequestDTO dto) {
-        User user = new User(dto.getName(), dto.getEmail(), dto.getPassword());
-        userRepository.save(user); // user is saved first
-        for (Group group : user.getGroups()) {
-            group.getUsers().add(user); // make sure the relationship is bidirectional
-        }
-    }
-
-    // Find user by ID
     public UserResponseDTO findUserById(int id) {
-        return toDTO(userRepository.findById(id).orElse(null));
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) return null;
+        return toDTO(user);
     }
     public User findUserByIdRaw(int id) {
         return userRepository.findById(id).orElse(null);
     }
 
-    // Find user by username
     public UserResponseDTO findUserByUsername(String userName) {
         User user = userRepository.findByName(userName).orElse(null);
         if (user == null) return null;
         return toDTO(user);
     }
-
-    // Find the user's personal group named "USER_<username>"
-    public GroupResponseDTO findPersonalGroup(UserResponseDTO dto) {
-        UserResponseDTO user = findUserById(dto.getId());
-        if (user == null) return null;
-
-        String personalGroupName = "USER_" + user.getName();
-
-        return userRepository.findGroupsByUserId(user.getId()).stream()
-                .filter(group -> group.getName().equals(personalGroupName))
-                .findFirst()
-                .map(groupService::toDTO)
-                .orElse(null);
-    }
-
-    // Updated to use custom query that fetches groups to avoid LazyInitializationException
-    public UserResponseDTO findUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) return null;
-        return toDTO(user); // Custom repo method used
-    }
-
     // Search users by name, excluding those already in the group
     public List<UserResponseDTO> searchUsersByNameExcludingGroup(String q, GroupResponseDTO group) {
         if (q == null || q.trim().isEmpty()) {
@@ -87,7 +60,20 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    // Update existing user
+    public UserResponseDTO findUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) return null;
+        return toDTO(user); // Custom repo method used
+    }
+
+    public void createUser(UserRequestDTO dto) {
+        User user = new User(dto.getName(), dto.getEmail(), dto.getPassword());
+        userRepository.save(user); // user is saved first
+        for (Group group : user.getGroups()) {
+            group.getUsers().add(user); // make sure the relationship is bidirectional
+        }
+    }
+
     public UserResponseDTO updateUser(int id, UserRequestDTO dto) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) return null;
@@ -99,13 +85,13 @@ public class UserService {
         return toDTO(user);
     }
 
-    // Delete a user from the system with checks for ownership and permissions
     public boolean deleteUser(UserResponseDTO dto, UserResponseDTO currentUserDTO) {
         int userId = dto.getId();
         User currentUser = userRepository.findById(currentUserDTO.getId()).orElse(null);
+        if (currentUser == null) return false;
         // Only the own user or an admin (ID 1) can delete
         if (currentUser.getId() != userId) {
-            if (currentUser.getId() != 1) {
+            if (currentUser.getId() != globalConstants.getAdminID()) {
                 System.out.println("Not authorized to delete this account.");
                 return false;
             }
@@ -140,9 +126,38 @@ public class UserService {
 
         } catch (Exception e) {
             System.out.println("Error deleting user: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
+    }
+
+    // Find the user's personal group named "USER_<username>"
+    public GroupResponseDTO findPersonalGroup(UserResponseDTO dto) {
+        UserResponseDTO user = findUserById(dto.getId());
+        if (user == null) return null;
+
+        String personalGroupName = "USER_" + user.getName();
+
+        return userRepository.findGroupsByUserId(user.getId()).stream()
+                .filter(group -> group.getName().equals(personalGroupName))
+                .findFirst()
+                .map(groupService::toDTO)
+                .orElse(null);
+    }
+
+    public List<GroupResponseDTO> getUserGroups(UserResponseDTO user) {
+        List<Group> userGroups = userRepository.findGroupsByUserId(user.getId());
+        return userGroups.stream()
+                .map(groupService::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public boolean validatePassword(UserResponseDTO user, String password) {
+        User user1 = userRepository.findById(user.getId()).orElse(null);
+        if (user1 == null) return false;
+        if (userRepository.existsById(user.getId())) {
+            return (user1.getPassword().equals(password));
+        }
+        return false;
     }
 
     protected UserResponseDTO toDTO(User user) {
@@ -151,20 +166,6 @@ public class UserService {
                 user.getName(),
                 user.getEmail()
         );
-    }
-
-    public boolean validatePassword(UserResponseDTO user, String password) {
-        if (userRepository.existsById(user.getId())) {
-            return (userRepository.findById(user.getId()).get().getPassword().equals(password));
-        }
-        return false;
-    }
-
-    public List<GroupResponseDTO> getUserGroups(UserResponseDTO user) {
-        List<Group> userGroups = userRepository.findGroupsByUserId(user.getId());
-        return userGroups.stream()
-                .map(groupService::toDTO)
-                .collect(Collectors.toList());
     }
 
 }

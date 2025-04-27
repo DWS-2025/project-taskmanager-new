@@ -4,27 +4,25 @@ import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
-import com.group12.taskmanager.models.Group;
-import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class LoginController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final GroupService groupService;
 
-    @Autowired
-    private GroupService groupService;
+    public LoginController(UserService userService, GroupService groupService) {
+        this.userService = userService;
+        this.groupService = groupService;
+    }
 
     @Transactional
     @PostConstruct
@@ -69,10 +67,8 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String email,
-                        @RequestParam String password,
-                        HttpSession session,
-                        Model model) {
+    public String login(@RequestParam String email, @RequestParam String password,
+                        HttpSession session, Model model) {
 
         UserResponseDTO user = userService.findUserByEmail(email);
         // Check if credentials match

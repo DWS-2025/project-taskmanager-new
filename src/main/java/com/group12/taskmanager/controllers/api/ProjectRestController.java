@@ -7,7 +7,6 @@ import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +18,15 @@ import java.util.Collections;
 @RequestMapping("/api/projects")
 public class ProjectRestController {
 
-    @Autowired private ProjectService projectService;
-    @Autowired private GroupService groupService;
-    @Autowired private UserService userService;
+    private final ProjectService projectService;
+    private final GroupService groupService;
+    private final UserService userService;
+
+    public ProjectRestController(ProjectService projectService, GroupService groupService, UserService userService) {
+        this.projectService = projectService;
+        this.groupService = groupService;
+        this.userService = userService;
+    }
 
     @GetMapping
     public ResponseEntity<List<ProjectResponseDTO>> getAllProjects() {
@@ -65,11 +70,11 @@ public class ProjectRestController {
                 : ResponseEntity.badRequest().build();
     }
 
+    // Pagination Controller --------------------------------------------------------------------------
+
     @GetMapping("/p/{userId}")
-    public ResponseEntity<Page<ProjectResponseDTO>> getPaginatedProjects(
-            @PathVariable int userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+    public ResponseEntity<Page<ProjectResponseDTO>> getPaginatedProjects(@PathVariable int userId,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
 
         UserResponseDTO user = userService.findUserById(userId);
         if (user == null) {

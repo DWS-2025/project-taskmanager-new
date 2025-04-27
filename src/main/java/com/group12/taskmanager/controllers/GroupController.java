@@ -3,9 +3,7 @@ package com.group12.taskmanager.controllers;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
-import com.group12.taskmanager.services.UserService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +13,11 @@ import java.util.*;
 @Controller
 public class GroupController {
 
-    @Autowired private GroupService groupService;
-    @Autowired private UserService userService;
+    private final GroupService groupService;
+
+    public GroupController(GroupService groupService) {
+        this.groupService = groupService;
+    }
 
     @GetMapping("/user_groups")
     public String getUserGroups(Model model, HttpSession session) {
