@@ -122,9 +122,12 @@ public class TaskService {
 
         return taskRepository.findByProject(project).stream()
                 .filter(t -> {
-                    boolean matchesImage = dto.getHasImage() ? (t.getImage() != null) : (t.getImage() == null);
-                    boolean matchesTitle = true;
+                    boolean matchesImage = true;
+                    if (Boolean.TRUE.equals(dto.getHasImage())) {
+                        matchesImage = t.getImage() != null;
+                    }
 
+                    boolean matchesTitle = true;
                     if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
                         matchesTitle = t.getTitle().toLowerCase().contains(dto.getTitle().toLowerCase());
                     }
@@ -134,7 +137,6 @@ public class TaskService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
-
 
     private TaskResponseDTO toDTO(Task task) {
         return new TaskResponseDTO(

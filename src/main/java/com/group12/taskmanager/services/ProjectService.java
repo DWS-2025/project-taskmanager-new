@@ -98,7 +98,12 @@ public class ProjectService {
                 project.getGroup().getId()
         );
     }
-
+    private ProjectResponseDTO toDTO(Project project, int userId) {
+        ProjectResponseDTO dto = toDTO(project); // llama al simple
+        boolean isOwner = userId == 1 || project.getGroup().getOwner().getId() == userId;
+        dto.setOwner(isOwner);
+        return dto;
+    }
     // Compatibility: allow access to entity for Mustache views
     public Project findProjectByIdRaw(int id) {
         return projectRepository.findById(id).orElse(null);
@@ -115,7 +120,7 @@ public class ProjectService {
                     .orElseThrow(() -> new RuntimeException("User not found"));
             projects = projectRepository.findByUser(userEntity, pageable);
         }
-        return projects.map(this::toDTO);
+        return projects.map(p -> toDTO(p, currentUser.getId()));
     }
 
 

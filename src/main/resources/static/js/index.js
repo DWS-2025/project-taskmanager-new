@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.addEventListener("mouseup", handleModalMouseUp);
         });
     }
+    window.assignProjectButtonEvents = assignProjectButtonEvents; //make the function global
 
     // Handle the account deletion button click
     deleteAccountBtn.addEventListener("click", function(event) {
@@ -68,16 +69,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const taskItem = event.target.closest(".project-item");
-        taskItem.style.transition = "opacity 0.3s ease-out";
-        taskItem.style.opacity = "0"; // Fade out animation
-
         fetch(`/api/projects/${projectId}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" }
         })
-            .then(response => response.json())
-            .then(() => {})
+            .then(response => {
+                if (response.ok) {
+                    // Si la eliminación fue correcta
+                    taskItem.style.transition = "opacity 0.3s ease-out";
+                    taskItem.style.opacity = "0";
+
+                    // Elimina realmente del DOM después de 300ms
+                    setTimeout(() => {
+                        taskItem.remove();
+                    }, 300);
+                } else {
+                    console.error("Error al eliminar el proyecto.");
+                }
+            })
             .catch(error => console.error("Request error:", error));
+
     }
 
     // Handle editing a project
@@ -86,6 +97,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const projectItem = event.currentTarget.closest(".project-item");
         // set form title to project name
         formNewProject.querySelector("input[name='name']").value = projectItem.querySelector("b").innerText;
+
+        // set form select to current groupId
+        const selectGroup = formNewProject.querySelector("select[name='groupId']");
+        const projectGroupId = projectItem.dataset.groupid;
+        if (selectGroup && projectGroupId) {
+            selectGroup.value = projectGroupId;
+        }
 
         // Hide all open modals
         document.querySelectorAll(".modalOptions").forEach(modal => {

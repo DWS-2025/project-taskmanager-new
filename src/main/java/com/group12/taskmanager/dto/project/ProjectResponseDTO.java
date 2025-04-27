@@ -4,8 +4,7 @@ public class ProjectResponseDTO {
     private int id;
     private String name;
     private int groupId;
-
-    public ProjectResponseDTO() {}
+    private boolean isOwner;
 
     public ProjectResponseDTO(int id, String name, int groupId) {
         this.id = id;
@@ -35,5 +34,13 @@ public class ProjectResponseDTO {
 
     public void setGroupId(int groupId) {
         this.groupId = groupId;
+    }
+
+    public boolean isOwner() {
+        return isOwner;
+    }
+
+    public void setOwner(boolean owner) {
+        isOwner = owner;
     }
 }
