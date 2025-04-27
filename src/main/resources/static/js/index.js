@@ -155,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     // Elimina realmente del DOM después de 300ms
                     setTimeout(() => {
                         taskItem.remove();
+                        window.handlePaginationAfterDelete();
                     }, 300);
                 } else {
                     console.error("Error al eliminar el proyecto.");
