@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     let activeLoadData = null;
     let activeCurrentPage = 0;
-    const userId = document.body.dataset.userid;
     const itemHeight = 120; // cada ítem ocupa 120px aprox.
     const windowHeight = window.innerHeight;
     let itemsPerPage = Math.max(1, Math.floor(windowHeight / itemHeight));
@@ -13,12 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const config = [
         {
             listId: "group-list",
-            endpoint: `/api/groups/p/${userId}`,
+            endpoint: `/api/groups/p`,
             renderItem: renderGroupItem
         },
         {
             listId: "project-list",
-            endpoint: `/api/projects/p/${userId}`,
+            endpoint: `/api/projects/p`,
             renderItem: renderProjectItem
         }
     ];

@@ -1,4 +1,4 @@
-package com.group12.taskmanager.config.security;
+package com.group12.taskmanager.security;
 
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.UserService;

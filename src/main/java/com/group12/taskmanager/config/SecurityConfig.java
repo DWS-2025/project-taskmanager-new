@@ -1,9 +1,11 @@
 package com.group12.taskmanager.config;
 
-import com.group12.taskmanager.config.security.UserDetailsServiceImpl;
+import com.group12.taskmanager.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +23,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        System.out.println("✅ SecurityFilterChain cargado");
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login").permitAll()
@@ -41,6 +44,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public AuthenticationManager authManager(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(authProvider)
+                .build();
+    }
     @Bean
     public DaoAuthenticationProvider authProvider(UserDetailsServiceImpl uds) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();

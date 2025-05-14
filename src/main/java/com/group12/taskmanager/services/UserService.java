@@ -9,6 +9,7 @@ import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,10 +22,12 @@ public class UserService {
     @Autowired private GroupService groupService;
     private final UserRepository userRepository;
     private final GlobalConstants globalConstants;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, GlobalConstants globalConstants) {
+    public UserService(UserRepository userRepository, GlobalConstants globalConstants, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.globalConstants = globalConstants;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserResponseDTO> getAllUsers() {
@@ -67,7 +70,9 @@ public class UserService {
     }
 
     public void createUser(UserRequestDTO dto) {
-        User user = new User(dto.getName(), dto.getEmail(), dto.getPassword());
+        String rawPassword = dto.getPassword();
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        User user = new User(dto.getName(), dto.getEmail(), hashedPassword);
         userRepository.save(user); // user is saved first
         for (Group group : user.getGroups()) {
             group.getUsers().add(user); // make sure the relationship is bidirectional

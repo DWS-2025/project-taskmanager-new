@@ -1,6 +1,6 @@
 package com.group12.taskmanager.controllers;
 
-import com.group12.taskmanager.config.security.AuthenticatedUserProvider;
+import com.group12.taskmanager.security.AuthenticatedUserProvider;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;

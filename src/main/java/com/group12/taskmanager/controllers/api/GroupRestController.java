@@ -1,6 +1,7 @@
 package com.group12.taskmanager.controllers.api;
 
 import com.group12.taskmanager.config.GlobalConstants;
+import com.group12.taskmanager.security.CustomUserDetails;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.requests.*;
@@ -9,6 +10,7 @@ import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -219,14 +221,11 @@ public class GroupRestController {
 
     // Pagination Controller --------------------------------------------------------------------------
 
-    @GetMapping("/p/{userId}")
-    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(@PathVariable int userId,
+    @GetMapping("/p")
+    public ResponseEntity<Page<GroupResponseDTO>> getPaginatedGroups(@AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
 
-        UserResponseDTO user = userService.findUserById(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        UserResponseDTO user = userService.findUserByEmail(userDetails.getUsername());
 
         Page<GroupResponseDTO> groups = groupService.getGroupsPaginated(user, page, size);
         return ResponseEntity.ok(groups);
