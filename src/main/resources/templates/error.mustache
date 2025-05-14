@@ -8,8 +8,16 @@
 </head>
 <body>
 <div class="container">
-    <h1>¡WOW , esa si que no me la esperaba!</h1>
+    <h1>¡WOW, esa sí que no me la esperaba!</h1>
     <p>{{errorMessage}}</p>
+
+    {{#debug}}
+        <details style="margin-top: 1em; color: red;">
+            <summary>Detalles técnicos (solo para desarrollo)</summary>
+            <pre>{{debug}}</pre>
+        </details>
+    {{/debug}}
+
     <a href="/logout">Volver a la página de inicio de sesión</a>
 </div>
 </body>
