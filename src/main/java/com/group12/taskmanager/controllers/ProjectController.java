@@ -1,6 +1,7 @@
 package com.group12.taskmanager.controllers;
 
 import com.group12.taskmanager.config.GlobalConstants;
+import com.group12.taskmanager.config.security.AuthenticatedUserProvider;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Project;
@@ -9,7 +10,6 @@ import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.TaskService;
 import com.group12.taskmanager.services.UserService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,18 +24,21 @@ public class ProjectController {
     private final GroupService groupService;
     private final UserService userService;
     private final GlobalConstants globalConstants;
+    private final AuthenticatedUserProvider auth;
 
-    public ProjectController(ProjectService projectService, TaskService taskService, GroupService groupService, UserService userService, GlobalConstants globalConstants) {
+    public ProjectController(ProjectService projectService, TaskService taskService, GroupService groupService,
+                             UserService userService, GlobalConstants globalConstants, AuthenticatedUserProvider auth) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.groupService = groupService;
         this.userService = userService;
         this.globalConstants = globalConstants;
+        this.auth = auth;
     }
 
     @GetMapping("/projects")
-    public String getProjects(Model model, HttpSession session) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
+    public String getProjects(Model model) {
+        UserResponseDTO currentUser = auth.getCurrentUser();
         if (currentUser == null) return "redirect:/";
 
         model.addAttribute("user", currentUser);
@@ -62,11 +65,13 @@ public class ProjectController {
     }
 
     @GetMapping("/project/{id}")
-    public String getProjectById(@PathVariable int id, Model model, HttpSession session) {
-        if (session.getAttribute("user") == null) return "redirect:/";
+    public String getProjectById(@PathVariable int id, Model model) {
+        UserResponseDTO user = auth.getCurrentUser();
         Project project = projectService.findProjectByIdRaw(id);
-        List<Task> tasks = taskService.getProjectTasksRaw(project);
 
+        projectService.checkAccess(project, user);
+
+        List<Task> tasks = taskService.getProjectTasksRaw(project);
         for (Task task : tasks) {
             if (task.getImage() != null) {
                 String base64 = Base64.getEncoder().encodeToString(task.getImage());
@@ -74,13 +79,8 @@ public class ProjectController {
             }
         }
 
-        if (project != null) {
-            model.addAttribute("idproject", project.getId());
-            model.addAttribute("tasks", tasks);
-        } else {
-            model.addAttribute("idproject", null);
-            model.addAttribute("tasks", new ArrayList<>());
-        }
+        model.addAttribute("idproject", project.getId());
+        model.addAttribute("tasks", tasks);
         return "project";
     }
 }

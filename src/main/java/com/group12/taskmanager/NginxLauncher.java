@@ -16,7 +16,6 @@ public class NginxLauncher {
 
             ProcessBuilder builder = new ProcessBuilder(nginxPath);
             builder.directory(new File("C:\\nginx-1.27.5"));
-            builder.inheritIO();
 
             builder.start();
             System.out.println("✅ NGINX lanzado correctamente.");

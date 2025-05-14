@@ -27,11 +27,11 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    alert("Usuario creado correctamente")
-                    window.location.href = "/logout";
+                    alert("Usuario actualizado correctamente")
+                    document.getElementById("logoutForm").submit();
                 } else {
                     return response.text().then(msg => {
-                        alert(`Error: ${msg || "No se pudo crear el usuario"}`);
+                        alert(`Error: ${msg || "No se pudo actualizar el usuario"}`);
                     });
                 }
             })
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = "/logout";
+                    document.getElementById("logoutForm").submit();
                 } else {
                     return response.text().then(msg => {
                         alert(`Error: ${msg || "No se pudo eliminar al usuario"}`);

@@ -1,9 +1,9 @@
 package com.group12.taskmanager.controllers;
 
+import com.group12.taskmanager.config.security.AuthenticatedUserProvider;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,14 +14,16 @@ import java.util.*;
 public class GroupController {
 
     private final GroupService groupService;
+    private final AuthenticatedUserProvider auth;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(GroupService groupService, AuthenticatedUserProvider auth) {
         this.groupService = groupService;
+        this.auth = auth;
     }
 
     @GetMapping("/user_groups")
-    public String getUserGroups(Model model, HttpSession session) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
+    public String getUserGroups(Model model) {
+        UserResponseDTO currentUser = auth.getCurrentUser();
         if (currentUser == null) return "redirect:/login";
 
         model.addAttribute("user", currentUser);
@@ -29,8 +31,8 @@ public class GroupController {
     }
 
     @GetMapping("/user_data")
-    public String showEditUserPage(HttpSession session, Model model) {
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
+    public String showEditUserPage(Model model) {
+        UserResponseDTO currentUser = auth.getCurrentUser();
         if (currentUser == null) return "redirect:/login";
 
         model.addAttribute("user", currentUser);
@@ -38,9 +40,9 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}/members")
-    public String getManageMembers(@PathVariable int groupId, Model model, HttpSession session) {
+    public String getManageMembers(@PathVariable int groupId, Model model) {
         GroupResponseDTO group = groupService.findGroupById(groupId);
-        UserResponseDTO currentUser = (UserResponseDTO) session.getAttribute("user");
+        UserResponseDTO currentUser = auth.getCurrentUser();
 
         List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
         model.addAttribute("users", groupUsers);

@@ -7,10 +7,8 @@ import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -58,33 +56,13 @@ public class LoginController {
     }
 
     @GetMapping("/")
-    public String loginPage(HttpSession session) {
-        if (session.getAttribute("user") != null) {
-            // Redirect logged-in user to projects
-            return "redirect:/projects";
-        }
-        return "login"; // Show login page
+    public String redirectToLogin() {
+        return "redirect:/login";
     }
 
-    @PostMapping("/login")
-    public String login(@RequestParam String email, @RequestParam String password,
-                        HttpSession session, Model model) {
-
-        UserResponseDTO user = userService.findUserByEmail(email);
-        // Check if credentials match
-        if (user != null && userService.validatePassword(user, password)) {
-            session.setAttribute("user", user); // Set user in session
-            return "redirect:/projects";
-        }
-        // If login fails, show error
-        model.addAttribute("error", "Usuario o contraseña incorrectos");
+    @GetMapping("/login")
+    public String loginPage() {
         return "login";
-    }
-
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate(); // Clear session
-        return "redirect:/"; // Redirect to login page
     }
 
 }

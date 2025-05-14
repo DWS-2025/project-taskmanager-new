@@ -1,6 +1,7 @@
 package com.group12.taskmanager.services;
 
 import com.group12.taskmanager.config.GlobalConstants;
+import com.group12.taskmanager.config.exceptions.ForbiddenAccessException;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.project.ProjectRequestDTO;
 import com.group12.taskmanager.dto.project.ProjectResponseDTO;
@@ -123,6 +124,19 @@ public class ProjectService {
         boolean isOwner = userId == globalConstants.getAdminID() || project.getGroup().getOwner().getId() == userId;
         dto.setOwner(isOwner);
         return dto;
+    }
+
+    public void checkAccess(Project project, UserResponseDTO user) {
+        if (project == null) {
+            throw new IllegalArgumentException("El proyecto no existe.");
+        }
+
+        boolean isOwner = user.getId() == globalConstants.getAdminID() ||
+                user.getId() == project.getGroup().getOwner().getId();
+
+        if (!isOwner) {
+            throw new ForbiddenAccessException("No tienes permiso para acceder a este proyecto.");
+        }
     }
 
 }
