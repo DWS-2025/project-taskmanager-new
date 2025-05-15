@@ -30,13 +30,16 @@ public class ProjectService {
     private final TaskService taskService;
     private final UserRepository userRepository;
     private final GlobalConstants globalConstants;
+    private final UserService userService;
 
-    public ProjectService(ProjectRepository projectRepository, GroupRepository groupRepository, TaskService taskService, UserRepository userRepository, GlobalConstants globalConstants) {
+    public ProjectService(ProjectRepository projectRepository, GroupRepository groupRepository, TaskService taskService,
+                          UserRepository userRepository, GlobalConstants globalConstants, UserService userService) {
         this.projectRepository = projectRepository;
         this.groupRepository = groupRepository;
         this.taskService = taskService;
         this.userRepository = userRepository;
         this.globalConstants = globalConstants;
+        this.userService = userService;
     }
 
     public List<ProjectResponseDTO> getAllProjects() {
@@ -102,7 +105,7 @@ public class ProjectService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Project> projects;
 
-        if (currentUser.getId() == globalConstants.getAdminID()) { //if its admin it can see every project
+        if (currentUser.getRole().equals(globalConstants.getAdminRole())) { //if its admin it can see every project
             projects =  projectRepository.findAll(pageable);
         } else {
             User userEntity = userRepository.findById(currentUser.getId())
@@ -121,7 +124,8 @@ public class ProjectService {
     }
     private ProjectResponseDTO toDTO(Project project, int userId) {
         ProjectResponseDTO dto = toDTO(project); // llama al simple
-        boolean isOwner = userId == globalConstants.getAdminID() || project.getGroup().getOwner().getId() == userId;
+        UserResponseDTO user = userService.findUserById(userId);
+        boolean isOwner = user.getRole().equals(globalConstants.getAdminRole()) || project.getGroup().getOwner().getId() == userId;
         dto.setOwner(isOwner);
         return dto;
     }
@@ -131,7 +135,7 @@ public class ProjectService {
             throw new IllegalArgumentException("El proyecto no existe.");
         }
 
-        boolean isOwner = user.getId() == globalConstants.getAdminID() ||
+        boolean isOwner = user.getRole().equals(globalConstants.getAdminRole()) ||
                 user.getId() == project.getGroup().getOwner().getId();
 
         if (!isOwner) {

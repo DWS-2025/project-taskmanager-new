@@ -45,15 +45,6 @@ public class GroupRestController {
         return accessManager.checkUserAccess(accessedUser, currentUser);
     }
 
-    @GetMapping
-    public ResponseEntity<List<GroupResponseDTO>> getAllGroups(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
-        if(accessManager.checkAdminCredentials(currentUser))
-            return ResponseEntity.ok(groupService.getAllGroups());
-
-        return null;
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<GroupResponseDTO> getGroupById(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(id);
@@ -201,7 +192,9 @@ public class GroupRestController {
 
         if (currentUser.getId() == userId) {
             // ADMIN validation
-            if (currentUser.getId() != globalConstants.getAdminID() || group.getOwnerId() == globalConstants.getAdminID()) // if the user is admin and IS NOT the owner
+            UserResponseDTO owner = userService.findUserById(group.getOwnerId());
+            if (!currentUser.getRole().equals(globalConstants.getAdminRole()) ||
+                    owner.getRole().equals(globalConstants.getAdminRole())) // if the user is admin and IS NOT the owner
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Collections.singletonMap("message", "No puedes eliminarte si eres el propietario"));
         }

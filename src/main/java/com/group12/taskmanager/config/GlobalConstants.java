@@ -8,4 +8,8 @@ public class GlobalConstants {
     public int getAdminID() {
         return 1;
     }
+
+    public String getAdminPassword() {return "admin1234";}
+
+    public String getAdminRole() { return "ROLE_ADMIN";}
 }

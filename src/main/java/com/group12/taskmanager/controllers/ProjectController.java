@@ -46,7 +46,7 @@ public class ProjectController {
 
         List<GroupResponseDTO> ownedGroups;
 
-        if (currentUser.getId() == globalConstants.getAdminID()) {
+        if (currentUser.getRole().equals(globalConstants.getAdminRole())) {
             // Admin user can see all projects and all groups
             ownedGroups = groupService.getAllGroups();
         } else {

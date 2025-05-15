@@ -14,7 +14,6 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Collections;
 
 @RestController
@@ -45,15 +44,6 @@ public class ProjectRestController {
     private boolean verifyGroupAccess(GroupResponseDTO group, CustomUserDetails userDetails) {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkGroupAccess(group, currentUser);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ProjectResponseDTO>> getAllProjects(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
-        if(accessManager.checkAdminCredentials(currentUser))
-            return ResponseEntity.ok(projectService.getAllProjects());
-
-        return null;
     }
 
     @GetMapping("/{id}")

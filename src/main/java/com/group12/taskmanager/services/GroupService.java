@@ -118,7 +118,7 @@ public class GroupService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Group> groups;
 
-        if (currentUser.getId() == globalConstants.getAdminID()) { //if its admin it can see every group
+        if (currentUser.getRole().equals(globalConstants.getAdminRole())) { //if its admin it can see every group
             groups =  groupRepository.findAll(pageable);
         } else {
             User userEntity = userRepository.findById(currentUser.getId())
@@ -130,7 +130,7 @@ public class GroupService {
             GroupResponseDTO dto = toDTO(group);
 
             // flags logic
-            if (currentUser.getId() == globalConstants.getAdminID()) {
+            if (currentUser.getRole().equals(globalConstants.getAdminRole())) {
                 dto.setIsOwner(true);
                 dto.setIsPersonal(group.getName().equals("USER_admin"));
             } else {

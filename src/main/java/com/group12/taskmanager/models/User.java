@@ -32,6 +32,9 @@ public class User {
     @ManyToMany(mappedBy = "users") // Many-to-many relationship with Group entity, mapped by the "users" field in Group
     private List<Group> groups = new ArrayList<>(); // List of groups this user belongs to
 
+    @Column(nullable = false)
+    private String role = "ROLE_USER";
+
     // Default constructor required by JPA
     public User() {
     }
@@ -83,5 +86,13 @@ public class User {
     public List<Group> getGroups() {
         return groups;
 
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

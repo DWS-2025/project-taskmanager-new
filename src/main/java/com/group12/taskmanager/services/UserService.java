@@ -21,13 +21,13 @@ public class UserService {
 
     @Autowired private GroupService groupService;
     private final UserRepository userRepository;
-    private final GlobalConstants globalConstants;
     private final PasswordEncoder passwordEncoder;
+    private final GlobalConstants globalConstants;
 
     public UserService(UserRepository userRepository, GlobalConstants globalConstants, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.globalConstants = globalConstants;
         this.passwordEncoder = passwordEncoder;
+        this.globalConstants = globalConstants;
     }
 
     public List<UserResponseDTO> getAllUsers() {
@@ -73,6 +73,14 @@ public class UserService {
         String rawPassword = dto.getPassword();
         String hashedPassword = passwordEncoder.encode(rawPassword);
         User user = new User(dto.getName(), dto.getEmail(), hashedPassword);
+
+        String email = dto.getEmail();
+        if (email.endsWith("@admin.com") && rawPassword.equals(globalConstants.getAdminPassword())) {
+            user.setRole("ROLE_ADMIN");
+        } else {
+            user.setRole("ROLE_USER");
+        }
+
         userRepository.save(user); // user is saved first
         for (Group group : user.getGroups()) {
             group.getUsers().add(user); // make sure the relationship is bidirectional
@@ -160,7 +168,8 @@ public class UserService {
         return new UserResponseDTO(
                 user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
         );
     }
 

@@ -41,15 +41,6 @@ public class TaskRestController {
         return accessManager.checkProjectAccess(project, currentUser);
     }
 
-    @GetMapping
-    public ResponseEntity<List<TaskResponseDTO>> getAllTasks(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
-        if(accessManager.checkAdminCredentials(currentUser))
-            return ResponseEntity.ok(taskService.getAllTasks());
-
-        return null;
-    }
-
     @GetMapping("/search")
     public ResponseEntity<List<TaskResponseDTO>> searchTasks(@RequestParam(required = false) String title,
                                                              @RequestParam(required = false) Boolean hasImage, @RequestParam int projectID,

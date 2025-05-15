@@ -4,11 +4,13 @@ public class UserResponseDTO {
     private int id;
     private String name;
     private String email;
+    private String role;
 
-    public UserResponseDTO(int id, String name, String email) {
+    public UserResponseDTO(int id, String name, String email, String role) {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.role = role;
     }
 
     public int getId() {
@@ -33,6 +35,14 @@ public class UserResponseDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
 

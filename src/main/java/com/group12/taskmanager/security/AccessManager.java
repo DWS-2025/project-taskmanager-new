@@ -23,17 +23,17 @@ public class AccessManager {
     }
 
     public boolean checkUserAccess(UserResponseDTO accessedUser, UserResponseDTO currentUser) {
-        return accessedUser.getId() == currentUser.getId() || currentUser.getId() == globalConstants.getAdminID();
+        return accessedUser.getId() == currentUser.getId() || currentUser.getRole().equals(globalConstants.getAdminRole());
     }
     public boolean checkAdminCredentials(UserResponseDTO currentUser) {
-        return currentUser.getId() == globalConstants.getAdminID();
+        return currentUser.getRole().equals(globalConstants.getAdminRole());
     }
 
     public boolean checkGroupAccess(GroupResponseDTO group, UserResponseDTO user) {
         boolean isOwner = group.getOwnerId() == user.getId();
         boolean isMember = groupService.getGroupUsers(group).stream()
                 .anyMatch(u -> u.getId() == user.getId());
-        boolean isAdmin = user.getId() == globalConstants.getAdminID();
+        boolean isAdmin = user.getRole().equals(globalConstants.getAdminRole());
 
         return isOwner || isMember || isAdmin;
     }

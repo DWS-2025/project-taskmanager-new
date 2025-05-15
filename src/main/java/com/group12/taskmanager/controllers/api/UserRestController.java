@@ -12,7 +12,6 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,15 +30,6 @@ public class UserRestController {
     private boolean verifyUserAccess(UserResponseDTO accessedUser, CustomUserDetails userDetails) {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkUserAccess(accessedUser, currentUser);
-    }
-
-    @GetMapping
-    public List<UserResponseDTO> getAllUsers(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
-        if(accessManager.checkAdminCredentials(currentUser))
-            return userService.getAllUsers();
-
-        return null;
     }
 
     @GetMapping("/{id}")
