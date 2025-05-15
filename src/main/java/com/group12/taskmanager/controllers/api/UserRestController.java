@@ -1,13 +1,15 @@
 package com.group12.taskmanager.controllers.api;
 
-import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
+import com.group12.taskmanager.security.AccessManager;
+import com.group12.taskmanager.security.CustomUserDetails;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,23 +20,39 @@ public class UserRestController {
 
     private final UserService userService;
     private final GroupService groupService;
-    private final GlobalConstants globalConstants;
+    private final AccessManager accessManager;
 
-    public UserRestController(UserService userService, GroupService groupService, GlobalConstants globalConstants) {
+    public UserRestController(UserService userService, GroupService groupService, AccessManager accessManager) {
         this.userService = userService;
         this.groupService = groupService;
-        this.globalConstants = globalConstants;
+        this.accessManager = accessManager;
+    }
+
+    private boolean verifyUserAccess(UserResponseDTO accessedUser, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkUserAccess(accessedUser, currentUser);
     }
 
     @GetMapping
-    public List<UserResponseDTO> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponseDTO> getAllUsers(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        if(accessManager.checkAdminCredentials(currentUser))
+            return userService.getAllUsers();
+
+        return null;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable int id) {
+    public ResponseEntity<?> getUserById(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponseDTO user = userService.findUserById(id);
-        return (user != null) ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+
+        if (user == null)
+            return ResponseEntity.notFound().build();
+
+        if (!verifyUserAccess(user, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping
@@ -58,9 +76,15 @@ public class UserRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserRequestDTO dto) {
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserRequestDTO dto,
+                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponseDTO user = userService.findUserById(id);
-        if (user == null) return ResponseEntity.notFound().build();
+
+        if (user == null)
+            return ResponseEntity.notFound().build();
+
+        if (!verifyUserAccess(user, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         GroupResponseDTO userGroup = userService.findPersonalGroup(user);
         if (dto.getPassword().isBlank() || dto.getPassword() == null) {
@@ -82,13 +106,15 @@ public class UserRestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable int id, @RequestParam int requesterId) {
-        if (id != globalConstants.getAdminID()) {
-            UserResponseDTO requester = userService.findUserById(requesterId);
-            if (requester == null) return ResponseEntity.status(401).body("No autorizado");
-
+    public ResponseEntity<?> deleteUser(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        if (!accessManager.checkAdminCredentials(currentUser)) { // validation for admin, admin can't be deleted
             UserResponseDTO deleted = userService.findUserById(id);
-            boolean result = userService.deleteUser(deleted, requester);
+
+            if (!verifyUserAccess(deleted, userDetails))
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+            boolean result = userService.deleteUser(deleted);
             return result ? ResponseEntity.ok("Usuario eliminado")
                     : ResponseEntity.status(403).body("Acción no permitida");
         }

@@ -1,47 +1,58 @@
 package com.group12.taskmanager.security;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.project.ProjectResponseDTO;
 import com.group12.taskmanager.dto.task.TaskResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.ProjectService;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AccessManager {
 
-    ProjectService projectService;
-    GroupService groupService;
+    private final GlobalConstants globalConstants;
+    private final ProjectService projectService;
+    private final GroupService groupService;
 
-    public void checkGroupAccess(GroupResponseDTO group, UserResponseDTO user) {
+    public AccessManager(ProjectService projectService, GroupService groupService, GlobalConstants globalConstants) {
+        this.projectService = projectService;
+        this.groupService = groupService;
+        this.globalConstants = globalConstants;
+    }
+
+    public boolean checkUserAccess(UserResponseDTO accessedUser, UserResponseDTO currentUser) {
+        return accessedUser.getId() == currentUser.getId() || currentUser.getId() == globalConstants.getAdminID();
+    }
+    public boolean checkAdminCredentials(UserResponseDTO currentUser) {
+        return currentUser.getId() == globalConstants.getAdminID();
+    }
+
+    public boolean checkGroupAccess(GroupResponseDTO group, UserResponseDTO user) {
         boolean isOwner = group.getOwnerId() == user.getId();
         boolean isMember = groupService.getGroupUsers(group).stream()
                 .anyMatch(u -> u.getId() == user.getId());
+        boolean isAdmin = user.getId() == globalConstants.getAdminID();
 
-        if (!isOwner && !isMember) {
-            throw new AccessDeniedException("No tienes acceso a este grupo.");
-        }
+        return isOwner || isMember || isAdmin;
     }
-    public void checkGroupOwnership(GroupResponseDTO group, UserResponseDTO user) {
-        if (group.getOwnerId() != user.getId()) {
-            throw new AccessDeniedException("Solo el propietario puede realizar esta acción.");
-        }
+    public boolean checkGroupOwnership(GroupResponseDTO group, UserResponseDTO user) {
+        return group.getOwnerId() == user.getId();
     }
 
-    public void checkProjectAccess(ProjectResponseDTO project, UserResponseDTO user) {
+    public boolean checkProjectAccess(ProjectResponseDTO project, UserResponseDTO user) {
         GroupResponseDTO group = groupService.findGroupById(project.getGroupId());
-        checkGroupAccess(group, user);
+        return checkGroupAccess(group, user);
     }
-    public void checkProjectOwnership(ProjectResponseDTO project, UserResponseDTO user) {
+    public boolean checkProjectOwnership(ProjectResponseDTO project, UserResponseDTO user) {
         GroupResponseDTO group = groupService.findGroupById(project.getGroupId());
-        checkGroupOwnership(group, user);
+        return checkGroupOwnership(group, user);
     }
 
-    public void checkTaskAccess(TaskResponseDTO task, UserResponseDTO user) {
+    public boolean checkTaskAccess(TaskResponseDTO task, UserResponseDTO user) {
         ProjectResponseDTO project = projectService.findProjectById(task.getProjectId());
-        checkProjectAccess(project, user);
+        return checkProjectAccess(project, user);
     }
 
 }

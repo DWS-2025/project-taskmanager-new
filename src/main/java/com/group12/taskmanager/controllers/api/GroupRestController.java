@@ -1,6 +1,7 @@
 package com.group12.taskmanager.controllers.api;
 
 import com.group12.taskmanager.config.GlobalConstants;
+import com.group12.taskmanager.security.AccessManager;
 import com.group12.taskmanager.security.CustomUserDetails;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
@@ -22,31 +23,56 @@ public class GroupRestController {
     private final GroupService groupService;
     private final UserService userService;
     private final GlobalConstants globalConstants;
+    private final AccessManager accessManager;
 
-    public GroupRestController(GroupService groupService, UserService userService, GlobalConstants globalConstants) {
+    public GroupRestController(GroupService groupService, UserService userService, GlobalConstants globalConstants, AccessManager accessManager) {
         this.groupService = groupService;
         this.userService = userService;
         this.globalConstants = globalConstants;
+        this.accessManager = accessManager;
+    }
+
+    private boolean verifyGroupAccess(GroupResponseDTO group, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkGroupAccess(group, currentUser);
+    }
+    private boolean verifyGroupOwnership(GroupResponseDTO group, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkGroupOwnership(group, currentUser);
+    }
+    private boolean verifyUserAccess(UserResponseDTO accessedUser, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkUserAccess(accessedUser, currentUser);
     }
 
     @GetMapping
-    public ResponseEntity<List<GroupResponseDTO>> getAllGroups() {
-        return ResponseEntity.ok(groupService.getAllGroups());
+    public ResponseEntity<List<GroupResponseDTO>> getAllGroups(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        if(accessManager.checkAdminCredentials(currentUser))
+            return ResponseEntity.ok(groupService.getAllGroups());
+
+        return null;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GroupResponseDTO> getGroupById(@PathVariable int id) {
+    public ResponseEntity<GroupResponseDTO> getGroupById(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(id);
-        return (group != null) ? ResponseEntity.ok(group) : ResponseEntity.notFound().build();
+        if (group == null) return ResponseEntity.notFound().build();
+
+        if (!verifyGroupAccess(group, userDetails))
+            return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
+
+        return  ResponseEntity.ok(group);
     }
 
     // Get all User's groups
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<GroupResponseDTO>> getGroupsByUser(@PathVariable int userId) {
+    public ResponseEntity<List<GroupResponseDTO>> getGroupsByUser(@PathVariable int userId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponseDTO user = userService.findUserById(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        if(!verifyUserAccess(user, userDetails))
+            return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
 
         List<GroupResponseDTO> groups = userService.getUserGroups(user);
         return ResponseEntity.ok(groups);
@@ -60,9 +86,13 @@ public class GroupRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GroupResponseDTO> updateGroup(@PathVariable int id, @RequestBody GroupRequestDTO dto) {
+    public ResponseEntity<GroupResponseDTO> updateGroup(@PathVariable int id, @RequestBody GroupRequestDTO dto,
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(id);
         if (group == null) return ResponseEntity.notFound().build();
+
+        if (!verifyGroupOwnership(group, userDetails))
+            return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
 
         if (dto.getOwnerID() == 0) {
             dto.setOwnerID(groupService.findGroupById(id).getOwnerId());
@@ -75,19 +105,17 @@ public class GroupRestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteGroup(@PathVariable int id, @RequestParam int requesterId) {
-        UserResponseDTO requester = userService.findUserById(requesterId);
+    public ResponseEntity<?> deleteGroup(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(id);
 
-        if (requester == null || group == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-        if (group.getOwnerId() != requesterId && requester.getId() != globalConstants.getAdminID())
+        if (!verifyGroupOwnership(group, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         boolean deleted = groupService.deleteGroup(group);
         return (deleted)
-                ? ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+                ? ResponseEntity.ok().build()
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
@@ -95,9 +123,12 @@ public class GroupRestController {
 
     // Controller used in change owner modal, returns all members except the current owner
     @GetMapping("/{id}/members")
-    public ResponseEntity<?> getGroupMembers(@PathVariable int id) {
+    public ResponseEntity<?> getGroupMembers(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(id);
         if (group == null) return ResponseEntity.notFound().build();
+
+        if (!verifyGroupOwnership(group, userDetails))
+            return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
 
         List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
         // Removes group owner
@@ -112,26 +143,27 @@ public class GroupRestController {
 
     // Search users by name, and they can't be in the group yet
     @GetMapping("/{id}/search_users")
-    public ResponseEntity<List<UserResponseDTO>> searchUsers(@PathVariable int id, @RequestParam String q) {
+    public ResponseEntity<List<UserResponseDTO>> searchUsers(@PathVariable int id, @RequestParam String q,
+                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(id);
         if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        if (!verifyGroupOwnership(group, userDetails))
+            return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
 
         List<UserResponseDTO> results = userService.searchUsersByNameExcludingGroup(q, group);
         return ResponseEntity.ok(results);
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<?> addMembersToGroup(@PathVariable int id, @RequestBody AddMembersRequestDTO request) {
+    public ResponseEntity<?> addMembersToGroup(@PathVariable int id, @RequestBody AddMembersRequestDTO request,
+                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
-            int currentUserId = request.getCurrentUserId();
-            UserResponseDTO currentUser = userService.findUserById(currentUserId);
-            if (currentUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             GroupResponseDTO group = groupService.findGroupById(id);
             if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-            if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != globalConstants.getAdminID()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Collections.singletonMap("message", "No autorizado"));
+            if (!verifyGroupOwnership(group, userDetails)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             List<Integer> userIds = request.getUserIds().stream()
@@ -155,20 +187,17 @@ public class GroupRestController {
     }
 
     @DeleteMapping("/{id}/{userId}")
-    public ResponseEntity<?> removeMemberFromGroup(@PathVariable int id, @PathVariable int userId, @RequestBody CurrentUserRequestDTO request) {
-        UserResponseDTO currentUser = userService.findUserById(request.getCurrentUserId());
-        if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Collections.singletonMap("message", "No autenticado"));
-        }
+    public ResponseEntity<?> removeMemberFromGroup(@PathVariable int id, @PathVariable int userId, @RequestBody CurrentUserRequestDTO request,
+                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         GroupResponseDTO group = groupService.findGroupById(id);
         UserResponseDTO user = userService.findUserById(userId);
         if (group == null || user == null) return ResponseEntity.notFound().build();
 
-        if (group.getOwnerId() != currentUser.getId() && currentUser.getId() != globalConstants.getAdminID())
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Collections.singletonMap("message", "No autorizado"));
+        if (!verifyGroupOwnership(group, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
 
         if (currentUser.getId() == userId) {
             // ADMIN validation
@@ -191,29 +220,19 @@ public class GroupRestController {
 
     // Allow user leave a group
     @DeleteMapping("/l/{groupId}")
-    public ResponseEntity<?> leaveGroup(@PathVariable int groupId, @RequestBody CurrentUserRequestDTO request) {
+    public ResponseEntity<?> leaveGroup(@PathVariable int groupId, @RequestBody CurrentUserRequestDTO request,
+                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(groupId);
-        UserResponseDTO currentUser = userService.findUserById(request.getCurrentUserId());
+        if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
-        if (group == null || currentUser == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        if(group.getOwnerId() == currentUser.getId())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"No se puede salir del grupo\"}");
+        if(!verifyGroupAccess(group, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        List<UserResponseDTO> groupUsers = groupService.getGroupUsers(group);
-        boolean found = false;
-        for (UserResponseDTO user : groupUsers) {
-            if (user.getId() == currentUser.getId()) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "El usuario no pertenece al grupo."));
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
 
-        if (group.getOwnerId() == currentUser.getId()) {
+        if (group.getOwnerId() == currentUser.getId())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("El propietario no puede abandonar el grupo.");
-        }
 
         groupService.removeUserFromGroup(group, currentUser);
         return ResponseEntity.ok("{\"success\": true}");

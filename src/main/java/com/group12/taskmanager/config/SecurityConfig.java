@@ -18,12 +18,11 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/img/**");
+        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/img/**", "/api/**");
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("✅ SecurityFilterChain cargado");
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login").permitAll()

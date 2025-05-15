@@ -34,23 +34,42 @@ public class ProjectRestController {
         this.accessManager = accessManager;
     }
 
+    private boolean verifyProjectAccess(ProjectResponseDTO project, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkProjectAccess(project, currentUser);
+    }
+    private boolean verifyGroupAccess(GroupResponseDTO group, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkGroupAccess(group, currentUser);
+    }
+
     @GetMapping
-    public ResponseEntity<List<ProjectResponseDTO>> getAllProjects() {
-        return ResponseEntity.ok(projectService.getAllProjects());
+    public ResponseEntity<List<ProjectResponseDTO>> getAllProjects(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        if(accessManager.checkAdminCredentials(currentUser))
+            return ResponseEntity.ok(projectService.getAllProjects());
+
+        return null;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponseDTO> getProjectById(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         ProjectResponseDTO project = projectService.findProjectById(id);
-        accessManager.checkProjectAccess(project, currentUser);
+        if (project == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+
+        if(!verifyProjectAccess(project, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         return ResponseEntity.ok(project);
     }
 
     @PostMapping
-    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO dto) {
+    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(dto.getGroupId());
         if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+
+        if (!verifyGroupAccess(group, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         ProjectResponseDTO created = projectService.createProject(dto);
         return (created != null)
@@ -65,14 +84,21 @@ public class ProjectRestController {
         ProjectResponseDTO project = projectService.findProjectById(id);
         if (project == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
+        if (!verifyProjectAccess(project, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         ProjectResponseDTO updated = projectService.updateProject(id, dto);
-        return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(updated);
+
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProject(@PathVariable int id) {
+    public ResponseEntity<?> deleteProject(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         ProjectResponseDTO project = projectService.findProjectById(id);
-        if (project == null) return ResponseEntity.status(404).body(Collections.singletonMap("error", "Project not found"));
+        if (project == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "Project not found"));
+
+        if (!verifyProjectAccess(project, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         boolean deleted = projectService.deleteProject(project);
         return deleted

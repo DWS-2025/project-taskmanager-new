@@ -90,17 +90,8 @@ public class UserService {
         return toDTO(user);
     }
 
-    public boolean deleteUser(UserResponseDTO dto, UserResponseDTO currentUserDTO) {
+    public boolean deleteUser(UserResponseDTO dto) {
         int userId = dto.getId();
-        User currentUser = userRepository.findById(currentUserDTO.getId()).orElse(null);
-        if (currentUser == null) return false;
-        // Only the own user or an admin (ID 1) can delete
-        if (currentUser.getId() != userId) {
-            if (currentUser.getId() != globalConstants.getAdminID()) {
-                System.out.println("Not authorized to delete this account.");
-                return false;
-            }
-        }
 
         try {
             User user = userRepository.findById(userId).orElse(null);
