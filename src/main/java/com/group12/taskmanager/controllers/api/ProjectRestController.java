@@ -38,6 +38,10 @@ public class ProjectRestController {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkProjectAccess(project, currentUser);
     }
+    private boolean verifyProjectOwnership(ProjectResponseDTO project, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkProjectOwnership(project, currentUser);
+    }
     private boolean verifyGroupAccess(GroupResponseDTO group, CustomUserDetails userDetails) {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkGroupAccess(group, currentUser);
@@ -84,7 +88,7 @@ public class ProjectRestController {
         ProjectResponseDTO project = projectService.findProjectById(id);
         if (project == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
-        if (!verifyProjectAccess(project, userDetails))
+        if (!verifyProjectOwnership(project, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         ProjectResponseDTO updated = projectService.updateProject(id, dto);
@@ -97,7 +101,7 @@ public class ProjectRestController {
         ProjectResponseDTO project = projectService.findProjectById(id);
         if (project == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", "Project not found"));
 
-        if (!verifyProjectAccess(project, userDetails))
+        if (!verifyProjectOwnership(project, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         boolean deleted = projectService.deleteProject(project);
