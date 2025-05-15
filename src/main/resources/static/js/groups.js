@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("No group selected.");
             return;
         }
-        window.location.href = `/${groupId}/members`;
+        window.location.href = `/members/${groupId}`;
     }
 
     // Save or update a group
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
             formData.append("ownerID", "0");
         }
 
-        fetch(url, {
+        authFetch(url, {
             method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (confirm("Are you sure you want to delete this group? This action is irreversible.")) {
             const groupItem = event.target.closest(".group-item");
 
-            fetch(`/api/groups/${groupId}`, {
+            authFetch(`/api/groups/${groupId}`, {
                 method: "DELETE"
             })
                 .then(response => {
@@ -183,14 +183,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     function handleLeaveGroup(event) {
         const groupId = event.target.dataset.groupid;
-        const currentUserId = document.body.dataset.userid;
         if (!groupId) {
             console.error("No group selected to leave.");
             return;
         }
 
         if (confirm("Are you sure you want to leave this group?")) {
-            fetch(`/api/groups/l/${groupId}`, {
+            authFetch(`/api/groups/l/${groupId}`, {
                 method: "DELETE"
             })
                 .then(response => {
@@ -210,7 +209,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Fetch and show current group members to select a new owner
     function showGroupMembers() {
-        fetch(`/api/groups/${currentGroupId}/members`)
+        authFetch(`/api/groups/${currentGroupId}/members`, {
+            method: 'GET'
+        })
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`Error fetching members: ${res.status}`);
@@ -257,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch(`/api/groups/${currentGroupId}`, {
+        authFetch(`/api/groups/${currentGroupId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -278,6 +279,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("Owner changed successfully");
             })
             .catch(error => console.error("Request error:", error));
+    }
+
+    const btnBack = document.getElementById("btnBack");
+    if (btnBack) {
+        btnBack.addEventListener("click", () => {
+            const url = "/projects";
+            authFetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error("No autorizado");
+                    return res.text();
+                })
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    window.history.pushState({}, "", url);
+                })
+                .catch(err => {
+                    console.error("Error al volver a /projects:", err);
+                    alert("No autorizado o error de carga.");
+                });
+        });
     }
 
     // Initial event bindings on page load

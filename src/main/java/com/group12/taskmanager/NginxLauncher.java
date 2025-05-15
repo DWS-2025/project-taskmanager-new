@@ -1,6 +1,7 @@
 package com.group12.taskmanager;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -21,6 +22,16 @@ public class NginxLauncher {
             System.out.println("✅ NGINX lanzado correctamente.");
         } catch (IOException e) {
             System.err.println("❌ No se pudo iniciar NGINX: " + e.getMessage());
+        }
+    }
+
+    @PreDestroy
+    public void stopNginx() {
+        try {
+            new ProcessBuilder("taskkill", "/F", "/IM", "nginx.exe").start();
+            System.out.println("🛑 NGINX detenido.");
+        } catch (IOException e) {
+            System.err.println("❌🛑 Error al detener NGINX: " + e.getMessage());
         }
     }
 }

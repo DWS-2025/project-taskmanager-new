@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-<div class="container">
-    <h1>¡WOW, esa sí que no me la esperaba!</h1>
-    <p>{{errorMessage}}</p>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Error</title>
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>¡WOW, esa sí que no me la esperaba!</h1>
+            <p>{{errorMessage}}</p>
 
-    {{#debug}}
-        <details style="margin-top: 1em; color: red;">
-            <summary>Detalles técnicos (solo para desarrollo)</summary>
-            <pre>{{debug}}</pre>
-        </details>
-    {{/debug}}
+            {{#debug}}
+                <details style="margin-top: 1em; color: red;">
+                    <summary>Detalles técnicos (solo para desarrollo)</summary>
+                    <pre>{{debug}}</pre>
+                </details>
+            {{/debug}}
 
-    <form action="/logout" method="post" style="display: inline;">
-        <button type="submit" class="logout-button">Volver a la página de inicio de sesión</button>
-    </form>
-</div>
-</body>
+            <button id="logoutButton" class="btnLogout">Volver a la página de inicio de sesión</button>
+        </div>
+
+        <script src="/js/actionsUser.js" defer></script>
+    </body>
+
 </html>

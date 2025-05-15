@@ -81,7 +81,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch(`/api/groups/${groupId}/search_users?q=${encodeURIComponent(query)}`)
+        authFetch(`/api/groups/${groupId}/search_users?q=${encodeURIComponent(query)}`, {
+            method: 'GET'
+        })
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`Error searching user(s): ${res.status}`);
@@ -140,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch(`/api/groups/${groupId}`, {
+        authFetch(`/api/groups/${groupId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -168,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (confirm("Are you sure you want to remove this member from the group?")) {
-            fetch(`/api/groups/${groupId}/${userId}`, {
+            authFetch(`/api/groups/${groupId}/${userId}`, {
                 method: "DELETE"
             })
                 .then(response => {
@@ -186,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.querySelector(`[data-userid='${userId}']`).remove();
                         if (data.message === "own") {
                             // If an admin removes themselves from a group
-                            window.location.href = `/${groupId}/members`;
+                            window.location.href = `/members/${groupId}`;
                         }
                     } else {
                         alert(data.message);
@@ -194,6 +196,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .catch(error => console.error("Request error:", error));
         }
+    }
+
+    const btnBack = document.getElementById("btnBack");
+    if (btnBack) {
+        btnBack.addEventListener("click", () => {
+            const url = "/user_groups";
+            authFetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error("No autorizado");
+                    return res.text();
+                })
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    window.history.pushState({}, "", url);
+                })
+                .catch(err => {
+                    console.error("Error al volver a /projects:", err);
+                    alert("No autorizado o error de carga.");
+                });
+        });
     }
 
     // Initial event assignment on page load

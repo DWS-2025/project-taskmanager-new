@@ -2,6 +2,7 @@ package com.group12.taskmanager.security;
 
 import com.group12.taskmanager.models.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.*;
 
@@ -11,7 +12,9 @@ public class CustomUserDetails implements UserDetails {
     public CustomUserDetails(User user) { this.user = user; }
     public User getUserEntity() { return user; }
 
-    @Override public Collection<? extends GrantedAuthority> getAuthorities() { return Collections.emptyList(); }
+    @Override public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
     @Override public String getPassword() { return user.getPassword(); }
     @Override public String getUsername() { return user.getEmail(); }
     @Override public boolean isAccountNonExpired() { return true; }

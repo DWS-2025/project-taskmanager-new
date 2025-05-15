@@ -14,13 +14,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        System.out.println("🟡 Buscando usuario: " + email);
         CustomUserDetails user = userRepository.findByEmail(email)
                 .map(CustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("❌ Usuario no encontrado"));
 
-        System.out.println("✅ Usuario encontrado: " + user.getUsername());
-        System.out.println("🔑 Password (hasheada): " + user.getPassword());
 
         return user;
     }

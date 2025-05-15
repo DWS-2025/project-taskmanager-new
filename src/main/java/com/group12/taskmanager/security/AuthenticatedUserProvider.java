@@ -2,6 +2,7 @@ package com.group12.taskmanager.security;
 
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.services.UserService;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,13 @@ public class AuthenticatedUserProvider {
     }
 
     public UserResponseDTO getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+
+        String email = auth.getName();
         return userService.findUserByEmail(email);
     }
 }

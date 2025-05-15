@@ -94,11 +94,11 @@ public class GroupRestController {
         if (!verifyGroupOwnership(group, userDetails))
             return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
 
-
         if (userService.findUserById(dto.getOwnerID()) == null)
-            return ResponseEntity.notFound().build();
-        else
             dto.setOwnerID(groupService.findGroupById(id).getOwnerId());
+
+        if (groupService.getGroupUsers(group).stream().noneMatch(u -> u.getId() == dto.getOwnerID()))
+            return ResponseEntity.status((HttpStatus.NOT_FOUND)).build();
 
         GroupResponseDTO updated = groupService.updateGroup(id, dto);
         return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.badRequest().build();

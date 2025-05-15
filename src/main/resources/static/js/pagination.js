@@ -46,7 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const loadData = async (page = 0) => {
             try {
-                const response = await fetch(`${endpoint}?page=${page}&size=${itemsPerPage}`);
+                const response = await authFetch(`${endpoint}?page=${page}&size=${itemsPerPage}`, {
+                    method: 'GET'
+                });
 
                 /**
                  * @typedef {Object} PaginationData
@@ -170,8 +172,29 @@ document.addEventListener("DOMContentLoaded", () => {
         content.className = "project-content";
 
         const link = document.createElement("a");
-        link.href = `/project/${project.id}`;
+        link.href = "#";
         link.innerHTML = `<b>${project.name}</b>`;
+
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const url = `/project/${project.id}`;
+
+            authFetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error("No autorizado");
+                    return res.text();
+                })
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    window.history.pushState({}, "", url);
+                })
+                .catch(err => {
+                    console.error("Error al cargar el proyecto:", err);
+                    alert("No autorizado o error de carga.");
+                });
+        });
 
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";

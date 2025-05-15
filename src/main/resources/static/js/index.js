@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
             method = "PUT";
         }
 
-        fetch(url, {
+        authFetch(url, {
             method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const taskItem = event.target.closest(".project-item");
-        fetch(`/api/projects/${projectId}`, {
+        authFetch(`/api/projects/${projectId}`, {
             method: "DELETE"
         })
             .then(response => {

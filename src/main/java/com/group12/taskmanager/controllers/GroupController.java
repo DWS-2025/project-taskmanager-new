@@ -39,7 +39,7 @@ public class GroupController {
         return "edit_user";
     }
 
-    @GetMapping("/{groupId}/members")
+    @GetMapping("/members/{groupId}")
     public String getManageMembers(@PathVariable int groupId, Model model) {
         GroupResponseDTO group = groupService.findGroupById(groupId);
         UserResponseDTO currentUser = auth.getCurrentUser();

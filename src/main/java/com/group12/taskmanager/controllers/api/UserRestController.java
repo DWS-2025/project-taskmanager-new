@@ -56,12 +56,12 @@ public class UserRestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody UserRequestDTO dto, @RequestParam String confirm_password) {
+    public ResponseEntity<?> createUser(@RequestBody UserRequestDTO dto) {
         if (userService.findUserByUsername(dto.getName()) != null)
             return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
         if (userService.findUserByEmail(dto.getEmail()) != null)
             return ResponseEntity.badRequest().body("El email ya está registrado");
-        if (!dto.getPassword().equals(confirm_password))
+        if (!dto.getPassword().equals(dto.getConfirmPassword()))
             return ResponseEntity.badRequest().body("Las contraseñas no coinciden");
 
         UserRequestDTO newUser = new UserRequestDTO(dto.getName(), dto.getEmail(), dto.getPassword());
@@ -105,11 +105,11 @@ public class UserRestController {
                 :  ResponseEntity.badRequest().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @DeleteMapping("/{userName}")
+    public ResponseEntity<?> deleteUser(@PathVariable String userName, @AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         if (!accessManager.checkAdminCredentials(currentUser)) { // validation for admin, admin can't be deleted
-            UserResponseDTO deleted = userService.findUserById(id);
+            UserResponseDTO deleted = userService.findUserByEmail(userName);
 
             if (!verifyUserAccess(deleted, userDetails))
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

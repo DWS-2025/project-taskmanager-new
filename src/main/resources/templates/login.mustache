@@ -30,7 +30,7 @@
                 <p class="error">{{error}}</p>
             {{/error}}
 
-            <form action="/login" method="post" class="login-form">
+            <form id="formLogin" class="login-form">
                 <label for="email">Correo Electrónico:</label>
                 <input type="text" id="email" name="username" required>
 
@@ -65,6 +65,8 @@
             <p class="register-link">¿Ya tienes una cuenta? <a href="#" onclick="showLogin()">Inicia sesión aquí</a></p>
         </div>
     </div>
+
+    <script src="/js/authHelper.js"></script>
     <script src="/js/actionsUser.js" defer></script>
 </body>
 </html>

@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
             method = "PUT";
         }
 
-        fetch(url, {
+        authFetch(url, {
             method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body)
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const taskItem = event.target.closest(".task-item");
 
-        fetch(`/api/tasks/${taskId}`, {
+        authFetch(`/api/tasks/${taskId}`, {
             method: "DELETE"
         })
             .then(response => {
@@ -238,7 +238,9 @@ document.addEventListener("DOMContentLoaded", function () {
             // Cargar imagen después
             if (task.hasImage) {
                 /** @type {Promise<ImageData>} */
-                fetch(`/api/tasks/${task.id}/image`)
+                authFetch(`/api/tasks/${task.id}/image`, {
+                    method: 'GET'
+                })
                     .then(res => res.json())
                     .then(data => {
                         const img = document.createElement("img");
@@ -263,7 +265,9 @@ document.addEventListener("DOMContentLoaded", function () {
         url.searchParams.append("hasImage", hasImage);
         url.searchParams.append("projectID", projectID);
 
-        fetch(url)
+        authFetch(url, {
+            method: 'GET'
+        })
             .then(res => res.json())
             .then(tasks => {
                 renderTaskList(tasks);
@@ -271,6 +275,29 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(err => console.error("Error al buscar tareas:", err));
     });
+
+    const btnBack = document.getElementById("btnBack");
+    if (btnBack) {
+        btnBack.addEventListener("click", () => {
+            const url = "/projects";
+            authFetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error("No autorizado");
+                    return res.text();
+                })
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    window.history.pushState({}, "", url);
+                })
+                .catch(err => {
+                    console.error("Error al volver a /projects:", err);
+                    alert("No autorizado o error de carga.");
+                });
+        });
+    }
+
 
     // Initial event setup
     assignEventsButtons();

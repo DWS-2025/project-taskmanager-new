@@ -13,6 +13,7 @@ import com.group12.taskmanager.services.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.*;
 
@@ -37,7 +38,7 @@ public class ProjectController {
     }
 
     @GetMapping("/projects")
-    public String getProjects(Model model) {
+    public String getProjects(Model model, HttpServletResponse response) {
         UserResponseDTO currentUser = auth.getCurrentUser();
         if (currentUser == null) return "redirect:/";
 
