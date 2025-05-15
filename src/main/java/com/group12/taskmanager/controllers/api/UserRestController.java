@@ -98,9 +98,8 @@ public class UserRestController {
     @DeleteMapping("/{userName}")
     public ResponseEntity<?> deleteUser(@PathVariable String userName, @AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
-        if (!accessManager.checkAdminCredentials(currentUser)) { // validation for admin, admin can't be deleted
-            UserResponseDTO deleted = userService.findUserByEmail(userName);
-
+        UserResponseDTO deleted = userService.findUserByEmail(userName);
+        if (!accessManager.checkAdminCredentials(deleted)) { // validation for admin, admin can't be deleted
             if (!verifyUserAccess(deleted, userDetails))
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 

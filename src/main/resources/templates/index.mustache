@@ -34,6 +34,10 @@
 
                 <button id="deleteAccountBtn" type="button">Eliminar cuenta</button>
 
+                {{#isAdmin}}
+                    <button id="adminOptionsBtn" type="button"> Menú admin </button>
+                {{/isAdmin}}
+
             </div>
         </div>
 
@@ -60,6 +64,24 @@
             </div>
         </div>
 
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const adminBtn = document.getElementById("adminOptionsBtn");
+
+                if (adminBtn) {
+                    adminBtn.addEventListener("click", function () {
+                        const token = localStorage.getItem("jwt");
+
+                        if (!token) {
+                            alert("No has iniciado sesión.");
+                            return;
+                        }
+
+                        window.location.href = "/admin";
+                    });
+                }
+            });
+        </script>
         <script src="/js/authHelper.js"></script>
         <script src="/js/pagination.js" defer></script>
         <script src="/js/index.js" defer></script>

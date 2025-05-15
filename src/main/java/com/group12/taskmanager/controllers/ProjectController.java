@@ -38,11 +38,15 @@ public class ProjectController {
     }
 
     @GetMapping("/projects")
-    public String getProjects(Model model, HttpServletResponse response) {
+    public String getProjects(Model model) {
         UserResponseDTO currentUser = auth.getCurrentUser();
         if (currentUser == null) return "redirect:/";
 
         model.addAttribute("user", currentUser);
+        if (currentUser.getRole().equals(globalConstants.getAdminRole()))
+            model.addAttribute("isAdmin", true);
+        else
+            model.addAttribute("isAdmin", false);
 
         List<GroupResponseDTO> ownedGroups;
 
@@ -83,5 +87,10 @@ public class ProjectController {
         model.addAttribute("idproject", project.getId());
         model.addAttribute("tasks", tasks);
         return "project";
+    }
+
+    @GetMapping("/admin")
+    public String goToAdminPanel(Model model) {
+        return "admin";
     }
 }
