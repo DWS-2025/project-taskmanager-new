@@ -162,9 +162,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (confirm("Are you sure you want to delete this group? This action is irreversible.")) {
             const groupItem = event.target.closest(".group-item");
 
-            fetch(`/api/groups/${groupId}?requesterId=${requesterId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" }
+            fetch(`/api/groups/${groupId}`, {
+                method: "DELETE"
             })
                 .then(response => {
                     if (response.ok) {
@@ -192,11 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (confirm("Are you sure you want to leave this group?")) {
             fetch(`/api/groups/l/${groupId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({currentUserId: currentUserId})
+                method: "DELETE"
             })
                 .then(response => {
                     if (!response.ok) throw new Error("Network response was not ok");

@@ -171,8 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const taskItem = event.target.closest(".task-item");
 
         fetch(`/api/tasks/${taskId}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" }
+            method: "DELETE"
         })
             .then(response => {
                 if (response.ok) {

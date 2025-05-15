@@ -144,7 +144,6 @@ document.addEventListener("DOMContentLoaded", function () {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                currentUserId: currentUserId,
                 userIds: Array.from(selectedUsers)
             })
         })
@@ -170,11 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (confirm("Are you sure you want to remove this member from the group?")) {
             fetch(`/api/groups/${groupId}/${userId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({currentUserId: currentUserId})
+                method: "DELETE"
             })
                 .then(response => {
                     if (!response.ok) {

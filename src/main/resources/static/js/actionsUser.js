@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function deleteAccount(event) {
         event.preventDefault();
 
-        let url = `/api/users/${currentUserId}?requesterId=${currentUserId}`;
+        let url = `/api/users/${currentUserId}`;
         let method = "DELETE";
         fetch(url, {
             method: method,

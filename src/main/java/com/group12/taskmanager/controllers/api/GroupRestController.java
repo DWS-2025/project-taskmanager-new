@@ -94,12 +94,12 @@ public class GroupRestController {
         if (!verifyGroupOwnership(group, userDetails))
             return ResponseEntity.status((HttpStatus.UNAUTHORIZED)).build();
 
-        if (dto.getOwnerID() == 0) {
+
+        if (userService.findUserById(dto.getOwnerID()) == null)
+            return ResponseEntity.notFound().build();
+        else
             dto.setOwnerID(groupService.findGroupById(id).getOwnerId());
-        } else {
-            if (userService.findUserById(dto.getOwnerID()) == null)
-                return ResponseEntity.notFound().build();
-        }
+
         GroupResponseDTO updated = groupService.updateGroup(id, dto);
         return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.badRequest().build();
     }
@@ -187,7 +187,7 @@ public class GroupRestController {
     }
 
     @DeleteMapping("/{id}/{userId}")
-    public ResponseEntity<?> removeMemberFromGroup(@PathVariable int id, @PathVariable int userId, @RequestBody CurrentUserRequestDTO request,
+    public ResponseEntity<?> removeMemberFromGroup(@PathVariable int id, @PathVariable int userId,
                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         GroupResponseDTO group = groupService.findGroupById(id);
@@ -220,7 +220,7 @@ public class GroupRestController {
 
     // Allow user leave a group
     @DeleteMapping("/l/{groupId}")
-    public ResponseEntity<?> leaveGroup(@PathVariable int groupId, @RequestBody CurrentUserRequestDTO request,
+    public ResponseEntity<?> leaveGroup(@PathVariable int groupId,
                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupResponseDTO group = groupService.findGroupById(groupId);
         if (group == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

@@ -143,16 +143,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const taskItem = event.target.closest(".project-item");
         fetch(`/api/projects/${projectId}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" }
+            method: "DELETE"
         })
             .then(response => {
                 if (response.ok) {
-                    // Si la eliminación fue correcta
                     taskItem.style.transition = "opacity 0.3s ease-out";
                     taskItem.style.opacity = "0";
 
-                    // Elimina realmente del DOM después de 300ms
+                    // Delete from DOM after 300ms
                     setTimeout(() => {
                         taskItem.remove();
                         window.handlePaginationAfterDelete();
