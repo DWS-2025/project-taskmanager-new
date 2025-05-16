@@ -1,11 +1,15 @@
 package com.group12.taskmanager.dto.task;
 
+import java.time.LocalDateTime;
+
 public class TaskRequestDTO {
     private String title;
     private final String description;
     private final int projectId;
     private String image;
     private int ownerId;
+    private String filename;
+    private LocalDateTime lastReportGenerated;
 
     public TaskRequestDTO(String title, String description, int projectId, int ownerId) {
         this.title = title;
@@ -13,6 +17,8 @@ public class TaskRequestDTO {
         this.image = null;
         this.projectId = projectId;
         this.ownerId = ownerId;
+        this.filename = null;
+        this.lastReportGenerated = null;
     }
 
     public String getTitle() {
@@ -45,5 +51,21 @@ public class TaskRequestDTO {
 
     public void setOwnerId(int ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public LocalDateTime getLastReportGenerated() {
+        return lastReportGenerated;
+    }
+
+    public void setLastReportGenerated(LocalDateTime lastReportGenerated) {
+        this.lastReportGenerated = lastReportGenerated;
     }
 }

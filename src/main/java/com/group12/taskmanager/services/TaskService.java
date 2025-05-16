@@ -66,13 +66,18 @@ public class TaskService {
         User owner = userRepository.findByEmail(userDTO.getEmail()).orElse(null);
         if (project == null || owner == null) return null;
 
+        // Malicious image validation
+        if (!dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
+            throw new IllegalArgumentException("Formato de imagen no soportado. Solo PNG o JPEG.");
+        }
+
         byte[] imageBytes = null;
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
             if (dto.getImage().length() > 7_000_000) {
                 throw new IllegalArgumentException("Base64 image is too large (max ~5MB)");
             }
             try {
-                imageBytes = Base64.getDecoder().decode(dto.getImage().split(",")[1]);
+                imageBytes = Base64.getDecoder().decode(dto.getImage().split(",")[1]); // obtains 2nd split to decode
             } catch (IllegalArgumentException e) {
                 throw new RuntimeException("Invalid base64 image", e);
             }
@@ -85,6 +90,8 @@ public class TaskService {
         task.setProject(project);
         task.setImage(imageBytes); // Set image data
         task.setOwner(owner);
+        task.setFilename(null);
+        task.setLastReportGenerated(null);
 
         Task saved = taskRepository.save(task);
         return toDTO(saved);
@@ -101,6 +108,11 @@ public class TaskService {
             task.setDescription(cleanDescription);
         }
 
+        // Malicious image validation
+        if (!dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
+            throw new IllegalArgumentException("Formato de imagen no soportado. Solo PNG o JPEG.");
+        }
+
         if (dto.getImage() != null) {
             byte[] imageBytes = null;
             if (!dto.getImage().isEmpty()) {
@@ -108,13 +120,17 @@ public class TaskService {
                     throw new IllegalArgumentException("Base64 image is too large (max ~5MB)");
                 }
                 try {
-                    imageBytes = Base64.getDecoder().decode(dto.getImage().split(",")[1]);
+                    imageBytes = Base64.getDecoder().decode(dto.getImage().split(",")[1]); // obtains 2nd split to decode
                 } catch (IllegalArgumentException e) {
                     throw new RuntimeException("Invalid base64 image", e);
                 }
             }
             task.setImage(imageBytes);
         }
+
+        if (dto.getFilename() != null) task.setFilename(dto.getFilename());
+
+        if (dto.getLastReportGenerated() != null) task.setLastReportGenerated(dto.getLastReportGenerated());
 
         return toDTO(taskRepository.save(task));
     }
@@ -144,12 +160,6 @@ public class TaskService {
 
         String encoded = Base64.getEncoder().encodeToString(task.getImage());
         return new TaskImageDTO(encoded);
-    }
-
-    public void saveFileName(int taskId, String filename) {
-        Task task = taskRepository.findById(taskId).orElseThrow();
-        task.setFilename(filename);
-        taskRepository.save(task);
     }
 
     public List<TaskResponseDTO> searchTasks(TaskResponseDTO dto) {
@@ -182,7 +192,8 @@ public class TaskService {
                 task.getImage() != null,
                 task.getProject().getId(),
                 task.getOwner().getId(),
-                task.getFilename()
+                task.getFilename(),
+                task.getLastReportGenerated()
         );
     }
 

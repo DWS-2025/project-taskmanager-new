@@ -2,6 +2,8 @@ package com.group12.taskmanager.models;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity // Marks this class as a JPA entity (mapped to a database table)
 @Table(name = "`TASK`") // Maps this entity to the "TASK" table (backticks avoid reserved keyword issues)
 public class Task {
@@ -34,6 +36,9 @@ public class Task {
 
     @Column(name = "filename")
     private String filename;
+
+    @Column(name = "last_report_generated")
+    private LocalDateTime lastReportGenerated;
 
     // Default constructor (required by JPA)
     public Task() {
@@ -108,5 +113,13 @@ public class Task {
 
     public void setFilename(String originalFilename) {
         this.filename = originalFilename;
+    }
+
+    public LocalDateTime getLastReportGenerated() {
+        return lastReportGenerated;
+    }
+
+    public void setLastReportGenerated(LocalDateTime lastReportGenerated) {
+        this.lastReportGenerated = lastReportGenerated;
     }
 }

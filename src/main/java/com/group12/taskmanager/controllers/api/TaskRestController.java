@@ -30,6 +30,7 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 
@@ -157,13 +158,22 @@ public class TaskRestController {
     }
 
     @GetMapping("/{id}/report")
-    public ResponseEntity<Resource> generateAndDownloadReport(@PathVariable int id,
+    public ResponseEntity<?> generateAndDownloadReport(@PathVariable int id,
                                                               @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
 
         TaskResponseDTO task = taskService.findTaskById(id);
 
         if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        // DoS protection
+        if (task.getLastReportGenerated() != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (task.getLastReportGenerated().plusSeconds(60).isAfter(now)) {
+                return ResponseEntity.status(429)
+                        .body("⏱️ Espera unos segundos antes de generar otro informe.");
+            }
+        }
 
         String rawTitle = task.getTitle().replaceAll("[^a-zA-Z0-9\\s]", "").trim(); // erase dangerous chars
         String filenameBase = rawTitle.isEmpty() ? ("tarea_" + id) : rawTitle;
@@ -233,8 +243,13 @@ public class TaskRestController {
             document.close();
         }
 
-        // Saves name in BBDD
-        taskService.saveFileName(id, finalFilename);
+        // Save in DB
+        TaskRequestDTO taskRequest = new TaskRequestDTO(task.getTitle(), task.getDescription(), task.getProjectId(), task.getOwnerId());
+        taskRequest.setFilename(finalFilename);
+        taskRequest.setLastReportGenerated(LocalDateTime.now());
+
+        taskService.updateTask(id, taskRequest);
+
 
         // Returns file as a download
         Resource resource = new UrlResource(finalPath.toUri());

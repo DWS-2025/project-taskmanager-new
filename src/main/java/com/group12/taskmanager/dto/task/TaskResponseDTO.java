@@ -1,5 +1,7 @@
 package com.group12.taskmanager.dto.task;
 
+import java.time.LocalDateTime;
+
 public class TaskResponseDTO {
     private int id;
     private String title;
@@ -8,6 +10,7 @@ public class TaskResponseDTO {
     private final int projectId;
     private final int ownerId;
     private String filename;
+    private LocalDateTime lastReportGenerated;
 
     public TaskResponseDTO(String title, boolean hasImage, int projectId, int ownerId) {
         this.title = title;
@@ -15,8 +18,10 @@ public class TaskResponseDTO {
         this.projectId = projectId;
         this.ownerId = ownerId;
         this.filename = null;
+        this.lastReportGenerated = null;
     }
-    public TaskResponseDTO(int id, String title, String description, boolean hasImage, int projectId, int ownerId, String filename) {
+    public TaskResponseDTO(int id, String title, String description, boolean hasImage,
+                           int projectId, int ownerId, String filename, LocalDateTime lastReportGenerated) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,6 +29,7 @@ public class TaskResponseDTO {
         this.projectId = projectId;
         this.ownerId = ownerId;
         this.filename = filename;
+        this.lastReportGenerated = lastReportGenerated;
     }
 
     public int getId() {
@@ -68,5 +74,13 @@ public class TaskResponseDTO {
 
     public String getFilename() {
         return filename;
+    }
+
+    public LocalDateTime getLastReportGenerated() {
+        return lastReportGenerated;
+    }
+
+    public void setLastReportGenerated(LocalDateTime lastReportGenerated) {
+        this.lastReportGenerated = lastReportGenerated;
     }
 }
