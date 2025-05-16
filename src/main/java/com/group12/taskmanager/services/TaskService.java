@@ -67,7 +67,7 @@ public class TaskService {
         if (project == null || owner == null) return null;
 
         // Malicious image validation
-        if (!dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
+        if (dto.getImage()!= null && !dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
             throw new IllegalArgumentException("Formato de imagen no soportado. Solo PNG o JPEG.");
         }
 

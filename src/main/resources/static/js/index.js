@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         authFetch(url, {
             method: method,
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 name: formData.get("name"),
                 groupId: formData.get("groupId")

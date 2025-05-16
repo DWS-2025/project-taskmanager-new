@@ -1,9 +1,7 @@
 package com.group12.taskmanager.config;
 
-import com.group12.taskmanager.security.JwtAuthenticationFilter;
-import com.group12.taskmanager.security.JwtCookieInterceptor;
-import com.group12.taskmanager.security.JwtUtil;
-import com.group12.taskmanager.security.UserDetailsServiceImpl;
+import com.group12.taskmanager.security.*;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 public class SecurityConfig {
@@ -38,13 +37,21 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtAuthenticationFilter jwtAuthenticationFilter,
                                            JwtCookieInterceptor jwtCookieInterceptor) throws Exception {
+
+
         return http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/api/auth/login")
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers( "/", "/login", "/projects", "/error", "/api/users",
                                 "/api/auth/**", "/css/**", "/js/**", "/img/**").permitAll() // ROLE_ANONYMOUS
-                        .requestMatchers("/project/**", "/user_groups", "/user_data", "/members/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/project/**", "/user_groups", "/user_data",
+                                "/members/**", "/csrf-token").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**", "/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

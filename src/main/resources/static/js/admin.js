@@ -6,8 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function fetchAndRenderUsers() {
         authFetch("/api/admin/users", {
-            method: "GET",
-            credentials: "same-origin"
+            method: "GET"
         })
             .then(res => {
                 if (!res.ok) throw new Error("No autorizado");

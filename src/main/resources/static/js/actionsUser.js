@@ -114,7 +114,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(data => {
                     localStorage.setItem("jwt", data.token);
                     document.cookie = `jwt=${data.token}; path=/; Max-Age=3600; Secure; SameSite=Strict`;
-                    window.location.href = "/projects"; // Redirección post-login
+                    setTimeout(() => {
+                        window.location.href = "/projects";
+                    }, 300);
                 })
                 .catch(err => alert("Error: " + err.message));
         });
