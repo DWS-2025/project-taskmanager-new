@@ -10,10 +10,27 @@ import com.group12.taskmanager.security.CustomUserDetails;
 import com.group12.taskmanager.services.ProjectService;
 import com.group12.taskmanager.services.TaskService;
 import com.group12.taskmanager.services.UserService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.Image;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.Font;
+import com.lowagie.text.html.simpleparser.HTMLWorker;
+import com.lowagie.text.Element;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 
 @RestController
@@ -110,10 +127,124 @@ public class TaskRestController {
     public ResponseEntity<TaskImageDTO> getImage(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         TaskResponseDTO task = taskService.findTaskById(id);
 
-        if (!verifyTaskAccess(task, userDetails))
+        if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         TaskImageDTO image = taskService.getImage(id);
         return (image != null) ? ResponseEntity.ok(image) : ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/{id}/file")
+    public ResponseEntity<Resource> downloadFile(@PathVariable int id,
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
+        TaskResponseDTO task = taskService.findTaskById(id);
+
+        if (!verifyTaskOwnership(task, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Path filePath = Paths.get("uploadedReports/tasks/" + id + "/" + task.getFilename());
+
+        if (!Files.exists(filePath))
+            return ResponseEntity.notFound().build();
+
+        Resource fileResource = new UrlResource(filePath.toUri());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + task.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(fileResource);
+    }
+
+    @GetMapping("/{id}/report")
+    public ResponseEntity<Resource> generateAndDownloadReport(@PathVariable int id,
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
+
+        TaskResponseDTO task = taskService.findTaskById(id);
+
+        if (!verifyTaskOwnership(task, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        String rawTitle = task.getTitle().replaceAll("[^a-zA-Z0-9\\s]", "").trim(); // erase dangerous chars
+        String filenameBase = rawTitle.isEmpty() ? ("tarea_" + id) : rawTitle;
+
+        Path folder = Paths.get("uploadedReports/tasks/" + id);
+        Files.createDirectories(folder);
+
+        int counter = 0;
+        String finalFilename;
+        Path finalPath;
+
+        do {
+            finalFilename = (counter == 0)
+                    ? filenameBase + ".pdf"
+                    : filenameBase + "(" + counter + ").pdf";
+            finalPath = folder.resolve(finalFilename);
+            counter++;
+        } while (Files.exists(finalPath));
+
+        // Generate PDF
+        try (OutputStream os = Files.newOutputStream(finalPath)) {
+            Document document = new Document();
+            PdfWriter.getInstance(document, os);
+            document.open();
+
+            // ---------- Title style ----------
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+            Paragraph title = new Paragraph(task.getTitle(), titleFont);
+            title.setAlignment(Paragraph.ALIGN_CENTER);
+            document.add(title);
+
+            document.add(new Paragraph(" "));
+
+            // ---------- Description with styles ----------
+            String htmlDescription = task.getDescription(); // contains HTML from Quill
+            try {
+                List<Element> htmlElements = HTMLWorker.parseToList(new StringReader(htmlDescription), null);
+                for (Element e : htmlElements) {
+                    document.add(e);
+                }
+            } catch (Exception e) {
+                document.add(new Paragraph("[Error al procesar la descripción enriquecida]"));
+            }
+
+            document.add(new Paragraph(" "));
+
+            // ---------- Image ----------
+            if (task.getHasImage()) {
+                TaskImageDTO imageDTO = taskService.getImage(id);
+                if (imageDTO != null && imageDTO.base64() != null) {
+                    try {
+                        String base64 = imageDTO.base64();
+                        if (base64.contains(",")) {
+                            base64 = base64.split(",")[1];
+                        }
+                        byte[] imageBytes = Base64.getDecoder().decode(base64);
+                        Image img = Image.getInstance(imageBytes);
+                        img.scaleToFit(400, 400);
+                        img.setAlignment(Image.ALIGN_CENTER);
+                        document.add(img);
+                    } catch (Exception e) {
+                        document.add(new Paragraph("[Error al insertar imagen]"));
+                    }
+                }
+            }
+
+            document.close();
+        }
+
+        // Saves name in BBDD
+        taskService.saveFileName(id, finalFilename);
+
+        // Returns file as a download
+        Resource resource = new UrlResource(finalPath.toUri());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + finalFilename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(resource);
+    }
+
+
+
 }

@@ -32,6 +32,9 @@ public class Task {
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
 
+    @Column(name = "filename")
+    private String filename;
+
     // Default constructor (required by JPA)
     public Task() {
     }
@@ -97,5 +100,13 @@ public class Task {
 
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String originalFilename) {
+        this.filename = originalFilename;
     }
 }

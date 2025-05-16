@@ -146,6 +146,12 @@ public class TaskService {
         return new TaskImageDTO(encoded);
     }
 
+    public void saveFileName(int taskId, String filename) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+        task.setFilename(filename);
+        taskRepository.save(task);
+    }
+
     public List<TaskResponseDTO> searchTasks(TaskResponseDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
         if (project == null) return List.of();
@@ -175,7 +181,8 @@ public class TaskService {
                 task.getDescription(),
                 task.getImage() != null,
                 task.getProject().getId(),
-                task.getOwner().getId()
+                task.getOwner().getId(),
+                task.getFilename()
         );
     }
 

@@ -30,6 +30,16 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", handleEditTask);
         });
 
+        document.querySelectorAll(".btnGetLastReport").forEach(button => {
+            button.removeEventListener("click", handleGetLatestReport);
+            button.addEventListener("click", handleGetLatestReport);
+        });
+
+        document.querySelectorAll(".btnGenerateReport").forEach(button => {
+            button.removeEventListener("click", handleGenerateReport);
+            button.addEventListener("click", handleGenerateReport);
+        });
+
         // For modal closing when clicking outside
         document.querySelectorAll(".modal").forEach(modal => {
             modal.removeEventListener("mousedown", handleModalMouseDown);
@@ -145,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => alert("Error saving/updating task"));
     }
+
     function handleEditTask(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
 
@@ -178,6 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         modalTask.style.display = "flex";
     }
+
     function handleDeleteTask(event) {
         const taskId = event.target.dataset.taskid;
         if (!taskId) {
@@ -210,6 +222,69 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Request error:", error));
 
     }
+
+    function handleGetLatestReport(event) {
+        const taskId = event.currentTarget.dataset.taskid;
+
+        authFetch(`/api/tasks/${taskId}/file`, {
+            method: "HEAD"
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Open in a new tab
+                    window.open(`/api/tasks/${taskId}/file`, "_blank");
+                } else if (response.status === 404) {
+                    alert("Informe no encontrado en disco. Genera uno nuevo.");
+                } else if (response.status === 401) {
+                    alert("No tienes permiso para ver este informe.");
+                } else {
+                    alert("Error al acceder al informe.");
+                }
+            })
+            .catch(error => {
+                console.error("Error comprobando informe:", error);
+                alert("Error al comprobar si existe el informe.");
+            });
+    }
+
+
+    function handleGenerateReport(event) {
+        const taskId = event.currentTarget.dataset.taskid;
+
+        authFetch(`/api/tasks/${taskId}/report`, {
+            method: "GET"
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert("No tienes permiso.");
+                    } else {
+                        alert("Error generando el informe.");
+                    }
+                    throw new Error("Error generando informe");
+                }
+                return response.blob().then(blob => {
+                    const contentDisposition = response.headers.get("Content-Disposition");
+                    let filename = "informe.pdf";
+                    if (contentDisposition && contentDisposition.includes("filename=")) {
+                        filename = contentDisposition.split("filename=")[1].replace(/"/g, "");
+                    }
+
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    window.open(blobUrl, '_blank');
+                });
+            })
+            .catch(err => console.error("Error:", err));
+    }
+
+
 
     /**
      * @typedef {Object} Task

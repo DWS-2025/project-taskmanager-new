@@ -55,6 +55,10 @@
                             <h2>{{title}}</h2>
                             <button class="btnDeleteTask" data-taskid="{{id}}">Eliminar Tarea</button>
                             <button class="btnEditTask" data-taskid="{{id}}">Editar Tarea</button>
+                            {{#filename}}
+                                <button class="btnGetLastReport" data-taskid="{{id}}">Abrir Último Informe</button>
+                            {{/filename}}
+                            <button class="btnGenerateReport" data-taskid="{{id}}">Generar Nuevo Informe</button>
                         </div>
                     </div>
                 </li>

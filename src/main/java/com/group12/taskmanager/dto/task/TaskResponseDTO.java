@@ -7,20 +7,23 @@ public class TaskResponseDTO {
     private final boolean hasImage;
     private final int projectId;
     private final int ownerId;
+    private String filename;
 
     public TaskResponseDTO(String title, boolean hasImage, int projectId, int ownerId) {
         this.title = title;
         this.hasImage = hasImage;
         this.projectId = projectId;
         this.ownerId = ownerId;
+        this.filename = null;
     }
-    public TaskResponseDTO(int id, String title, String description, boolean hasImage, int projectId, int ownerId) {
+    public TaskResponseDTO(int id, String title, String description, boolean hasImage, int projectId, int ownerId, String filename) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.hasImage = hasImage;
         this.projectId = projectId;
         this.ownerId = ownerId;
+        this.filename = filename;
     }
 
     public int getId() {
@@ -57,5 +60,13 @@ public class TaskResponseDTO {
 
     public int getOwnerId() {
         return ownerId;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public String getFilename() {
+        return filename;
     }
 }
