@@ -4,6 +4,7 @@ import com.group12.taskmanager.dto.project.ProjectResponseDTO;
 import com.group12.taskmanager.dto.task.TaskRequestDTO;
 import com.group12.taskmanager.dto.task.TaskResponseDTO;
 import com.group12.taskmanager.dto.task.TaskImageDTO;
+import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
 import com.group12.taskmanager.models.User;
@@ -11,6 +12,9 @@ import com.group12.taskmanager.repositories.ProjectRepository;
 import com.group12.taskmanager.repositories.TaskRepository;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.stereotype.Service;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist; // o Whitelist en versiones antiguas
+
 
 import java.util.Base64;
 import java.util.List;
@@ -22,6 +26,11 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private static final Safelist CUSTOM_SAFELIST = new Safelist()
+            .addTags("b", "i", "u", "em", "strong", "p", "ul", "ol", "li", "a")
+            .addAttributes("a", "href", "title")
+            .addProtocols("a", "href", "http", "https");
+
 
     public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
@@ -52,9 +61,9 @@ public class TaskService {
         return taskRepository.findByProject(project);
     }
 
-    public TaskResponseDTO addTask(TaskRequestDTO dto) {
+    public TaskResponseDTO addTask(TaskRequestDTO dto, UserResponseDTO userDTO) {
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
-        User owner = userRepository.findById(dto.getOwnerId()).orElse(null);
+        User owner = userRepository.findByEmail(userDTO.getEmail()).orElse(null);
         if (project == null || owner == null) return null;
 
         byte[] imageBytes = null;
@@ -71,7 +80,8 @@ public class TaskService {
 
         Task task = new Task();
         task.setTitle(dto.getTitle());
-        task.setDescription(dto.getDescription());
+        String cleanDescription = Jsoup.clean(dto.getDescription(), CUSTOM_SAFELIST); // <-- Rich text field disinfection
+        task.setDescription(cleanDescription);
         task.setProject(project);
         task.setImage(imageBytes); // Set image data
         task.setOwner(owner);
@@ -85,7 +95,12 @@ public class TaskService {
         if (task == null) return null;
 
         if (dto.getTitle() != null) task.setTitle(dto.getTitle());
-        if (dto.getDescription() != null) task.setDescription(dto.getDescription());
+
+        if (dto.getDescription() != null) {
+            String cleanDescription = Jsoup.clean(dto.getDescription(), CUSTOM_SAFELIST);  // <-- Rich text field disinfection
+            task.setDescription(cleanDescription);
+        }
+
         if (dto.getImage() != null) {
             byte[] imageBytes = null;
             if (!dto.getImage().isEmpty()) {

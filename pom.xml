@@ -83,6 +83,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!--This dependency sanitizes the rich text field's content -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.17.2</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

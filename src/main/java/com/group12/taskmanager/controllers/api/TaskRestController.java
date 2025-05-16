@@ -65,7 +65,8 @@ public class TaskRestController {
         if (!verifyProjectAccess(project, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        TaskResponseDTO created = taskService.addTask(dto);
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        TaskResponseDTO created = taskService.addTask(dto, currentUser);
         if (created == null) return ResponseEntity.badRequest().build();
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }

@@ -5,6 +5,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const projectID = document.getElementById("project-info").dataset.projectid;
     const fileInput = document.getElementById('fileInput');
     const fileName = document.getElementById('fileName');
+    const quill = new Quill('#quill-editor', {
+        theme: 'snow'
+    });
+
 
     let currentTaskId = null;
     let clickInsideModal = false;
@@ -59,11 +63,13 @@ document.addEventListener("DOMContentLoaded", function () {
     formNewTask.addEventListener("submit", function (event) {
         event.preventDefault();
 
+        const description = document.getElementById("description").value = DOMPurify.sanitize(quill.root.innerHTML);
+
         const formData = new FormData(formNewTask);
         const file = formData.get("image");
         const body = {
             title: formData.get("title"),
-            description: formData.get("description"),
+            description: description,
             projectId: parseInt(projectID)
         };
         if (file instanceof File && file.size > 0) {
@@ -144,13 +150,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const taskItem = event.currentTarget.closest(".task-item");
         const title = taskItem.querySelector(".task-content b").innerText;
-        const description = taskItem.querySelector(".task-content").textContent.split(":")[1]?.trim() || "";
+        const description = taskItem.querySelector(".task-content p")?.innerHTML || "";
 
         const imageElement = taskItem.querySelector(".task-image");
         const imagePath = imageElement ? imageElement.style.backgroundImage.replace('url("', '').replace('")', '') : "";
 
         formNewTask.querySelector("input[name='title']").value = title;
-        formNewTask.querySelector("textarea[name='description']").value = description;
+        quill.root.innerHTML = description;
         formNewTask.querySelector("input[name='image']").value = null;
 
         let hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");
