@@ -50,10 +50,6 @@ public class TaskRestController {
         this.userService = userService;
     }
 
-    private boolean verifyTaskAccess(TaskResponseDTO task, CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
-        return accessManager.checkTaskAccess(task, currentUser);
-    }
     private boolean verifyProjectAccess(ProjectResponseDTO project, CustomUserDetails userDetails) {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkProjectAccess(project, currentUser);

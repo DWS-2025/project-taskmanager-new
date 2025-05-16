@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers( "/", "/login", "/projects", "/error", "/api/users",
-                                "/api/auth/**", "/css/**", "/js/**", "/img/**").permitAll()
+                                "/api/auth/**", "/css/**", "/js/**", "/img/**").permitAll() // ROLE_ANONYMOUS
                         .requestMatchers("/project/**", "/user_groups", "/user_data", "/members/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**", "/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()

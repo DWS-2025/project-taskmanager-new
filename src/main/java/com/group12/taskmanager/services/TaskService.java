@@ -53,12 +53,12 @@ public class TaskService {
     public List<TaskResponseDTO> getProjectTasks(ProjectResponseDTO dto) {
         Project project = projectRepository.findById(dto.getId()).orElse(null);
         if (project == null) return null;
-        return taskRepository.findByProject(project).stream()
+        return taskRepository.findByProjectId(project.getId()).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
     public List<Task> getProjectTasksRaw(Project project) {
-        return taskRepository.findByProject(project);
+        return taskRepository.findByProjectId(project.getId());
     }
 
     public TaskResponseDTO addTask(TaskRequestDTO dto, UserResponseDTO userDTO) {
@@ -109,7 +109,7 @@ public class TaskService {
         }
 
         // Malicious image validation
-        if (!dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
+        if ( dto.getImage() != null && !dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
             throw new IllegalArgumentException("Formato de imagen no soportado. Solo PNG o JPEG.");
         }
 
@@ -166,7 +166,7 @@ public class TaskService {
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
         if (project == null) return List.of();
 
-        return taskRepository.findByProject(project).stream()
+        return taskRepository.findByProjectId(project.getId()).stream()
                 .filter(t -> {
                     boolean matchesImage = true;
                     if (Boolean.TRUE.equals(dto.getHasImage())) {

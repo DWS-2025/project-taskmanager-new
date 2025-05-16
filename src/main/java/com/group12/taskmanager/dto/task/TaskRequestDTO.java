@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public class TaskRequestDTO {
     private String title;
-    private final String description;
-    private final int projectId;
+    private String description;
+    private int projectId;
     private String image;
     private int ownerId;
     private String filename;

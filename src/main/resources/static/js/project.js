@@ -60,7 +60,8 @@ document.addEventListener("DOMContentLoaded", function () {
         currentTaskId = null;
 
         formNewTask.querySelector("input[name='title']").value = "";
-        formNewTask.querySelector("textarea[name='description']").value = "";
+        quill.setContents([]); //
+        formNewTask.querySelector("input[name='description']").value = "";
         formNewTask.querySelector("input[name='image']").value = "";
 
         const hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");
@@ -123,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function sendTask(body) {
-        body.ownerId = document.body.dataset.userid;
+        body.ownerId = parseInt(document.body.dataset.userid, 10);
 
         let url = "/api/tasks";
         let method = "POST";
@@ -155,7 +156,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => alert("Error saving/updating task"));
     }
-
     function handleEditTask(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
 
@@ -189,7 +189,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         modalTask.style.display = "flex";
     }
-
     function handleDeleteTask(event) {
         const taskId = event.target.dataset.taskid;
         if (!taskId) {
@@ -233,6 +232,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (response.ok) {
                     // Open in a new tab
                     window.open(`/api/tasks/${taskId}/file`, "_blank");
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
                 } else if (response.status === 404) {
                     alert("Informe no encontrado en disco. Genera uno nuevo.");
                 } else if (response.status === 401) {
@@ -246,8 +249,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("Error al comprobar si existe el informe.");
             });
     }
-
-
     function handleGenerateReport(event) {
         const taskId = event.currentTarget.dataset.taskid;
 
@@ -279,12 +280,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.body.removeChild(link);
 
                     window.open(blobUrl, '_blank');
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
                 });
             })
             .catch(err => console.error("Error:", err));
     }
-
-
 
     /**
      * @typedef {Object} Task

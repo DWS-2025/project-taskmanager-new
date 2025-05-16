@@ -97,7 +97,6 @@ public class UserRestController {
 
     @DeleteMapping("/{userName}")
     public ResponseEntity<?> deleteUser(@PathVariable String userName, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         UserResponseDTO deleted = userService.findUserByEmail(userName);
         if (!accessManager.checkAdminCredentials(deleted)) { // validation for admin, admin can't be deleted
             if (!verifyUserAccess(deleted, userDetails))
