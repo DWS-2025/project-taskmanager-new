@@ -32,11 +32,11 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    alert("Usuario actualizado correctamente")
+                    alert("Usuario registrado correctamente")
                     logout();
                 } else {
                     return response.text().then(msg => {
-                        alert(`Error: ${msg || "No se pudo actualizar el usuario"}`);
+                        alert(`Error: ${msg || "No se pudo registrar el usuario"}`);
                     });
                 }
             })
@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function sendEditUserData(event) {
+        const currentUserId = document.body.dataset.userid;
         event.preventDefault();
 
         let url = `/api/users/${currentUserId}`
@@ -59,7 +60,8 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = "/";
+                    alert("Datos actualizados correctamente")
+                    window.location.href = "/projects";
                 } else {
                     return response.text().then(msg => {
                         alert(`Error: ${msg || "No se pudo actualizar el usuario"}`);

@@ -6,8 +6,10 @@ import com.group12.taskmanager.dto.task.TaskResponseDTO;
 import com.group12.taskmanager.dto.task.TaskImageDTO;
 import com.group12.taskmanager.models.Project;
 import com.group12.taskmanager.models.Task;
+import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.ProjectRepository;
 import com.group12.taskmanager.repositories.TaskRepository;
+import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
@@ -19,10 +21,12 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
     }
 
     public List<TaskResponseDTO> getAllTasks() {
@@ -50,7 +54,8 @@ public class TaskService {
 
     public TaskResponseDTO addTask(TaskRequestDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
-        if (project == null) return null;
+        User owner = userRepository.findById(dto.getOwnerId()).orElse(null);
+        if (project == null || owner == null) return null;
 
         byte[] imageBytes = null;
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
@@ -69,6 +74,7 @@ public class TaskService {
         task.setDescription(dto.getDescription());
         task.setProject(project);
         task.setImage(imageBytes); // Set image data
+        task.setOwner(owner);
 
         Task saved = taskRepository.save(task);
         return toDTO(saved);
@@ -153,7 +159,8 @@ public class TaskService {
                 task.getTitle(),
                 task.getDescription(),
                 task.getImage() != null,
-                task.getProject().getId()
+                task.getProject().getId(),
+                task.getOwner().getId()
         );
     }
 

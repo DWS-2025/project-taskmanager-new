@@ -1,6 +1,9 @@
 package com.group12.taskmanager.controllers;
 
 import com.group12.taskmanager.config.GlobalConstants;
+import com.group12.taskmanager.config.exceptions.ForbiddenAccessException;
+import com.group12.taskmanager.dto.project.ProjectResponseDTO;
+import com.group12.taskmanager.security.AccessManager;
 import com.group12.taskmanager.security.AuthenticatedUserProvider;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
@@ -26,15 +29,17 @@ public class ProjectController {
     private final UserService userService;
     private final GlobalConstants globalConstants;
     private final AuthenticatedUserProvider auth;
+    private final AccessManager accessManager;
 
     public ProjectController(ProjectService projectService, TaskService taskService, GroupService groupService,
-                             UserService userService, GlobalConstants globalConstants, AuthenticatedUserProvider auth) {
+                             UserService userService, GlobalConstants globalConstants, AuthenticatedUserProvider auth, AccessManager accessManager) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.groupService = groupService;
         this.userService = userService;
         this.globalConstants = globalConstants;
         this.auth = auth;
+        this.accessManager = accessManager;
     }
 
     @GetMapping("/projects")
@@ -73,8 +78,10 @@ public class ProjectController {
     public String getProjectById(@PathVariable int id, Model model) {
         UserResponseDTO user = auth.getCurrentUser();
         Project project = projectService.findProjectByIdRaw(id);
+        ProjectResponseDTO projectDTO = projectService.findProjectById(id);
 
-        projectService.checkAccess(project, user);
+        if (!accessManager.checkProjectAccess(projectDTO, user))
+            throw new ForbiddenAccessException("No tienes permiso para acceder a este proyecto.");
 
         List<Task> tasks = taskService.getProjectTasksRaw(project);
         for (Task task : tasks) {
@@ -84,6 +91,7 @@ public class ProjectController {
             }
         }
 
+        model.addAttribute("user", user);
         model.addAttribute("idproject", project.getId());
         model.addAttribute("tasks", tasks);
         return "project";

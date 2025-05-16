@@ -140,4 +140,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const btnBack = document.getElementById("btnBack");
+    if (btnBack) {
+        btnBack.addEventListener("click", () => {
+            const url = "/projects";
+            authFetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error("No autorizado");
+                    return res.text();
+                })
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    window.history.pushState({}, "", url);
+                })
+                .catch(err => {
+                    console.error("Error al volver a /projects:", err);
+                    alert("No autorizado o error de carga.");
+                });
+        });
+    }
+
 });

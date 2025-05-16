@@ -184,12 +184,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .then(data => {
                     if (data.success) {
-                        console.log("Member successfully removed");
+                        alert("Member successfully removed");
                         document.querySelector(`[data-userid='${userId}']`).remove();
-                        if (data.message === "own") {
-                            // If an admin removes themselves from a group
-                            window.location.href = `/members/${groupId}`;
-                        }
                     } else {
                         alert(data.message);
                     }

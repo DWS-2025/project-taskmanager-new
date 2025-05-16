@@ -18,7 +18,7 @@ public class Task {
     private String description;
 
     @Lob // Specifies that this is a large object (LOB), typically for storing binary data
-    @Column(name = "image") // Maps to "image" column, stores image as byte array (BLOB)
+    @Column(name = "image", columnDefinition = "LONGBLOB") // Maps to "image" column, stores image as byte array (BLOB)
     private byte[] image;
 
     @ManyToOne // Many tasks can belong to one project
@@ -27,6 +27,10 @@ public class Task {
 
     @Transient // This field is not persisted to the database
     private String imageBase64; // Helper field to store image as a Base64 string (for frontend or APIs)
+
+    @ManyToOne
+    @JoinColumn(name = "owner", nullable = false)
+    private User owner;
 
     // Default constructor (required by JPA)
     public Task() {
@@ -85,5 +89,13 @@ public class Task {
 
     public void setImageBase64(String imageBase64) {
         this.imageBase64 = imageBase64;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 }

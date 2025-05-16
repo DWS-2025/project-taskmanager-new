@@ -107,6 +107,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function sendTask(body) {
+        body.ownerId = document.body.dataset.userid;
+
         let url = "/api/tasks";
         let method = "POST";
         if (currentTaskId) {
@@ -119,12 +121,23 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 401) {
+                    alert("No estás autorizado para " + (method === "POST" ? "crear" : "editar") + " esta tarea.");
+                    throw new Error("UNAUTHORIZED");
+                }
+                if (!response.ok) {
+                    return response.text().then(msg => {
+                        throw new Error(msg || "Error inesperado");
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log(data);
                 location.reload(); // Reload page to show new task
             })
-            .catch(error => console.error("Error saving/updating task:", error));
+            .catch(error => alert("Error saving/updating task"));
     }
     function handleEditTask(event) {
         currentTaskId = event.currentTarget.dataset.taskid;
@@ -180,11 +193,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     setTimeout(() => {
                         taskItem.remove();
                     }, 300);
+                } else if (response.status === 401) {
+                    alert("No tienes permiso para eliminar esta tarea.");
+                } else if (response.status === 404) {
+                    alert("Tarea no encontrada.");
                 } else {
                     console.error("Error deleting task:", response.status);
                 }
             })
             .catch(error => console.error("Request error:", error));
+
     }
 
     /**

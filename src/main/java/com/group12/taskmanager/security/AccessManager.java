@@ -38,7 +38,7 @@ public class AccessManager {
         return isOwner || isMember || isAdmin;
     }
     public boolean checkGroupOwnership(GroupResponseDTO group, UserResponseDTO user) {
-        return group.getOwnerId() == user.getId();
+        return group.getOwnerId() == user.getId() || user.getRole().equals(globalConstants.getAdminRole());
     }
 
     public boolean checkProjectAccess(ProjectResponseDTO project, UserResponseDTO user) {
@@ -53,6 +53,9 @@ public class AccessManager {
     public boolean checkTaskAccess(TaskResponseDTO task, UserResponseDTO user) {
         ProjectResponseDTO project = projectService.findProjectById(task.getProjectId());
         return checkProjectAccess(project, user);
+    }
+    public boolean checkTaskOwnership(TaskResponseDTO task, UserResponseDTO user) {
+        return user.getId() == task.getOwnerId() || user.getRole().equals(globalConstants.getAdminRole());
     }
 
 }

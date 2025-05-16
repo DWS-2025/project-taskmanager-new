@@ -40,6 +40,10 @@ public class TaskRestController {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkProjectAccess(project, currentUser);
     }
+    private boolean verifyTaskOwnership(TaskResponseDTO task, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkTaskOwnership(task, currentUser);
+    }
 
     @GetMapping("/search")
     public ResponseEntity<List<TaskResponseDTO>> searchTasks(@RequestParam(required = false) String title,
@@ -50,7 +54,7 @@ public class TaskRestController {
         if (!verifyProjectAccess(project, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        TaskResponseDTO dto = new TaskResponseDTO(title, hasImage, projectID);
+        TaskResponseDTO dto = new TaskResponseDTO(title, hasImage, projectID, 0);
         return ResponseEntity.ok(taskService.searchTasks(dto));
     }
 
@@ -71,7 +75,7 @@ public class TaskRestController {
                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         TaskResponseDTO task = taskService.findTaskById(id);
 
-        if (!verifyTaskAccess(task, userDetails))
+        if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         TaskResponseDTO updated = taskService.updateTask(id, dto);
@@ -82,7 +86,7 @@ public class TaskRestController {
     public ResponseEntity<Void> deleteTask(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         TaskResponseDTO task = taskService.findTaskById(id);
 
-        if (!verifyTaskAccess(task, userDetails))
+        if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         boolean removed = taskService.removeTask(task);
@@ -94,7 +98,7 @@ public class TaskRestController {
                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         TaskResponseDTO task = taskService.findTaskById(id);
 
-        if (!verifyTaskAccess(task, userDetails))
+        if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         boolean success = taskService.uploadImage(id, dto);

@@ -130,17 +130,4 @@ public class ProjectService {
         return dto;
     }
 
-    public void checkAccess(Project project, UserResponseDTO user) {
-        if (project == null) {
-            throw new IllegalArgumentException("El proyecto no existe.");
-        }
-
-        boolean isOwner = user.getRole().equals(globalConstants.getAdminRole()) ||
-                user.getId() == project.getGroup().getOwner().getId();
-
-        if (!isOwner) {
-            throw new ForbiddenAccessException("No tienes permiso para acceder a este proyecto.");
-        }
-    }
-
 }
