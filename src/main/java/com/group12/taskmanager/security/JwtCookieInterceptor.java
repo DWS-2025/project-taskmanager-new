@@ -14,12 +14,12 @@ public class JwtCookieInterceptor extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Si ya hay Authorization, no tocamos nada
+        // If there´s already an authorization, then nothing
         if (request.getHeader("Authorization") == null) {
             if (request.getCookies() != null) {
                 for (Cookie cookie : request.getCookies()) {
                     if ("jwt".equals(cookie.getName())) {
-                        // Inyectamos el header Authorization en la request
+                        // request's Authorization's header injection
                         request = new HttpServletRequestWrapper(request) {
                             @Override
                             public String getHeader(String name) {

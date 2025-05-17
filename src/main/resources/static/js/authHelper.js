@@ -6,14 +6,15 @@ async function getCookieToken() {
 }
 
 window.authFetch = async function authFetch(url, options = {}) {
-    const token = localStorage.getItem("jwt");
+    // const token = localStorage.getItem("jwt"); <-- For Authorization Bearer
     const method = (options.method || "GET").toUpperCase();
 
     const headers = new Headers(options.headers || {});
-
+     /*
     if (token) {
         headers.set("Authorization", `Bearer ${token}`);
     }
+      */
 
     if (method !== "GET") {
         const csrfToken = await getCookieToken();
@@ -31,8 +32,13 @@ window.authFetch = async function authFetch(url, options = {}) {
 };
 
 window.logout = function logout() {
-    localStorage.removeItem("jwt");
-    document.cookie = "jwt=; path=/; Max-Age=0";
-    window.location.replace("/login");
+    //localStorage.removeItem("jwt");
+    fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin"
+    })
+        .finally(() => {
+            window.location.replace("/login");
+        });
 };
 

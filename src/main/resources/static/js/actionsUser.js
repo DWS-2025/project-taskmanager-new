@@ -122,11 +122,13 @@ document.addEventListener("DOMContentLoaded", function () {
             })
                 .then(response => {
                     if (!response.ok) throw new Error("Credenciales incorrectas");
-                    return response.json();
+                    return response.text();
                 })
-                .then(data => {
-                    localStorage.setItem("jwt", data.token);
-                    document.cookie = `jwt=${data.token}; path=/; Max-Age=3600; Secure; SameSite=Strict`;
+                .then(() => {
+                    /* Authorization Bearer method:
+                    localStorage.setItem("jwt", data.jwt);
+                    document.cookie = `jwt=${data.jwt}; path=/; Max-Age=3600; Secure; SameSite=Strict`;
+                    */
                     setTimeout(() => {
                         window.location.href = "/projects";
                     }, 300);
