@@ -204,4 +204,31 @@ public class TaskService {
         );
     }
 
+    // Secure URL fetch method
+    /*
+    public void fetchUserProvidedUrl(String userInputUrl) throws Exception {
+        URL url = new URL(userInputUrl);
+
+        if (!url.getProtocol().equals("http") && !url.getProtocol().equals("https")) {
+            throw new IllegalArgumentException("Protocolo no permitido");
+        }
+
+        if (isInternalAddress(url)) {
+            throw new IllegalArgumentException("Destino interno bloqueado");
+        }
+
+        List<String> allowedDomains = List.of("miweb.com", "api.segura.com");
+        String host = url.getHost().toLowerCase();
+        if (allowedDomains.stream().noneMatch(host::endsWith)) {
+            throw new IllegalArgumentException("Dominio no permitido");
+        }
+
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(3000);
+        conn.setReadTimeout(3000);
+        conn.connect();
+
+    }
+    */
+
 }
