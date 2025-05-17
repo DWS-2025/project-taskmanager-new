@@ -84,7 +84,7 @@ public class TaskService {
         }
 
         Task task = new Task();
-        task.setTitle(dto.getTitle());
+        if (dto.getTitle() != null) task.setTitle(Jsoup.clean(dto.getTitle(), Safelist.none()));
         String cleanDescription = Jsoup.clean(dto.getDescription(), CUSTOM_SAFELIST); // <-- Rich text field disinfection
         task.setDescription(cleanDescription);
         task.setProject(project);
@@ -101,7 +101,7 @@ public class TaskService {
         Task task = taskRepository.findById(id).orElse(null);
         if (task == null) return null;
 
-        if (dto.getTitle() != null) task.setTitle(dto.getTitle());
+        if (dto.getTitle() != null) task.setTitle(Jsoup.clean(dto.getTitle(), Safelist.none()));
 
         if (dto.getDescription() != null) {
             String cleanDescription = Jsoup.clean(dto.getDescription(), CUSTOM_SAFELIST);  // <-- Rich text field disinfection
@@ -128,7 +128,10 @@ public class TaskService {
             task.setImage(imageBytes);
         }
 
-        if (dto.getFilename() != null) task.setFilename(dto.getFilename());
+        if (dto.getFilename() != null) {
+            String safeFilename = Jsoup.clean(dto.getFilename(), Safelist.none());
+            task.setFilename(safeFilename);
+        }
 
         if (dto.getLastReportGenerated() != null) task.setLastReportGenerated(dto.getLastReportGenerated());
 
@@ -166,6 +169,10 @@ public class TaskService {
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
         if (project == null) return List.of();
 
+        String filterTitle = dto.getTitle() != null
+                ? Jsoup.clean(dto.getTitle(), Safelist.none()).toLowerCase()
+                : null;
+
         return taskRepository.findByProjectId(project.getId()).stream()
                 .filter(t -> {
                     boolean matchesImage = true;
@@ -174,8 +181,8 @@ public class TaskService {
                     }
 
                     boolean matchesTitle = true;
-                    if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
-                        matchesTitle = t.getTitle().toLowerCase().contains(dto.getTitle().toLowerCase());
+                    if (filterTitle != null && !filterTitle.isBlank()) {
+                        matchesTitle = t.getTitle().toLowerCase().contains(filterTitle.toLowerCase());
                     }
 
                     return matchesImage && matchesTitle;

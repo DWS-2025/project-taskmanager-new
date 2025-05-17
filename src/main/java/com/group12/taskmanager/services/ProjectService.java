@@ -13,6 +13,8 @@ import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.ProjectRepository;
 import com.group12.taskmanager.repositories.UserRepository;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -61,8 +63,10 @@ public class ProjectService {
         Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
         if (group == null) return null;
 
+        String safeName = Jsoup.clean(dto.getName(), Safelist.none());
+
         Project project = new Project();
-        project.setName(dto.getName());
+        project.setName(safeName);
         project.setGroup(group);
 
         return toDTO(projectRepository.save(project));
@@ -73,7 +77,10 @@ public class ProjectService {
         Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
         if (project == null || group == null) return null;
 
-        if (dto.getName() != null) project.setName(dto.getName());
+        if (dto.getName() != null) {
+            String safeName = Jsoup.clean(dto.getName(), Safelist.none());
+            project.setName(safeName);
+        }
         if (dto.getGroupId() != 0) project.setGroup(group);
 
         return toDTO(projectRepository.save(project));

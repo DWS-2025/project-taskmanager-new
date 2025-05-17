@@ -8,6 +8,8 @@ import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.GroupRepository;
 import com.group12.taskmanager.repositories.UserRepository;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -62,7 +64,9 @@ public class GroupService {
         User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
         if (owner == null) return null;
 
-        Group group = new Group(dto.getName(), owner);
+        String safeName = dto.getName() != null ? Jsoup.clean(dto.getName(), Safelist.none()) : null;
+
+        Group group = new Group(safeName, owner);
         group.getUsers().add(owner);
 
         return toDTO(groupRepository.save(group));
@@ -73,7 +77,10 @@ public class GroupService {
         User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
         if (group == null || owner == null) return null;
 
-        if (dto.getName() != null) group.setName(dto.getName());
+        if (dto.getName() != null) {
+            String safeName = Jsoup.clean(dto.getName(), Safelist.none());
+            group.setName(safeName);
+        }
         if (dto.getOwnerID() != 0) group.setOwner(owner);
         return toDTO(groupRepository.save(group));
     }

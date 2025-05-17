@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const imagePath = imageElement ? imageElement.style.backgroundImage.replace('url("', '').replace('")', '') : "";
 
         formNewTask.querySelector("input[name='title']").value = title;
-        quill.root.innerHTML = description;
+        quill.root.innerHTML = DOMPurify.sanitize(description);
         formNewTask.querySelector("input[name='image']").value = null;
 
         let hiddenImageInput = formNewTask.querySelector("input[name='imagePath']");

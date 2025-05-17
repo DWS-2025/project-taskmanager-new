@@ -8,6 +8,8 @@ import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.models.Group;
 import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.UserRepository;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -76,10 +78,12 @@ public class UserService {
         }
         String bcryptHash = passwordEncoder.encode(rawPassword);
 
-        User user = new User(dto.getName(), dto.getEmail(), bcryptHash);
+        String safeName = Jsoup.clean(dto.getName(), Safelist.none());
+        String safeEmail = Jsoup.clean(dto.getEmail(), Safelist.none());
 
-        String email = dto.getEmail();
-        if (email.endsWith("@admin.com") && rawPassword.equals(globalConstants.getAdminPassword())) {
+        User user = new User(safeName, safeEmail, bcryptHash);
+
+        if (safeEmail.endsWith("@admin.com") && rawPassword.equals(globalConstants.getAdminPassword())) {
             user.setRole("ROLE_ADMIN");
         } else {
             user.setRole("ROLE_USER");
@@ -95,8 +99,14 @@ public class UserService {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) return null;
 
-        if (dto.getName() != null) user.setName(dto.getName());
-        if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+        if (dto.getName() != null) {
+            String safeName = Jsoup.clean(dto.getName(), Safelist.none());
+            user.setName(safeName);
+        }
+        if (dto.getEmail() != null) {
+            String safeEmail = Jsoup.clean(dto.getEmail(), Safelist.none());
+            user.setEmail(safeEmail);
+        }
         if (dto.getPassword() != null) {
             if (!dto.getPassword().matches("[a-fA-F0-9]{64}")) {         // sha256 validation
                 throw new IllegalArgumentException("El nuevo password debe estar en formato SHA256");
