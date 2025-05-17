@@ -16,7 +16,6 @@ import com.group12.taskmanager.services.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.*;
 
@@ -98,7 +97,10 @@ public class ProjectController {
     }
 
     @GetMapping("/admin")
-    public String goToAdminPanel(Model model) {
-        return "admin";
+    public String goToAdminPanel() {
+        UserResponseDTO currentUser = auth.getCurrentUser();
+        if (accessManager.checkAdminCredentials(currentUser))
+            return "admin";
+        return "redirect:/";
     }
 }
