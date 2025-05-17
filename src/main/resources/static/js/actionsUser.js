@@ -107,17 +107,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-
             const hashedPassword = await hashPassword(password);
+            const challenge = document.getElementById("loginChallenge")?.value;
 
-            authFetch("/api/auth/login", {
+
+            fetch("/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
                     username: email,
-                    password: hashedPassword
+                    password: hashedPassword,
+                    challenge: challenge
                 })
             })
                 .then(response => {

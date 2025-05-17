@@ -1,14 +1,14 @@
 package com.group12.taskmanager.controllers.api;
 
 import com.group12.taskmanager.dto.login.LoginRequest;
-import com.group12.taskmanager.dto.login.LoginResponse;
 import com.group12.taskmanager.security.JwtUtil;
+import com.group12.taskmanager.security.LoginChallengeService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,19 +17,25 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final LoginChallengeService loginChallengeService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, LoginChallengeService loginChallengeService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.loginChallengeService = loginChallengeService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
-        if (!request.getPassword().matches("[a-fA-F0-9]{64}")) {  // sha256 validation
-            return ResponseEntity.badRequest().body(null);
-        }
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
 
-        Authentication auth = authenticationManager.authenticate(
+        if (!request.getChallenge().equals(loginChallengeService.getCurrentChallenge()))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        if (!request.getPassword().matches("[a-fA-F0-9]{64}"))   // sha256 validation
+            return ResponseEntity.badRequest().body(null);
+
+
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),  // email
                         request.getPassword()   // 1 time hashed password

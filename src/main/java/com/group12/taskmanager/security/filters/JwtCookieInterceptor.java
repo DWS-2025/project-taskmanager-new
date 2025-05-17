@@ -1,4 +1,4 @@
-package com.group12.taskmanager.security;
+package com.group12.taskmanager.security.filters;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;

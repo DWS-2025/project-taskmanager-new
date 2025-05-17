@@ -6,6 +6,7 @@ import com.group12.taskmanager.dto.user.UserRequestDTO;
 import com.group12.taskmanager.dto.user.UserResponseDTO;
 import com.group12.taskmanager.security.AccessManager;
 import com.group12.taskmanager.security.CustomUserDetails;
+import com.group12.taskmanager.security.LoginChallengeService;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
 import org.springframework.http.*;
@@ -20,11 +21,13 @@ public class UserRestController {
     private final UserService userService;
     private final GroupService groupService;
     private final AccessManager accessManager;
+    private final LoginChallengeService loginChallengeService;
 
-    public UserRestController(UserService userService, GroupService groupService, AccessManager accessManager) {
+    public UserRestController(UserService userService, GroupService groupService, AccessManager accessManager, LoginChallengeService loginChallengeService) {
         this.userService = userService;
         this.groupService = groupService;
         this.accessManager = accessManager;
+        this.loginChallengeService = loginChallengeService;
     }
 
     private boolean verifyUserAccess(UserResponseDTO accessedUser, CustomUserDetails userDetails) {
@@ -47,6 +50,10 @@ public class UserRestController {
 
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody UserRequestDTO dto) {
+
+        if (!dto.getChallenge().equals(loginChallengeService.getCurrentChallenge()))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         if (userService.findUserByUsername(dto.getName()) != null)
             return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
         if (userService.findUserByEmail(dto.getEmail()) != null)

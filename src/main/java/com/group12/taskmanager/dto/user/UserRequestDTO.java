@@ -4,13 +4,15 @@ public class UserRequestDTO {
     private String name;
     private String email;
     private String password;
-    private String confirmPassword;
+    private final String confirmPassword;
+    private final String challenge;
 
     public UserRequestDTO(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.confirmPassword = password;
+        this.challenge = null;
     }
 
     public String getName() {
@@ -41,7 +43,7 @@ public class UserRequestDTO {
         return confirmPassword;
     }
 
-    public void setConfirmPassword(String confirmPassword) {
-        this.confirmPassword = confirmPassword;
+    public String getChallenge() {
+        return challenge;
     }
 }

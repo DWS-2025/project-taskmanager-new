@@ -31,6 +31,8 @@
             {{/error}}
 
             <form id="formLogin" class="login-form">
+                <input type="hidden" name="loginChallenge" value="{{loginChallenge}}">
+
                 <label for="email">Correo Electrónico:</label>
                 <input type="text" id="email" name="username" required>
 
@@ -47,6 +49,8 @@
             <h1>Registrarse</h1>
 
             <form id="formNewUser" action="/api/users" method="POST" class="register-form" autocomplete="off">
+                <input type="hidden" id="loginChallenge" value="{{loginChallenge}}">
+
                 <label for="new-username">Usuario:</label>
                 <input type="text" id="new-username" name="new_username" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
 

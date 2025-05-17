@@ -2,6 +2,8 @@ package com.group12.taskmanager.config;
 
 import com.group12.taskmanager.security.*;
 
+import com.group12.taskmanager.security.filters.JwtAuthenticationFilter;
+import com.group12.taskmanager.security.filters.JwtCookieInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,14 +20,14 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @Configuration
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
     }
     @Bean
@@ -58,6 +60,7 @@ public class SecurityConfig {
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(jwtCookieInterceptor, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                //.addFilterBefore(new CsrfLoggingFilter(), CsrfFilter.class)
                 .build();
     }
 
@@ -68,7 +71,7 @@ public class SecurityConfig {
                 .build();
     }
     @Bean
-    public DaoAuthenticationProvider authProvider(UserDetailsServiceImpl uds) {
+    public DaoAuthenticationProvider authProvider(UserDetailsService uds) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(uds);
         provider.setPasswordEncoder(passwordEncoder());
