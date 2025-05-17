@@ -71,8 +71,12 @@ public class UserService {
 
     public void createUser(UserRequestDTO dto) {
         String rawPassword = dto.getPassword();
-        String hashedPassword = passwordEncoder.encode(rawPassword);
-        User user = new User(dto.getName(), dto.getEmail(), hashedPassword);
+        if (!dto.getPassword().matches("[a-fA-F0-9]{64}")) {         // sha256 validation
+            throw new IllegalArgumentException("El nuevo password debe estar en formato SHA256");
+        }
+        String bcryptHash = passwordEncoder.encode(rawPassword);
+
+        User user = new User(dto.getName(), dto.getEmail(), bcryptHash);
 
         String email = dto.getEmail();
         if (email.endsWith("@admin.com") && rawPassword.equals(globalConstants.getAdminPassword())) {
@@ -93,7 +97,15 @@ public class UserService {
 
         if (dto.getName() != null) user.setName(dto.getName());
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null) user.setPassword(dto.getPassword());
+        if (dto.getPassword() != null) {
+            if (!dto.getPassword().matches("[a-fA-F0-9]{64}")) {         // sha256 validation
+                throw new IllegalArgumentException("El nuevo password debe estar en formato SHA256");
+            }
+            String bcryptHash = passwordEncoder.encode(dto.getPassword());
+            user.setPassword(bcryptHash);
+        } else {
+            dto.setPassword(user.getPassword());
+        }
         userRepository.save(user); // Hibernate handles insert vs. update
         return toDTO(user);
     }

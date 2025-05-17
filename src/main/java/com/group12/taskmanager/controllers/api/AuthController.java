@@ -23,8 +23,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        if (!request.getPassword().matches("[a-fA-F0-9]{64}")) {  // sha256 validation
+            return ResponseEntity.badRequest().body(null);
+        }
+
         Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),  // email
+                        request.getPassword()   // 1 time hashed password
+                )
         );
 
         String token = jwtUtil.generateToken(request.getUsername());

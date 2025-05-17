@@ -105,7 +105,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 groupId: formData.get("groupId")
             })
         })
-            .then(response => response.json())
+            .then(async response => {
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    return response.json();
+                }
+                return null;
+            })
             .then(data => {
                 console.log(data);
                 location.reload(); // Reload page to show new project

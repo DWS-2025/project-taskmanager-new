@@ -1,16 +1,3 @@
-
-function loadCsrfToken() {
-    return fetch("/csrf-token", { credentials: "same-origin" })
-        .then(res => res.json())
-        .then(data => {
-            sessionStorage.setItem("XSRF-TOKEN", data.token);
-        })
-        .catch(() => {
-            console.warn("No se pudo obtener el token CSRF");
-        });
-}
-loadCsrfToken();
-
 async function getCookieToken() {
     return fetch("/csrf-token", { credentials: "same-origin" })
         .then(res => res.json())
@@ -46,6 +33,6 @@ window.authFetch = async function authFetch(url, options = {}) {
 window.logout = function logout() {
     localStorage.removeItem("jwt");
     document.cookie = "jwt=; path=/; Max-Age=0";
-    window.location.href = "/login";
+    window.location.replace("/login");
 };
 

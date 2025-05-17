@@ -6,12 +6,15 @@ public class TaskResponseDTO {
     private int id;
     private String title;
     private String description;
-    private final boolean hasImage;
-    private final int projectId;
-    private final int ownerId;
+    private boolean hasImage;
+    private int projectId;
+    private int ownerId;
     private String filename;
     private LocalDateTime lastReportGenerated;
 
+    public TaskResponseDTO() {
+        // Constructor vacío necesario para el mapeo automático
+    }
     public TaskResponseDTO(String title, boolean hasImage, int projectId, int ownerId) {
         this.title = title;
         this.hasImage = hasImage;

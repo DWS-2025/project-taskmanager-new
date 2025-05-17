@@ -78,7 +78,7 @@ public class UserRestController {
 
         GroupResponseDTO userGroup = userService.findPersonalGroup(user);
         if (dto.getPassword().isBlank() || dto.getPassword() == null) {
-            dto.setPassword(userService.findUserByIdRaw(user.getId()).getPassword());
+            dto.setPassword(null);
         }
         if (dto.getEmail().isBlank() || dto.getEmail() == null) {
             dto.setEmail(userService.findUserByIdRaw(user.getId()).getEmail());

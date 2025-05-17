@@ -190,9 +190,10 @@ public class GroupRestController {
 
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
 
-        if (currentUser.getId() == userId) // if u're trying delete yourself
+        if (currentUser.getId() == userId &&                                        // if u're trying delete yourself and u're not (admin and not owner)
+                !(currentUser.getRole().equals(globalConstants.getAdminRole()) && group.getOwnerId() != currentUser.getId()))
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Collections.singletonMap("message", "No puedes eliminarte a ti mismo, debes abandonar el grupo"));
+                    .body(Collections.singletonMap("message", "No puedes eliminarte a ti mismo, debes cambiar el propietario"));
 
 
         UserResponseDTO owner = userService.findUserById(group.getOwnerId());

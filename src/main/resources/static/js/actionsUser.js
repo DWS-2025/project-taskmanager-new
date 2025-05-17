@@ -14,38 +14,46 @@ document.addEventListener("DOMContentLoaded", function () {
         if (formNewUser) formNewUser.addEventListener("submit", sendNewUserData);
     }
 
-    function sendNewUserData(event) {
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+    }
+    async function sendNewUserData(event) {
         event.preventDefault();
-        const confirm_password = document.getElementById("confirm-password").value;
+
+        const password = document.getElementById("new-password").value;
+        const confirmPassword = document.getElementById("confirm-password").value;
+
+        const hashedPassword = await hashPassword(password);
+        const hashedConfirm = await hashPassword(confirmPassword);
 
         let url = `/api/users`
         let method = "POST"
-        authFetch(url, {
+        fetch(url, {
             method: method,
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 name: document.getElementById("new-username").value,
                 email: document.getElementById("new-email").value,
-                password: document.getElementById("new-password").value,
-                confirmPassword: confirm_password
+                password: hashedPassword,
+                confirmPassword: hashedConfirm
             })
         })
-            .then(response => {
-                if (response.ok) {
-                    alert("Usuario registrado correctamente")
-                    logout();
-                } else {
-                    return response.text().then(msg => {
-                        alert(`Error: ${msg || "No se pudo registrar el usuario"}`);
-                    });
-                }
-            })
+            .then(res => res.ok ? (alert("Usuario registrado"), logout()) : res.text().then(msg => alert("Error: " + msg)))
             .catch(error => console.error("Error creating user:", error));
     }
 
-    function sendEditUserData(event) {
+
+    async function sendEditUserData(event) {
         const currentUserId = document.body.dataset.userid;
         event.preventDefault();
+
+        const password = document.getElementById("password").value;
+        const hashedPassword = await hashPassword(password);
 
         let url = `/api/users/${currentUserId}`
         let method = "PUT"
@@ -55,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify({
                 name: document.getElementById("name").value,
                 email: document.getElementById("email").value,
-                password: document.getElementById("password").value
+                password: hashedPassword
             })
         })
             .then(response => {
@@ -94,18 +102,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (formLogin) {
-        formLogin.addEventListener("submit", function(event) {
+        formLogin.addEventListener("submit", async function(event) {
             event.preventDefault();
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
+
+            const hashedPassword = await hashPassword(password);
 
             authFetch("/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ username: email, password })
+                body: JSON.stringify({
+                    username: email,
+                    password: hashedPassword
+                })
             })
                 .then(response => {
                     if (!response.ok) throw new Error("Credenciales incorrectas");

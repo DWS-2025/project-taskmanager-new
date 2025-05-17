@@ -24,7 +24,7 @@ public class User {
     private String email;
 
     @JsonIgnore // Prevents this field from being serialized in JSON responses (for security)
-    @Column(name = "PASSWD", nullable = false, length = 100)
+    @Column(name = "PASSWORD", nullable = false, length = 100)
     // Maps to "PASSWD" column, required field with a max length of 100
     private String password;
 
