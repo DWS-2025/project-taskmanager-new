@@ -319,7 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const btn = document.createElement("button");
             btn.className = "btnMoreOptions";
             btn.dataset.taskid = task.id.toString(10);
-            btn.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones" style="width:16px; height:16px;">`;
+            btn.innerHTML = `<img src="/img/menu.png" alt="More options" style="width:16px; height:16px;">`;
             content.appendChild(btn);
 
             li.appendChild(content);

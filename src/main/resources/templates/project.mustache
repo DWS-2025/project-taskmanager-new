@@ -24,7 +24,7 @@
         <h1>Lista de Tareas</h1>
 
         <form id="searchForm">
-            <input type="text" id="searchTitle" placeholder="Buscar por t\u00EDtulo" />
+            <input type="text" id="searchTitle" placeholder="Buscar por t&#237;tulo" />
             <label id="filterImageLabel">
                 Con Imagen<input type="checkbox" id="filterImage" />
             </label>
@@ -42,7 +42,7 @@
                             <img src="data:image/jpeg;base64,{{imageBase64}}" style="max-width: 200px;">
                         {{/imageBase64}}
                         <button class="btnMoreOptions" data-taskid="{{id}}">
-                            <img src="/img/menu.png" alt="M\u00E1s opciones" style="width:16px; height:16px;">
+                            <img src="/img/menu.png" alt="More options" style="width:16px; height:16px;">
                         </button>
                     </div>
 
@@ -56,7 +56,7 @@
                             <button class="btnDeleteTask" data-taskid="{{id}}">Eliminar Tarea</button>
                             <button class="btnEditTask" data-taskid="{{id}}">Editar Tarea</button>
                             {{#filename}}
-                                <button class="btnGetLastReport" data-taskid="{{id}}">Abrir \u00FAltimo Informe</button>
+                                <button class="btnGetLastReport" data-taskid="{{id}}">Abrir &Uacute;ltimo Informe</button>
                             {{/filename}}
                             <button class="btnGenerateReport" data-taskid="{{id}}">Generar Nuevo Informe</button>
                         </div>
@@ -73,7 +73,7 @@
                 <h2>Nueva Tarea</h2>
                 <form id="formNewTask" enctype="multipart/form-data">
                     <label>
-                        <input type="text" name="title" placeholder="T\u00EDtulo" autocomplete="off" required>
+                        <input type="text" name="title" placeholder="T&#237;tulo" autocomplete="off" required>
                     </label>
 
                     <label>

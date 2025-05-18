@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const btnOptions = document.createElement("button");
                     btnOptions.className = "btnMoreOptions";
                     btnOptions.dataset.userid = user.id;
-                    btnOptions.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones">`;
+                    btnOptions.innerHTML = `<img src="/img/menu.png" alt="More options">`;
 
                     content.append(info, btnOptions);
                     li.appendChild(content);
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (!confirm(`¿Est\u00E1s seguro de que quieres eliminar al usuario ${email}?`)) return;
+        if (!confirm(`¿Est\u00E1 s seguro de que quieres eliminar al usuario ${email}?`)) return;
 
         const url = `/api/users/${encodeURIComponent(email)}`;
         authFetch(url, { method: "DELETE" })

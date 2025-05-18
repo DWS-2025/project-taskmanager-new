@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!value.includes("@")) {
                 signupEmail.setCustomValidity("El correo debe incluir un '@'");
             } else if (!(value.endsWith("@TMadmin.com") || value.endsWith("@taskmanager.com"))) {
-                signupEmail.setCustomValidity("Dominio inv\u00E1lido");
+                signupEmail.setCustomValidity("Dominio inv&#225;lido");
             } else {
                 signupEmail.setCustomValidity(""); // ✔️ sin errores
             }

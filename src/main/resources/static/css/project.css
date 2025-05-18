@@ -131,7 +131,7 @@ input, textarea {
 /* ─── SEARCH FORM ─────────────────────────────── */
 #searchForm {
     display: flex;
-    flex-direction: row; /* Los elementos estar\u00E1n en l\u00EDnea */
+    flex-direction: row; /* Los elementos estar\u00E1n en l&#237;nea */
     align-items: center; /* Alineamos al centro verticalmente */
     gap: 10px; /* Espaciado entre los elementos */
     max-width: 800px;

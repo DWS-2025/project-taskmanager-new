@@ -63,7 +63,7 @@ public class UserRestController {
         if (userService.findUserByUsername(dto.getName()) != null)
             return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
         if (userService.findUserByEmail(dto.getEmail()) != null)
-            return ResponseEntity.badRequest().body("El email ya est\u00E1 registrado");
+            return ResponseEntity.badRequest().body("El email ya est&#225; registrado");
         if (!dto.getPassword().equals(dto.getConfirmPassword()))
             return ResponseEntity.badRequest().body("Las contrase\u00F1as no coinciden");
 

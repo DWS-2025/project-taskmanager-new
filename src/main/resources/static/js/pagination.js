@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     let activeLoadData = null;
     let activeCurrentPage = 0;
-    const itemHeight = 120; // cada \u00EDtem ocupa 120px aprox.
+    const itemHeight = 120; // every item 120px aprox.
     const windowHeight = window.innerHeight;
     let itemsPerPage = Math.max(1, Math.floor(windowHeight / itemHeight));
     let listContainer = document.getElementById("group-list");
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         prevBtn.disabled = true;
 
         const pageLabel = document.createElement("span");
-        pageLabel.textContent = "P\u00E1gina 1";
+        pageLabel.textContent = "P&#225;gina 1";
 
         const nextBtn = document.createElement("button");
         nextBtn.textContent = "Siguiente";
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ul.appendChild(li);
                 });
 
-                pageLabel.textContent = `P\u00E1gina ${currentPage + 1}`;
+                pageLabel.textContent = `P&#225;gina ${currentPage + 1}`;
                 prevBtn.disabled = currentPage === 0;
                 nextBtn.disabled = currentPage + 1 >= totalPages;
 
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";
         btnOptions.dataset.groupid = group.id.toString(10);
-        btnOptions.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones">`;
+        btnOptions.innerHTML = `<img src="/img/menu.png" alt="More options">`;
 
         content.append(title, btnOptions);
         li.appendChild(content);
@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";
         btnOptions.dataset.projectid = project.id.toString(10);
-        btnOptions.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones">`;
+        btnOptions.innerHTML = `<img src="/img/menu.png" alt="More options">`;
 
         content.append(link, btnOptions);
         li.appendChild(content);
