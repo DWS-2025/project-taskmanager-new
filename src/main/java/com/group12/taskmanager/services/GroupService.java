@@ -118,7 +118,7 @@ public class GroupService {
 
     @Transactional
     public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
-        groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // eliminate in the DB
+        groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // deletes at DB
     }
 
     public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {

@@ -12,14 +12,14 @@ public class LoginChallengeService {
     private final AtomicReference<String> challenge = new AtomicReference<>();
 
     public LoginChallengeService() {
-        rotateChallenge(); // Inicializa al arrancar
+        rotateChallenge(); // initializes at boot
     }
 
     public String getCurrentChallenge() {
         return challenge.get();
     }
 
-    @Scheduled(fixedRate = 3 * 60 * 1000) // cada 3 minutos
+    @Scheduled(fixedRate = 3 * 60 * 1000) // every 3 min
     public void rotateChallenge() {
         String newChallenge = UUID.randomUUID().toString().replace("-", "");
         challenge.set(newChallenge);

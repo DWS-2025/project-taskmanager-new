@@ -13,7 +13,7 @@ import com.group12.taskmanager.repositories.TaskRepository;
 import com.group12.taskmanager.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist; // o Whitelist en versiones antiguas
+import org.jsoup.safety.Safelist; // may be Whitelist in deprecated versions
 
 
 import java.util.Base64;
