@@ -139,11 +139,17 @@ public class TaskRestController {
         if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
+        // ----------------------- LFI protections ---------------------------
+        String filename = task.getFilename();
+        if (filename.contains("..") || filename.contains("/") || filename.contains("\\"))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
         Path safeBase = Paths.get("uploadedReports/tasks/" + id).toAbsolutePath().normalize();
         Path filePath = safeBase.resolve(task.getFilename()).normalize();
 
         if (!filePath.startsWith(safeBase))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        // -------------------------------------------------------------------
 
         if (!Files.exists(filePath))
             return ResponseEntity.notFound().build();
@@ -162,9 +168,7 @@ public class TaskRestController {
                                                               @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
 
         TaskResponseDTO task = taskService.findTaskById(id);
-
-        if (!verifyTaskOwnership(task, userDetails))
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (task == null) return ResponseEntity.notFound().build();
 
         // DoS protection
         if (task.getLastReportGenerated() != null) {
@@ -174,6 +178,10 @@ public class TaskRestController {
                         .body("Espera unos segundos antes de generar otro informe.");
             }
         }
+
+        // Access Control
+        if (!verifyTaskOwnership(task, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         String rawTitle = task.getTitle().replaceAll("[^a-zA-Z0-9\\s]", "").trim(); // erase dangerous chars
         String filenameBase = rawTitle.isEmpty() ? ("tarea_" + id) : rawTitle;
@@ -190,11 +198,15 @@ public class TaskRestController {
                     ? filenameBase + ".pdf"
                     : filenameBase + "(" + counter + ").pdf";
 
-            finalPath = folder.resolve(finalFilename).normalize();
+            // ------------------- LFI protections --------------------------
+            Path folderAbs = folder.toAbsolutePath().normalize();
+            finalPath = folderAbs.resolve(finalFilename).normalize();
 
             if (!finalPath.startsWith(folder.toAbsolutePath().normalize())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
+            // --------------------------------------------------------------
+
             counter++;
         } while (Files.exists(finalPath));
 

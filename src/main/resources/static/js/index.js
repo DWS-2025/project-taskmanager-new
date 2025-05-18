@@ -170,6 +170,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    const adminBtn = document.getElementById("adminOptionsBtn");
+    if (adminBtn) {
+        adminBtn.addEventListener("click", function () {
+            const token = window.getCookie("jwt");
+
+            if (!token) {
+                alert("No has iniciado sesión.");
+                return;
+            }
+
+            window.location.href = "/admin";
+        });
+    }
+
     // Show user options modal
     function openUserOptionsModal() {
         userOptionsModal.style.display = "flex";

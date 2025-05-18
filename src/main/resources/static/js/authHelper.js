@@ -1,4 +1,4 @@
-async function getCookieToken() {
+async function getCSRFToken() {
     return fetch("/csrf-token", { credentials: "same-origin" })
         .then(res => res.json())
         .then(data => data.token)
@@ -17,7 +17,7 @@ window.authFetch = async function authFetch(url, options = {}) {
       */
 
     if (method !== "GET") {
-        const csrfToken = await getCookieToken();
+        const csrfToken = await getCSRFToken();
         if (csrfToken) {
             headers.set("X-XSRF-TOKEN", csrfToken);
         }
@@ -41,4 +41,12 @@ window.logout = function logout() {
             window.location.replace("/login");
         });
 };
+
+window.getCookie = function(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+};
+
+
+
 
