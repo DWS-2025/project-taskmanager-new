@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.status === 401) {
-                    alert("No estás autorizado para " + (method === "POST" ? "crear" : "editar") + " esta tarea.");
+                    alert("No est\u00E1s autorizado para " + (method === "POST" ? "crear" : "editar") + " esta tarea.");
                     throw new Error("UNAUTHORIZED");
                 }
                 if (!response.ok) {
@@ -319,7 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const btn = document.createElement("button");
             btn.className = "btnMoreOptions";
             btn.dataset.taskid = task.id.toString(10);
-            btn.innerHTML = `<img src="/img/menu.png" alt="Más opciones" style="width:16px; height:16px;">`;
+            btn.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones" style="width:16px; height:16px;">`;
             content.appendChild(btn);
 
             li.appendChild(content);
@@ -337,7 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             taskList.appendChild(li);
 
-            // Cargar imagen después
+            // Loads image after
             if (task.hasImage) {
                 /** @type {Promise<ImageData>} */
                 authFetch(`/api/tasks/${task.id}/image`, {

@@ -63,9 +63,9 @@ public class UserRestController {
         if (userService.findUserByUsername(dto.getName()) != null)
             return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
         if (userService.findUserByEmail(dto.getEmail()) != null)
-            return ResponseEntity.badRequest().body("El email ya está registrado");
+            return ResponseEntity.badRequest().body("El email ya est\u00E1 registrado");
         if (!dto.getPassword().equals(dto.getConfirmPassword()))
-            return ResponseEntity.badRequest().body("Las contraseñas no coinciden");
+            return ResponseEntity.badRequest().body("Las contrase\u00F1as no coinciden");
 
         String rawPassword = dto.getPassword();
         String safeEmail = Jsoup.clean(dto.getEmail(), Safelist.none());
@@ -126,8 +126,8 @@ public class UserRestController {
 
             boolean result = userService.deleteUser(deleted);
             return result ? ResponseEntity.ok("Usuario eliminado")
-                    : ResponseEntity.status(403).body("Acción no permitida");
+                    : ResponseEntity.status(403).body("Acci\u00F3n no permitida");
         }
-        return ResponseEntity.status(403).body("Acción no permitida");
+        return ResponseEntity.status(403).body("Acci\u00F3n no permitida");
     }
 }

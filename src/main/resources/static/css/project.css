@@ -131,7 +131,7 @@ input, textarea {
 /* ─── SEARCH FORM ─────────────────────────────── */
 #searchForm {
     display: flex;
-    flex-direction: row; /* Los elementos estarán en línea */
+    flex-direction: row; /* Los elementos estar\u00E1n en l\u00EDnea */
     align-items: center; /* Alineamos al centro verticalmente */
     gap: 10px; /* Espaciado entre los elementos */
     max-width: 800px;
@@ -178,7 +178,7 @@ input, textarea {
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-weight: 600;
-    margin-left: auto; /* Justifica el botón a la derecha */
+    margin-left: auto; /* Justifies button to left*/
 }
 
 #searchForm button:hover {

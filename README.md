@@ -60,9 +60,9 @@ This diagram illustrates the main entities of the application and their relation
 
 ## 👥 Development Team
 
-| Name                        | University Email                    | GitHub Username   |
-|-----------------------------|-------------------------------------|-------------------|
-| Roi Martínez Roque          | r.martinezr.2023@alumnos.urjc.es      | @RoiMartinezRoque |
+| Name               | University Email                    | GitHub Username   |
+|--------------------|-------------------------------------|-------------------|
+| Roi Martínez Roque | r.martinezr.2023@alumnos.urjc.es      | @RoiMartinezRoque |
 
 ---
 

@@ -24,7 +24,7 @@
 
     <div class="split right">
         <div id="login-container" class="container">
-            <h1>Iniciar Sesión</h1>
+            <h1>Iniciar Sesi\u00F3n</h1>
 
             {{#error}}
                 <p class="error">{{error}}</p>
@@ -33,16 +33,16 @@
             <form id="formLogin" class="login-form">
                 <input type="hidden" name="loginChallenge" value="{{loginChallenge}}">
 
-                <label for="email">Correo Electrónico:</label>
+                <label for="email">Correo Electr\u00F3nico:</label>
                 <input type="text" id="email" name="username" required>
 
-                <label for="password">Contraseña:</label>
+                <label for="password">Contrase\u00F1a:</label>
                 <input type="password" id="password" name="password" required>
 
                 <button type="submit">Ingresar</button>
             </form>
 
-            <p class="register-link">¿No tienes una cuenta? <a href="#" onclick="toggleForms()">Regístrate aquí</a></p>
+            <p class="register-link">¿No tienes una cuenta? <a href="#" onclick="toggleForms()">Reg\u00EDstrate aqu\u00ED</a></p>
         </div>
 
         <div id="register-container" class="container" style="display: none;">
@@ -54,19 +54,19 @@
                 <label for="new-username">Usuario:</label>
                 <input type="text" id="new-username" name="new_username" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
 
-                <label for="new-email">Correo Electrónico:</label>
+                <label for="new-email">Correo Electr\u00F3nico:</label>
                 <input type="email" id="new-email" name="new_email" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
 
-                <label for="new-password">Contraseña:</label>
+                <label for="new-password">Contrase\u00F1a:</label>
                 <input type="password" id="new-password" name="new_password" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
 
-                <label for="confirm-password">Confirmar Contraseña:</label>
+                <label for="confirm-password">Confirmar Contrase\u00F1a:</label>
                 <input type="password" id="confirm-password" name="confirm_password" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
 
                 <button type="submit">Registrarse</button>
             </form>
 
-            <p class="register-link">¿Ya tienes una cuenta? <a href="#" onclick="showLogin()">Inicia sesión aquí</a></p>
+            <p class="register-link">¿Ya tienes una cuenta? <a href="#" onclick="showLogin()">Inicia sesi\u00F3n aqu\u00ED</a></p>
         </div>
     </div>
 

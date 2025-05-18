@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     let activeLoadData = null;
     let activeCurrentPage = 0;
-    const itemHeight = 120; // cada ítem ocupa 120px aprox.
+    const itemHeight = 120; // cada \u00EDtem ocupa 120px aprox.
     const windowHeight = window.innerHeight;
     let itemsPerPage = Math.max(1, Math.floor(windowHeight / itemHeight));
     let listContainer = document.getElementById("group-list");
@@ -87,7 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.assignProjectButtonEvents();
                 }
 
-                // Si esta lista está visible (es la actual), actualizar la carga activa
                 if (ul.offsetParent !== null) {
                     activeLoadData = loadData;
                     activeCurrentPage = currentPage;
@@ -125,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";
         btnOptions.dataset.groupid = group.id.toString(10);
-        btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
+        btnOptions.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones">`;
 
         content.append(title, btnOptions);
         li.appendChild(content);
@@ -199,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnOptions = document.createElement("button");
         btnOptions.className = "btnMoreOptions";
         btnOptions.dataset.projectid = project.id.toString(10);
-        btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
+        btnOptions.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones">`;
 
         content.append(link, btnOptions);
         li.appendChild(content);

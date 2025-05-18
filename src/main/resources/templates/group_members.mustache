@@ -22,7 +22,7 @@
                     <div class="user-content">
                         <b>{{name}}</b>
                         <button class="btnMoreOptions" data-userid="{{id}}">
-                            <img src="/img/menu.png" alt="Más opciones">
+                            <img src="/img/menu.png" alt="M\u00E1s opciones">
                         </button>
                     </div>
 
@@ -36,10 +36,8 @@
             {{/users}}
         </ul>
 
-        <!-- Botón para añadir nuevo usuario -->
-        <button id="btnNewItem">Añadir nuevo miembro</button>
+        <button id="btnNewItem">A\u00F1adir nuevo miembro</button>
 
-        <!-- Modal para buscar y agregar usuarios -->
         <div id="modalSearchUsers" class="modal hidden">
             <div class="modal-content">
                 <h2>Buscar usuarios</h2>
@@ -50,7 +48,7 @@
                     <ul id="userSearchResults"></ul>
                 </label>
                 <label>
-                    <button id="btnAddSelectedUsers">Añadir seleccionados</button>
+                    <button id="btnAddSelectedUsers">A\u00F1adir seleccionados</button>
                 </label>
             </div>
         </div>

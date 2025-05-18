@@ -199,7 +199,7 @@ public class GroupRestController {
         UserResponseDTO owner = userService.findUserById(group.getOwnerId());
         if (user.getId() == owner.getId() || !currentUser.getRole().equals(globalConstants.getAdminRole())) // if the suplicant is not admin, or the deleted is the owner
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Collections.singletonMap("message", "Acción no permitida"));
+                    .body(Collections.singletonMap("message", "Acci\u00F3n no permitida"));
 
         groupService.removeUserFromGroup(group, user);
 

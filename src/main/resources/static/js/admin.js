@@ -33,12 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     const btnOptions = document.createElement("button");
                     btnOptions.className = "btnMoreOptions";
                     btnOptions.dataset.userid = user.id;
-                    btnOptions.innerHTML = `<img src="/img/menu.png" alt="Más opciones">`;
+                    btnOptions.innerHTML = `<img src="/img/menu.png" alt="M\u00E1s opciones">`;
 
                     content.append(info, btnOptions);
                     li.appendChild(content);
 
-                    // Modal dinámico al estilo index.js
                     const modal = document.createElement("div");
                     modal.className = "modalOptions modal hidden";
                     modal.id = `modalOptions-${user.id}`;
@@ -73,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (!confirm(`¿Estás seguro de que quieres eliminar al usuario ${email}?`)) return;
+        if (!confirm(`¿Est\u00E1s seguro de que quieres eliminar al usuario ${email}?`)) return;
 
         const url = `/api/users/${encodeURIComponent(email)}`;
         authFetch(url, { method: "DELETE" })

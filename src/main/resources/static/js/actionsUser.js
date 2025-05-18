@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!value.includes("@")) {
                 signupEmail.setCustomValidity("El correo debe incluir un '@'");
             } else if (!(value.endsWith("@TMadmin.com") || value.endsWith("@taskmanager.com"))) {
-                signupEmail.setCustomValidity("Dominio inválido");
+                signupEmail.setCustomValidity("Dominio inv\u00E1lido");
             } else {
                 signupEmail.setCustomValidity(""); // ✔️ sin errores
             }
@@ -50,11 +50,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (value.length < 8) {
-                signupPassword.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
+                signupPassword.setCustomValidity("La contrase\u00F1a debe tener al menos 8 caracteres.");
             } else if (!/[A-Z]/.test(value)) {
-                signupPassword.setCustomValidity("Debe contener al menos una mayúscula.");
+                signupPassword.setCustomValidity("Debe contener al menos una may\u00FAscula.");
             } else if (!/[0-9]/.test(value)) {
-                signupPassword.setCustomValidity("Debe contener al menos un número.");
+                signupPassword.setCustomValidity("Debe contener al menos un n\u00FAmero.");
             } else {
                 signupPassword.setCustomValidity("");
             }
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (logoutBtn) {
         logoutBtn.addEventListener("click", function() {
-            logout(); // usa la función global
+            logout(); // use the global function
         });
     }
 

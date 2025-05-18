@@ -232,7 +232,7 @@ public class TaskRestController {
                     document.add(e);
                 }
             } catch (Exception e) {
-                document.add(new Paragraph("[Error al procesar la descripción enriquecida]"));
+                document.add(new Paragraph("[Error al procesar la descripci\u00F3n enriquecida]"));
             }
 
             document.add(new Paragraph(" "));

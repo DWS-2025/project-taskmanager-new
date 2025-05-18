@@ -26,14 +26,14 @@ public class CsrfLoggingFilter extends OncePerRequestFilter {
         if (token != null) {
             System.out.println("Servidor espera: " + token.getToken());
         } else {
-            System.out.println("No hay token CSRF generado aún en el servidor");
+            System.out.println("No hay token CSRF generado a\u00FAn en el servidor");
         }
 
         if (header != null) {
             System.out.println("Token enviado en header: " + header);
         }
         if (param != null) {
-            System.out.println("Token enviado en parámetro: " + param);
+            System.out.println("Token enviado en par\u00E1metro: " + param);
         }
 
         filterChain.doFilter(request, response);

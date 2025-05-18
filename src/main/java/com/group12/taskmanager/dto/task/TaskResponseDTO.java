@@ -13,7 +13,7 @@ public class TaskResponseDTO {
     private LocalDateTime lastReportGenerated;
 
     public TaskResponseDTO() {
-        // Constructor vacío necesario para el mapeo automático
+        // Empty constructor, needed for auto mapping
     }
     public TaskResponseDTO(String title, boolean hasImage, int projectId, int ownerId) {
         this.title = title;
