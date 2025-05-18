@@ -22,6 +22,47 @@ document.addEventListener("DOMContentLoaded", function () {
             .map(b => b.toString(16).padStart(2, '0'))
             .join('');
     }
+    const signupEmail = document.getElementById("new-email");
+    if(signupEmail) {
+        signupEmail.addEventListener("input", () => {
+            const value = signupEmail.value.trim();
+
+            if (!value.includes("@")) {
+                signupEmail.setCustomValidity("El correo debe incluir un '@'");
+            } else if (!(value.endsWith("@TMadmin.com") || value.endsWith("@taskmanager.com"))) {
+                signupEmail.setCustomValidity("Dominio inválido");
+            } else {
+                signupEmail.setCustomValidity(""); // ✔️ sin errores
+            }
+
+            // Esto fuerza la burbuja si ya se ha enviado el formulario antes
+            signupEmail.reportValidity();
+        });
+    }
+    const signupPassword = document.getElementById("new-password");
+    if (signupPassword) {
+        signupPassword.addEventListener("input", () => {
+            const value = signupPassword.value;
+
+            if (signupEmail.endsWith("@TMadmin.com")) {
+                signupPassword.setCustomValidity("");
+                return;
+            }
+
+            if (value.length < 8) {
+                signupPassword.setCustomValidity("La contraseña debe tener al menos 8 caracteres.");
+            } else if (!/[A-Z]/.test(value)) {
+                signupPassword.setCustomValidity("Debe contener al menos una mayúscula.");
+            } else if (!/[0-9]/.test(value)) {
+                signupPassword.setCustomValidity("Debe contener al menos un número.");
+            } else {
+                signupPassword.setCustomValidity("");
+            }
+
+            signupPassword.reportValidity();
+        });
+    }
+
     async function sendNewUserData(event) {
         event.preventDefault();
 
@@ -49,7 +90,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.ok ? (alert("Usuario registrado"), logout()) : res.text().then(msg => alert("Error: " + msg)))
             .catch(error => console.error("Error creating user:", error));
     }
-
 
     async function sendEditUserData(event) {
         const currentUserId = document.body.dataset.userid;

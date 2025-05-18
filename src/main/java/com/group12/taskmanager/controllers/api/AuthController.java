@@ -44,6 +44,7 @@ public class AuthController {
 
         String jwt = jwtUtil.generateToken(request.getUsername());
 
+        // HttpOnly JWT cookie
         ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
                 .httpOnly(true)              // <- avoid JS access to the cookie
                 .secure(true)                // <- only through HTTPS
@@ -66,6 +67,15 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(0) // Here
+                .sameSite("Strict")
+                .build();
+
+        // Deletes XSRF-TOKEN (useless) cookie
+        ResponseCookie clearedCsrf = ResponseCookie.from("XSRF-TOKEN", "")
+                .httpOnly(false)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
                 .sameSite("Strict")
                 .build();
 

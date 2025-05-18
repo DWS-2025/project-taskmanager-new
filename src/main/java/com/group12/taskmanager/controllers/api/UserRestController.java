@@ -1,5 +1,6 @@
 package com.group12.taskmanager.controllers.api;
 
+import com.group12.taskmanager.config.GlobalConstants;
 import com.group12.taskmanager.dto.group.GroupRequestDTO;
 import com.group12.taskmanager.dto.group.GroupResponseDTO;
 import com.group12.taskmanager.dto.user.UserRequestDTO;
@@ -9,6 +10,8 @@ import com.group12.taskmanager.security.CustomUserDetails;
 import com.group12.taskmanager.security.LoginChallengeService;
 import com.group12.taskmanager.services.GroupService;
 import com.group12.taskmanager.services.UserService;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,12 +25,15 @@ public class UserRestController {
     private final GroupService groupService;
     private final AccessManager accessManager;
     private final LoginChallengeService loginChallengeService;
+    private final GlobalConstants globalConstants;
 
-    public UserRestController(UserService userService, GroupService groupService, AccessManager accessManager, LoginChallengeService loginChallengeService) {
+    public UserRestController(UserService userService, GroupService groupService, AccessManager accessManager,
+                              LoginChallengeService loginChallengeService, GlobalConstants globalConstants) {
         this.userService = userService;
         this.groupService = groupService;
         this.accessManager = accessManager;
         this.loginChallengeService = loginChallengeService;
+        this.globalConstants = globalConstants;
     }
 
     private boolean verifyUserAccess(UserResponseDTO accessedUser, CustomUserDetails userDetails) {
@@ -60,6 +66,15 @@ public class UserRestController {
             return ResponseEntity.badRequest().body("El email ya está registrado");
         if (!dto.getPassword().equals(dto.getConfirmPassword()))
             return ResponseEntity.badRequest().body("Las contraseñas no coinciden");
+
+        String rawPassword = dto.getPassword();
+        String safeEmail = Jsoup.clean(dto.getEmail(), Safelist.none());
+
+        if (!(safeEmail.endsWith("@TMadmin.com") || safeEmail.endsWith("@taskmanager.com")))
+            return  ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Dominio no admitido");
+
+        if (safeEmail.endsWith("@TMadmin.com") && !rawPassword.equals(globalConstants.getAdminPassword()))
+            return  ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No puedes utilizar ese dominio");
 
         UserRequestDTO newUser = new UserRequestDTO(dto.getName(), dto.getEmail(), dto.getPassword());
         userService.createUser(newUser);

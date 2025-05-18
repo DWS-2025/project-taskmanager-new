@@ -6,7 +6,6 @@ async function getCSRFToken() {
 }
 
 window.authFetch = async function authFetch(url, options = {}) {
-    // const token = localStorage.getItem("jwt"); <-- For Authorization Bearer
     const method = (options.method || "GET").toUpperCase();
 
     const headers = new Headers(options.headers || {});
