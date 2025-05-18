@@ -132,14 +132,18 @@ public class TaskRestController {
     }
 
     @GetMapping("/{id}/file")
-    public ResponseEntity<Resource> downloadFile(@PathVariable int id,
+    public ResponseEntity<Resource> getFile(@PathVariable int id,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
         TaskResponseDTO task = taskService.findTaskById(id);
 
         if (!verifyTaskOwnership(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-        Path filePath = Paths.get("uploadedReports/tasks/" + id + "/" + task.getFilename());
+        Path safeBase = Paths.get("uploadedReports/tasks/" + id).toAbsolutePath().normalize();
+        Path filePath = safeBase.resolve(task.getFilename()).normalize();
+
+        if (!filePath.startsWith(safeBase))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
 
         if (!Files.exists(filePath))
             return ResponseEntity.notFound().build();
@@ -167,7 +171,7 @@ public class TaskRestController {
             LocalDateTime now = LocalDateTime.now();
             if (task.getLastReportGenerated().plusSeconds(60).isAfter(now)) {
                 return ResponseEntity.status(429)
-                        .body("⏱️ Espera unos segundos antes de generar otro informe.");
+                        .body("Espera unos segundos antes de generar otro informe.");
             }
         }
 
@@ -185,7 +189,12 @@ public class TaskRestController {
             finalFilename = (counter == 0)
                     ? filenameBase + ".pdf"
                     : filenameBase + "(" + counter + ").pdf";
-            finalPath = folder.resolve(finalFilename);
+
+            finalPath = folder.resolve(finalFilename).normalize();
+
+            if (!finalPath.startsWith(folder.toAbsolutePath().normalize())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
             counter++;
         } while (Files.exists(finalPath));
 

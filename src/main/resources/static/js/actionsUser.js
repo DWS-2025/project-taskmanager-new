@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const hashedPassword = await hashPassword(password);
         const hashedConfirm = await hashPassword(confirmPassword);
 
+        const challenge = document.getElementById("loginChallenge")?.value;
+
         let url = `/api/users`
         let method = "POST"
         fetch(url, {
@@ -40,7 +42,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 name: document.getElementById("new-username").value,
                 email: document.getElementById("new-email").value,
                 password: hashedPassword,
-                confirmPassword: hashedConfirm
+                confirmPassword: hashedConfirm,
+                challenge: challenge
             })
         })
             .then(res => res.ok ? (alert("Usuario registrado"), logout()) : res.text().then(msg => alert("Error: " + msg)))

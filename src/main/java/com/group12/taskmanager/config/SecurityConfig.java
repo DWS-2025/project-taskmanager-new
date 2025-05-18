@@ -60,7 +60,6 @@ public class SecurityConfig {
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(jwtCookieInterceptor, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                //.addFilterBefore(new CsrfLoggingFilter(), CsrfFilter.class)
                 .build();
     }
 
