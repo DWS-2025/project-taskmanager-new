@@ -26,13 +26,14 @@ The application manages the following main entities, which can be created, edite
 
 ### 🔐 User Permissions
 
-|             | Permissions                                                                                         |
-|-------------|-----------------------------------------------------------------------------------------------------|
-| Regular User | Can edit, delete their profile and data, create new projects, and leave the groups they are part of. The user will only be able to see the groups they are part of. |
-| Owner User | As a regular user, but can manage the group it is owner of, this means add and remove people, and the possibility of change the ownership. |
-| Admin User | It is like the owner of every group (and project). |
+|                          | Permissions                                                                                                                                                         |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Anonymous user           | Only can access to Login and Logup, and in first instance, to /projects                                                                                             |
+| Regular User (ROLE_USER) | Can edit, delete their profile and data, create new projects, and leave the groups they are part of. The user will only be able to see the groups they are part of. |
+| Owner User (ROLE_USER)   | As a regular user, but can manage the group it is owner of, this means add and remove people, and the possibility of change the ownership.                          |
+| Admin User (ROLE_ADMIN)  | It is like the owner of every group (and project).                                                                                                                  |
 
-> *Note:*  In this phase, the user is simulated as an admin user to create projects and join groups.
+> *Note:*  In this phase, the entities are stored in the database
 
 ---
 
@@ -49,10 +50,16 @@ For example, you can:
 
 ---
 
+## 📄 Reports
+
+You can download a report of a Task in PDF, or obtain the last report generated
+Be careful because only the creator of the Task can modify or generate report
+
+---
 
 ### 🗂️ Database Schema
 
-![Database diagram](src/main/resources/static/img/diagrama.png)
+![Database diagram](src/main/resources/static/img/diagram.png)
 
 This diagram illustrates the main entities of the application and their relationships, including a many-to-many association between users and companies through likes.
 
@@ -68,8 +75,9 @@ This diagram illustrates the main entities of the application and their relation
 
 ## 🧪 Postman Collection
 
-We include a Postman collection to test the REST API of this project.
+It's included a Postman collection to test the REST API of this project.
 
-- File: src/main/resources/postman/taskmanager_collections.zip
+- File: src/main/resources/postman/RestControllers.postman_collection.zip
 
-> The collection includes examples of entities such as tasks, users, etc.
+> You have to set the cookies like JWT, and specify fields like "challenge"
+when submitting forms
