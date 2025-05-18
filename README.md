@@ -59,7 +59,7 @@ Be careful because only the creator of the Task can modify or generate report
 
 ### 🗂️ Database Schema
 
-![Database diagram](src/main/resources/static/img/diagram.png)
+![Database diagram](src/main/resources/static/img/diagrama.png)
 
 This diagram illustrates the main entities of the application and their relationships, including a many-to-many association between users and companies through likes.
 
