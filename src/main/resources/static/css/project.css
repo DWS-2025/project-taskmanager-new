@@ -131,9 +131,9 @@ input, textarea {
 /* ─── SEARCH FORM ─────────────────────────────── */
 #searchForm {
     display: flex;
-    flex-direction: row; /* Los elementos estar\u00E1n en l&#237;nea */
-    align-items: center; /* Alineamos al centro verticalmente */
-    gap: 10px; /* Espaciado entre los elementos */
+    flex-direction: row; /* elements in a row*/
+    align-items: center;
+    gap: 10px; /* space between elements */
     max-width: 800px;
     margin: 10px auto 20px;
     padding: 10px;
@@ -144,7 +144,7 @@ input, textarea {
 }
 
 #searchTitle {
-    width: 60%; /* Acortar el input */
+    width: 60%;
     padding: 12px;
     font-size: 16px;
     border-radius: 8px;
