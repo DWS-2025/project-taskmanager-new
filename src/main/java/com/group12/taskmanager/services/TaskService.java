@@ -11,9 +11,11 @@ import com.group12.taskmanager.models.User;
 import com.group12.taskmanager.repositories.ProjectRepository;
 import com.group12.taskmanager.repositories.TaskRepository;
 import com.group12.taskmanager.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist; // may be Whitelist in deprecated versions
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.util.Base64;
@@ -45,12 +47,16 @@ public class TaskService {
     }
 
     public TaskResponseDTO findTaskById(int id) {
+        validateId(id);
         Task task = taskRepository.findById(id).orElse(null);
         if (task == null) return null;
         return toDTO(task);
     }
 
     public List<TaskResponseDTO> getProjectTasks(ProjectResponseDTO dto) {
+        // SQL injection protection
+        validateId(dto.getId());
+
         Project project = projectRepository.findById(dto.getId()).orElse(null);
         if (project == null) return null;
         return taskRepository.findByProjectId(project.getId()).stream()
@@ -58,12 +64,32 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
     public List<Task> getProjectTasksRaw(Project project) {
+        // SQL injection protection
+        validateId(project.getId());
+
         return taskRepository.findByProjectId(project.getId());
     }
 
     public TaskResponseDTO addTask(TaskRequestDTO dto, UserResponseDTO userDTO) {
+        // SQL injection protection
+        // projectId validation
+        validateId(dto.getProjectId());
+
+        // email validation
+        if (userDTO == null || userDTO.getEmail() == null || userDTO.getEmail().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email de usuario no válido");
+        }
+
+        String sanitizedEmail = userDTO.getEmail().trim();
+        String lowered = sanitizedEmail.toLowerCase();
+        if (lowered.contains("select ") || lowered.contains("insert ") || lowered.contains("update ") ||
+                lowered.contains("delete ") || lowered.contains("drop ") || lowered.contains("alter ") ||
+                lowered.contains("--") || lowered.contains(";") || lowered.contains("'") || lowered.contains("\"")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email de usuario sospechoso");
+        }
+
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
-        User owner = userRepository.findByEmail(userDTO.getEmail()).orElse(null);
+        User owner = userRepository.findByEmail(sanitizedEmail).orElse(null);
         if (project == null || owner == null) return null;
 
         // Malicious image validation
@@ -84,9 +110,8 @@ public class TaskService {
         }
 
         Task task = new Task();
-        if (dto.getTitle() != null) task.setTitle(Jsoup.clean(dto.getTitle(), Safelist.none()));
-        String cleanDescription = Jsoup.clean(dto.getDescription(), CUSTOM_SAFELIST); // <-- Rich text field disinfection
-        task.setDescription(cleanDescription);
+        if (dto.getTitle() != null) task.setTitle(sanitizeAndValidateTitle(dto.getTitle()));
+        task.setDescription(sanitizeAndValidateRichText(dto.getDescription()));
         task.setProject(project);
         task.setImage(imageBytes); // Set image data
         task.setOwner(owner);
@@ -98,15 +123,14 @@ public class TaskService {
     }
 
     public TaskResponseDTO updateTask(int id, TaskRequestDTO dto) {
+        validateId(id);
+
         Task task = taskRepository.findById(id).orElse(null);
         if (task == null) return null;
 
-        if (dto.getTitle() != null) task.setTitle(Jsoup.clean(dto.getTitle(), Safelist.none()));
+        if (dto.getTitle() != null) task.setTitle(sanitizeAndValidateTitle(dto.getTitle()));
 
-        if (dto.getDescription() != null) {
-            String cleanDescription = Jsoup.clean(dto.getDescription(), CUSTOM_SAFELIST);  // <-- Rich text field disinfection
-            task.setDescription(cleanDescription);
-        }
+        if (dto.getDescription() != null) task.setDescription(sanitizeAndValidateRichText(dto.getDescription()));
 
         // Malicious image validation
         if ( dto.getImage() != null && !dto.getImage().startsWith("data:image/png") && !dto.getImage().startsWith("data:image/jpeg")) {
@@ -139,6 +163,8 @@ public class TaskService {
     }
 
     public boolean removeTask(TaskResponseDTO dto) {
+        validateId(dto.getId());
+
         int id = dto.getId();
         if (taskRepository.existsById(id)) {
             taskRepository.deleteById(id);
@@ -148,6 +174,8 @@ public class TaskService {
     }
 
     public boolean uploadImage(int id, TaskImageDTO dto) {
+        validateId(id);
+
         Task task = taskRepository.findById(id).orElse(null);
         if (task == null || dto.base64() == null) return false;
 
@@ -158,6 +186,7 @@ public class TaskService {
     }
 
     public TaskImageDTO getImage(int id) {
+        validateId(id);
         Task task = taskRepository.findById(id).orElse(null);
         if (task == null || task.getImage() == null) return null;
 
@@ -165,7 +194,20 @@ public class TaskService {
         return new TaskImageDTO(encoded);
     }
 
+    public TaskResponseDTO deleteImage(int id) {
+        validateId(id);
+        Task task = taskRepository.findById(id).orElse(null);
+        if (task == null || task.getImage() == null) return null;
+
+        task.setImage(null);
+        return toDTO(taskRepository.save(task));
+    }
+
     public List<TaskResponseDTO> searchTasks(TaskResponseDTO dto) {
+        // SQL injection protection
+        validateId(dto.getProjectId());
+        dto.setTitle(sanitizeAndValidateTitle2(dto.getTitle()));
+
         Project project = projectRepository.findById(dto.getProjectId()).orElse(null);
         if (project == null) return List.of();
 
@@ -202,6 +244,89 @@ public class TaskService {
                 task.getFilename(),
                 task.getLastReportGenerated()
         );
+    }
+
+    private String sanitizeAndValidateTitle2(String rawTitle) {
+        if (rawTitle == null || rawTitle.trim().isEmpty()) {
+            return rawTitle;
+        }
+        // HTML and script validation
+        String cleaned = Jsoup.clean(rawTitle.trim(), Safelist.none());
+        String lowered = cleaned.toLowerCase();
+
+        // SQL validation
+        if (lowered.contains("select ") || lowered.contains("insert ") || lowered.contains("update ") ||
+                lowered.contains("delete ") || lowered.contains("drop ") || lowered.contains("alter ") ||
+                lowered.contains("create ") || lowered.contains("--") || lowered.contains(";")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Título sospechoso");
+        }
+
+        if (cleaned.length() > 255) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título es demasiado largo");
+        }
+
+        return cleaned;
+    }
+    private String sanitizeAndValidateTitle(String rawTitle) {
+        if (rawTitle == null || rawTitle.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título no puede estar vacío");
+        }
+
+        // HTML and script validation
+        String cleaned = Jsoup.clean(rawTitle.trim(), Safelist.none());
+        String lowered = cleaned.toLowerCase();
+
+        // SQL validation
+        if (lowered.contains("select ") || lowered.contains("insert ") || lowered.contains("update ") ||
+                lowered.contains("delete ") || lowered.contains("drop ") || lowered.contains("alter ") ||
+                lowered.contains("create ") || lowered.contains("--") || lowered.contains(";")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Título sospechoso");
+        }
+
+        if (cleaned.length() > 255) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título es demasiado largo");
+        }
+
+        return cleaned;
+    }
+    private String sanitizeAndValidateRichText(String rawHtml) {
+        if (rawHtml == null || rawHtml.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La descripción no puede estar vacía");
+        }
+
+        // step 1:
+        String cleanedHtml = Jsoup.clean(rawHtml.trim(), CUSTOM_SAFELIST);
+
+        // step 2: Extract visible text to validate commands
+        String visibleText = Jsoup.parse(cleanedHtml).text().toLowerCase();
+
+        // step 3:
+        if (visibleText.contains("select ") || visibleText.contains("insert ") || visibleText.contains("update ") ||
+                visibleText.contains("delete ") || visibleText.contains("drop ") || visibleText.contains("alter ") ||
+                visibleText.contains("create ") || visibleText.contains("--") || visibleText.contains(";")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Contenido sospechoso en la descripción");
+        }
+
+        // step 4: length validation
+        if (cleanedHtml.length() > 5000) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La descripción es demasiado larga");
+        }
+
+        return cleanedHtml;
+    }
+    private void validateId(Object id) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no puede ser nulo");
+        }
+
+        try {
+            int id2 = Integer.parseInt(String.valueOf(id));
+            if (id2 <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID  inválido");
+            }
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no es un número entero válido");
+        }
     }
 
     // Secure URL fetch method

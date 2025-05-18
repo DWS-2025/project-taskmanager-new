@@ -61,11 +61,17 @@ public class UserRestController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         if (userService.findUserByUsername(dto.getName()) != null)
-            return ResponseEntity.badRequest().body("El nombre de usuario ya existe");
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("El nombre de usuario ya existe");
         if (userService.findUserByEmail(dto.getEmail()) != null)
-            return ResponseEntity.badRequest().body("El email ya est&#225; registrado");
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("El email ya est\u00E1 registrado");
         if (!dto.getPassword().equals(dto.getConfirmPassword()))
-            return ResponseEntity.badRequest().body("Las contrase\u00F1as no coinciden");
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Las contrase\u00F1as no coinciden");
 
         String rawPassword = dto.getPassword();
         String safeEmail = Jsoup.clean(dto.getEmail(), Safelist.none());

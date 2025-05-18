@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface  UserRepository extends JpaRepository<User, Integer> {
+    //secure
     Optional<User> findByName(String name);
+    //secure
     Optional<User> findByEmail(String email);
 
+    //secure
     @Query("""
     SELECT u FROM User u
     WHERE LOWER(u.name) LIKE LOWER(CONCAT(:prefix, '%'))
@@ -23,6 +26,7 @@ public interface  UserRepository extends JpaRepository<User, Integer> {
             @Param("excluded") List<User> excluded
     );
 
+    //secure
     @Query("SELECT g FROM User u JOIN u.groups g WHERE u.id = :id")
     List<Group> findGroupsByUserId(@Param("id") int id);
 

@@ -14,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +46,16 @@ public class GroupService {
     }
 
     public GroupResponseDTO findGroupById(int groupId) {
+        validateId(groupId);
+
         Group group = groupRepository.findById(groupId).orElse(null);
         return (group != null) ? toDTO(group) : null;
     }
 
     public void saveGroup(int id, GroupRequestDTO dto) {
+        validateId(id);
+        validateId(dto.getOwnerID());
+
         Group group = groupRepository.findById(id).orElse(null);
         User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
         if (group != null && owner != null) {
@@ -61,6 +68,8 @@ public class GroupService {
     }
 
     public GroupResponseDTO createGroup(GroupRequestDTO dto) {
+        validateId(dto.getOwnerID());
+
         User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
         if (owner == null) return null;
 
@@ -73,6 +82,9 @@ public class GroupService {
     }
 
     public GroupResponseDTO updateGroup(int id, GroupRequestDTO dto) {
+        validateId(id);
+        validateId(dto.getOwnerID());
+
         Group group = groupRepository.findById(id).orElse(null);
         User owner = userRepository.findById(dto.getOwnerID()).orElse(null);
         if (group == null || owner == null) return null;
@@ -87,6 +99,8 @@ public class GroupService {
 
     public boolean deleteGroup(GroupResponseDTO dto) {
         int id = dto.getId();
+        validateId(id);
+
         if (groupRepository.existsById(id)) {
             List<ProjectResponseDTO> projects = projectService.getGroupProjects(findGroupById(id));
             for (ProjectResponseDTO p : projects) {
@@ -99,6 +113,9 @@ public class GroupService {
     }
 
     public List<UserResponseDTO> getGroupUsers(GroupResponseDTO dto) {
+        // SQL injection protection
+        validateId(dto.getId());
+
         Group group = groupRepository.findByIdWithUsers(dto.getId());
         List<UserResponseDTO> users = new ArrayList<>();
         for (User u : group.getUsers()) {
@@ -107,21 +124,32 @@ public class GroupService {
         return users;
     }
     public List<User> getGroupUsersRaw(GroupResponseDTO dto) {
+        // SQL injection protection
+        validateId(dto.getId());
+
         Group group = groupRepository.findByIdWithUsers(dto.getId());
         return group.getUsers();
     }
 
     @Transactional
     public void addUserToGroup(GroupResponseDTO group, UserResponseDTO user) {
+        validateId(group.getId());
+        validateId(user.getId());
+
         groupRepository.addUserToGroup(group.getId(), user.getId());
     }
 
     @Transactional
     public void removeUserFromGroup(GroupResponseDTO group, UserResponseDTO user) {
+        validateId(group.getId());
+        validateId(user.getId());
+
         groupRepository.deleteUserFromGroup(group.getId(), user.getId()); // deletes at DB
     }
 
     public Page<GroupResponseDTO> getGroupsPaginated(UserResponseDTO currentUser, int page, int size) {
+        validateId(currentUser.getId());
+
         Pageable pageable = PageRequest.of(page, size);
         Page<Group> groups;
 
@@ -151,6 +179,21 @@ public class GroupService {
 
     protected GroupResponseDTO toDTO(Group group) {
         return new GroupResponseDTO(group.getId(), group.getName(), group.getOwner().getId());
+    }
+
+    private void validateId(Object id) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no puede ser nulo");
+        }
+
+        try {
+            int id2 = Integer.parseInt(String.valueOf(id));
+            if (id2 <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID  inválido");
+            }
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no es un número entero válido");
+        }
     }
 
 }

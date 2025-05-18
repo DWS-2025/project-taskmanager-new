@@ -13,8 +13,22 @@ public class UserDetailsService implements org.springframework.security.core.use
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // SQL injection protection
+        if (email == null || email.trim().isEmpty()) {
+            throw new UsernameNotFoundException("Email no válido");
+        }
 
-        return userRepository.findByEmail(email)
+        String sanitizedEmail = email.trim();
+
+        // injection validation
+        String lowered = sanitizedEmail.toLowerCase();
+        if (lowered.contains("select ") || lowered.contains("insert ") || lowered.contains("update ") ||
+                lowered.contains("delete ") || lowered.contains("drop ") || lowered.contains("alter ") ||
+                lowered.contains("--") || lowered.contains(";") || lowered.contains("'") || lowered.contains("\"")) {
+            throw new UsernameNotFoundException("Email inválido o sospechoso");
+        }
+
+        return userRepository.findByEmail(sanitizedEmail)
                 .map(CustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("❌ Usuario no encontrado"));
     }

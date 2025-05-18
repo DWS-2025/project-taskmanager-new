@@ -30,6 +30,11 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", handleEditTask);
         });
 
+        document.querySelectorAll(".btnDeleteImage").forEach(button => {
+            button.removeEventListener("click", handleDeleteImage);
+            button.addEventListener("click", handleDeleteImage);
+        });
+
         document.querySelectorAll(".btnGetLastReport").forEach(button => {
             button.removeEventListener("click", handleGetLatestReport);
             button.addEventListener("click", handleGetLatestReport);
@@ -189,6 +194,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
         modalTask.style.display = "flex";
     }
+    function handleDeleteImage(event) {
+        currentTaskId = event.currentTarget.dataset.taskid;
+
+        authFetch(`/api/tasks/${currentTaskId}/image`, {
+            method: "DELETE"
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    alert("No est\u00E1s autorizado para editar esta tarea.");
+                    throw new Error("UNAUTHORIZED");
+                }
+                if (!response.ok) {
+                    return response.text().then(msg => {
+                        throw new Error(msg || "Error inesperado");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                location.reload();
+            })
+            .catch(error => alert("Error updating task"));
+
+    }
     function handleDeleteTask(event) {
         const taskId = event.target.dataset.taskid;
         if (!taskId) {
@@ -326,13 +356,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const modal = document.createElement("div");
             modal.className = "modalOptions modal";
-            modal.innerHTML = `
-            <div class="modal-content">
-                <h2>${task.title}</h2>
-                <button class="btnDeleteTask" data-taskid="${task.id}">Eliminar Tarea</button>
-                <button class="btnEditTask" data-taskid="${task.id}">Editar Tarea</button>
-            </div>
-        `;
+            let modalContent = `
+                <div class="modal-content">
+                    <h2>${task.title}</h2>
+                    <button class="btnDeleteTask" data-taskid="${task.id}">Eliminar Tarea</button>
+                    <button class="btnEditTask" data-taskid="${task.id}">Editar Tarea</button>
+                    <button class="btnDeleteImage" data-taskid="{{id}}">Quitar Im&aacute;gen</button>
+            `;
+            if (task.filename) {
+                modalContent += `
+                    <button class="btnGetLastReport" data-taskid="${task.id}">Abrir &Uacute;ltimo Informe</button>
+                `;
+            }
+            modalContent += `
+                    <button class="btnGenerateReport" data-taskid="${task.id}">Generar Nuevo Informe</button>
+                </div>
+            `;
+            modal.innerHTML = modalContent;
+
             li.appendChild(modal);
 
             taskList.appendChild(li);
@@ -399,7 +440,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
         });
     }
-
 
     // Initial event setup
     assignEventsButtons();

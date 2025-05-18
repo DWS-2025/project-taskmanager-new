@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!value.includes("@")) {
                 signupEmail.setCustomValidity("El correo debe incluir un '@'");
             } else if (!(value.endsWith("@TMadmin.com") || value.endsWith("@taskmanager.com"))) {
-                signupEmail.setCustomValidity("Dominio inv&#225;lido");
+                signupEmail.setCustomValidity("Dominio inv\u00E1lido");
             } else {
                 signupEmail.setCustomValidity(""); // ✔️ sin errores
             }
@@ -39,12 +39,17 @@ document.addEventListener("DOMContentLoaded", function () {
             signupEmail.reportValidity();
         });
     }
+    function endsWith(str, suffix) {
+        if (typeof str !== 'string' || typeof suffix !== 'string') return false;
+        if (suffix.length > str.length) return false;
+        return str.slice(-suffix.length) === suffix;
+    }
     const signupPassword = document.getElementById("new-password");
     if (signupPassword) {
         signupPassword.addEventListener("input", () => {
             const value = signupPassword.value;
 
-            if (signupEmail.endsWith("@TMadmin.com")) {
+            if (endsWith(signupEmail,"@TMadmin.com")) {
                 signupPassword.setCustomValidity("");
                 return;
             }
@@ -125,6 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function deleteAccount(event) {
         event.preventDefault();
 
+        logout();
 
         let url = `/api/users/${currentUserName}`;
         let method = "DELETE";
@@ -133,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(response => {
                 if (response.ok) {
-                    logout();
+
                 } else {
                     return response.text().then(msg => {
                         alert(`Error: ${msg || "No se pudo eliminar al usuario"}`);

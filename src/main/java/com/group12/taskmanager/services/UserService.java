@@ -11,8 +11,10 @@ import com.group12.taskmanager.repositories.UserRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,15 +41,20 @@ public class UserService {
     }
 
     public UserResponseDTO findUserById(int id) {
+        validateId(id);
         User user = userRepository.findById(id).orElse(null);
         if (user == null) return null;
         return toDTO(user);
     }
     public User findUserByIdRaw(int id) {
+        validateId(id);
         return userRepository.findById(id).orElse(null);
     }
 
     public UserResponseDTO findUserByUsername(String userName) {
+        // SQL injection validation
+        validateUsername(userName);
+
         User user = userRepository.findByName(userName).orElse(null);
         if (user == null) return null;
         return toDTO(user);
@@ -58,20 +65,36 @@ public class UserService {
             return List.of(); // avoid returning all users if query is empty
         }
 
+        // SQL injection protection
+        String sanitizedQuery = q.trim();
+        String lowered = sanitizedQuery.toLowerCase();
+        if (lowered.contains("select ") || lowered.contains("insert ") || lowered.contains("update ") ||
+                lowered.contains("delete ") || lowered.contains("drop ") || lowered.contains("alter ") ||
+                lowered.contains("--") || lowered.contains(";") || lowered.contains("'") || lowered.contains("\"")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Consulta de búsqueda inválida");
+        }
+
+        validateId(group.getId());
+
         List<User> groupUsers = groupService.getGroupUsersRaw(group);
-        return userRepository.findByNameStartingWithExcludingGroup(q.trim(), groupUsers)
+        return userRepository.findByNameStartingWithExcludingGroup(sanitizedQuery, groupUsers)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     public UserResponseDTO findUserByEmail(String email) {
+        validateUserEmail(email);
+
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return null;
         return toDTO(user); // Custom repo method used
     }
 
     public void createUser(UserRequestDTO dto) {
+        validateUsername(dto.getName());
+        validateUserEmail(dto.getEmail());
+
         String rawPassword = dto.getPassword();
         if (!dto.getPassword().matches("[a-fA-F0-9]{64}")) {         // sha256 validation
             throw new IllegalArgumentException("El nuevo password debe estar en formato SHA256");
@@ -96,6 +119,10 @@ public class UserService {
     }
 
     public UserResponseDTO updateUser(int id, UserRequestDTO dto) {
+        validateId(id);
+        validateUserEmail(dto.getEmail());
+        validateUsername(dto.getName());
+
         User user = userRepository.findById(id).orElse(null);
         if (user == null) return null;
 
@@ -121,6 +148,8 @@ public class UserService {
     }
 
     public boolean deleteUser(UserResponseDTO dto) {
+        validateId(dto.getId());
+
         int userId = dto.getId();
 
         try {
@@ -158,6 +187,8 @@ public class UserService {
 
     // Find the user's personal group named "USER_<username>"
     public GroupResponseDTO findPersonalGroup(UserResponseDTO dto) {
+        validateId(dto.getId());
+
         UserResponseDTO user = findUserById(dto.getId());
         if (user == null) return null;
 
@@ -171,19 +202,12 @@ public class UserService {
     }
 
     public List<GroupResponseDTO> getUserGroups(UserResponseDTO user) {
+        validateId(user.getId());
+
         List<Group> userGroups = userRepository.findGroupsByUserId(user.getId());
         return userGroups.stream()
                 .map(groupService::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    public boolean validatePassword(UserResponseDTO user, String password) {
-        User user1 = userRepository.findById(user.getId()).orElse(null);
-        if (user1 == null) return false;
-        if (userRepository.existsById(user.getId())) {
-            return (user1.getPassword().equals(password));
-        }
-        return false;
     }
 
     protected UserResponseDTO toDTO(User user) {
@@ -193,6 +217,56 @@ public class UserService {
                 user.getEmail(),
                 user.getRole()
         );
+    }
+
+    private void validateId(Object id) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no puede ser nulo");
+        }
+
+        try {
+            int id2 = Integer.parseInt(String.valueOf(id));
+            if (id2 <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID  inválido");
+            }
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no es un número entero válido");
+        }
+    }
+    private void validateUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de usuario no puede estar vacío");
+        }
+
+        String sanitized = username.trim();
+        String lowered = sanitized.toLowerCase();
+
+        if (lowered.contains("select ") || lowered.contains("insert ") || lowered.contains("update ") ||
+                lowered.contains("delete ") || lowered.contains("drop ") || lowered.contains("alter ") ||
+                lowered.contains("--") || lowered.contains(";") || lowered.contains("'") || lowered.contains("\"")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de usuario sospechoso");
+        }
+
+        if (sanitized.length() < 3 || sanitized.length() > 50) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre de usuario debe tener entre 3 y 50 caracteres");
+        }
+
+        if (!sanitized.matches("^[\\w.-]+$")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de usuario con caracteres no permitidos");
+        }
+    }
+
+    private void validateUserEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email no válido");
+        }
+
+        String sanitized = email.trim().toLowerCase();
+        if (sanitized.contains("select ") || sanitized.contains("insert ") || sanitized.contains("update ") ||
+                sanitized.contains("delete ") || sanitized.contains("drop ") || sanitized.contains("alter ") ||
+                sanitized.contains("--") || sanitized.contains(";") || sanitized.contains("'") || sanitized.contains("\"")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email sospechoso");
+        }
     }
 
 }

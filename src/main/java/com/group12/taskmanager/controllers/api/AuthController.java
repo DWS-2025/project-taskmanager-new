@@ -80,6 +80,7 @@ public class AuthController {
                 .build();
 
         response.setHeader("Set-Cookie", cleared.toString());
+        response.addHeader("Set-Cookie", clearedCsrf.toString());
 
         return ResponseEntity.ok().build();
     }

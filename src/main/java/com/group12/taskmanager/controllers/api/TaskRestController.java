@@ -58,6 +58,10 @@ public class TaskRestController {
         UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
         return accessManager.checkTaskOwnership(task, currentUser);
     }
+    private boolean verifyTaskAccess(TaskResponseDTO task, CustomUserDetails userDetails) {
+        UserResponseDTO currentUser = userService.findUserByEmail(userDetails.getUsername());
+        return accessManager.checkTaskAccess(task, currentUser);
+    }
 
     @GetMapping("/search")
     public ResponseEntity<List<TaskResponseDTO>> searchTasks(@RequestParam(required = false) String title,
@@ -124,11 +128,21 @@ public class TaskRestController {
     public ResponseEntity<TaskImageDTO> getImage(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         TaskResponseDTO task = taskService.findTaskById(id);
 
-        if (!verifyTaskOwnership(task, userDetails))
+        if (!verifyTaskAccess(task, userDetails))
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         TaskImageDTO image = taskService.getImage(id);
         return (image != null) ? ResponseEntity.ok(image) : ResponseEntity.notFound().build();
+    }
+    @DeleteMapping("/{id}/image")
+    public ResponseEntity<?> deleteImage(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        TaskResponseDTO task = taskService.findTaskById(id);
+
+        if (!verifyTaskOwnership(task, userDetails))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        TaskResponseDTO imageDeleted = taskService.deleteImage(id);
+        return (imageDeleted != null) ? ResponseEntity.ok(imageDeleted) : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/{id}/file")

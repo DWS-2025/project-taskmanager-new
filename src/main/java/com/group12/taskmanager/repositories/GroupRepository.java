@@ -10,17 +10,21 @@ import org.springframework.data.domain.Page;
 
 public interface GroupRepository extends JpaRepository<Group, Integer> {
 
+    //secure
     @Query("SELECT g FROM Group g LEFT JOIN FETCH g.users WHERE g.id = :groupId")
     Group findByIdWithUsers(@Param("groupId") int groupId);
 
+    //secure
     @Modifying
     @Query(value = "DELETE FROM group_user WHERE group_id = :groupId AND user_id = :userId", nativeQuery = true)
     void deleteUserFromGroup(@Param("groupId") int groupId, @Param("userId") int userId);
 
+    //secure
     @Modifying
     @Query(value = "INSERT INTO group_user (group_id, user_id) VALUES (:groupId, :userId)", nativeQuery = true)
     void addUserToGroup(@Param("groupId") int groupId, @Param("userId") int userId);
 
+    //secure
     @Query("SELECT g FROM Group g JOIN g.users u WHERE u = :user")
     Page<Group> findByUsersContains(@Param("user") User user, Pageable pageable);
 }

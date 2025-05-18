@@ -18,7 +18,9 @@ import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,15 +53,19 @@ public class ProjectService {
     }
 
     public ProjectResponseDTO findProjectById(int id) {
+        validateId(id);
         Project project = projectRepository.findById(id).orElse(null);
         return (project != null) ? toDTO(project) : null;
     }
     // Compatibility: allow access to entity for Mustache views
     public Project findProjectByIdRaw(int id) {
+        validateId(id);
         return projectRepository.findById(id).orElse(null);
     }
 
     public ProjectResponseDTO createProject(ProjectRequestDTO dto) {
+        validateId(dto.getGroupId());
+
         Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
         if (group == null) return null;
 
@@ -73,6 +79,9 @@ public class ProjectService {
     }
 
     public ProjectResponseDTO updateProject(int id, ProjectRequestDTO dto) {
+        validateId(id);
+        validateId(dto.getGroupId());
+
         Project project = projectRepository.findById(id).orElse(null);
         Group group = groupRepository.findById(dto.getGroupId()).orElse(null);
         if (project == null || group == null) return null;
@@ -88,6 +97,8 @@ public class ProjectService {
 
     public boolean deleteProject(ProjectResponseDTO dto) {
         int id = dto.getId();
+        validateId(id);
+
         if (projectRepository.existsById(id)) {
             List<TaskResponseDTO> tasks = taskService.getProjectTasks(findProjectById(id));
             for (TaskResponseDTO task : tasks) {
@@ -100,6 +111,9 @@ public class ProjectService {
     }
 
     public List<ProjectResponseDTO> getGroupProjects(GroupResponseDTO group) {
+        // SQL injection protection
+        validateId(group.getId());
+
         List<Project> projects = projectRepository.findByGroup_Id(group.getId());
         List<ProjectResponseDTO> projectsDTO = new ArrayList<>();
         for (Project project : projects) {
@@ -112,7 +126,9 @@ public class ProjectService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Project> projects;
 
-        if (currentUser.getRole().equals(globalConstants.getAdminRole())) { //if its admin it can see every project
+        validateId(currentUser.getId());
+
+        if (currentUser.getRole().equals(globalConstants.getAdminRole())) { //admin can see every project
             projects =  projectRepository.findAll(pageable);
         } else {
             User userEntity = userRepository.findById(currentUser.getId())
@@ -135,6 +151,21 @@ public class ProjectService {
         boolean isOwner = user.getRole().equals(globalConstants.getAdminRole()) || project.getGroup().getOwner().getId() == userId;
         dto.setOwner(isOwner);
         return dto;
+    }
+
+    private void validateId(Object id) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no puede ser nulo");
+        }
+
+        try {
+            int id2 = Integer.parseInt(String.valueOf(id));
+            if (id2 <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID inválido");
+            }
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID no es un número entero válido");
+        }
     }
 
 }
