@@ -1,6 +1,14 @@
 # 🗂 Task Manager
 
-*Task Manager* is a web application designed to help users organize their personal and collaborative work. Users can create projects, add tasks within those projects, and group them for better team coordination. Whether you're managing your own to-dos or working with others, Task Manager makes it easy to plan and track tasks across multiple projects.
+*Task Manager* is a web application designed to help users organize their personal and collaborative work.
+
+It allows its users to be grouped into workgroups, of which there is an user owner. This is the one that can add or remove members of the group, or assign the ownership to another user belonging to the group. Users as members can leave the groups at will.
+
+Users can create projects and assign them to a group, and the assignment can be changed to any group that the owner user owns. Each user has their own personal group for private projects, and participants in a group can work on all the projects assigned to that group.
+
+Within projects, tasks can be created, consisting of a title, a rich text description, and the ability to upload an associated image. Tasks also have the possibility to generate a PDF report of them, there is the possibility to consult the last report generated, or generate a new one. Each user is the owner of his created tasks, which means that only he can modify them, or perform operations with the reports.
+
+Users with ROLE_ADMIN will be able to access and modify all groups and projects, and the tasks of each of these. They will also be able to manage the members and property of any group, as well as being able to reassign any project to any group. These users can also list and delete all users, except the admins.
 
 ---
     
@@ -31,29 +39,21 @@ The application manages the following main entities, which can be created, edite
 | Anonymous user           | Only can access to Login and Logup, and in first instance, to /projects                                                                                             |
 | Regular User (ROLE_USER) | Can edit, delete their profile and data, create new projects, and leave the groups they are part of. The user will only be able to see the groups they are part of. |
 | Owner User (ROLE_USER)   | As a regular user, but can manage the group it is owner of, this means add and remove people, and the possibility of change the ownership.                          |
-| Admin User (ROLE_ADMIN)  | It is like the owner of every group (and project).                                                                                                                  |
-
-> *Note:*  In this phase, the entities are stored in the database
+| Admin User (ROLE_ADMIN)  | It is like the owner of every group (and project). They can also list and delete all users                                                                                                                 |
 
 ---
 
 ## 🖼 Task Images
 
-When creating tasks, users have the option to attach images as complementary material.  
+In the cration of a task, users have the option to attach images as complementary material.  
 This feature allows for better visualization, the inclusion of references, or sharing of additional context for each task.
-
-For example, you can:
-
-- Attach screenshots related to the task.
-- Add visual references or mockups.
-- Include any supporting images that help describe the task clearly.
 
 ---
 
 ## 📄 Reports
 
-You can download a report of a Task in PDF, or obtain the last report generated
-Be careful because only the creator of the Task can modify or generate report
+You can download a report of a Task in PDF, or get the last generated report 
+Be careful because only the creator of the task can modify or generate reports
 
 ---
 
@@ -61,7 +61,7 @@ Be careful because only the creator of the Task can modify or generate report
 
 ![Database diagram](src/main/resources/static/img/diagrama.png)
 
-This diagram illustrates the main entities of the application and their relationships, including a many-to-many association between users and companies through likes.
+This diagram illustrates the main entities of the application and their relationships, including a many-to-many association between users and groups.
 
 ---
 
@@ -79,5 +79,4 @@ It's included a Postman collection to test the REST API of this project.
 
 - File: src/main/resources/postman/RestControllers.postman_collection.zip
 
-> You have to set the cookies like JWT, and specify fields like "challenge"
-when submitting forms
+> You have to set cookies, like the "jwt" or the "XSRF-TOKEN", when sending POST, PUT or DELETE requests, and some fields like "challenge" in login or registration requests
